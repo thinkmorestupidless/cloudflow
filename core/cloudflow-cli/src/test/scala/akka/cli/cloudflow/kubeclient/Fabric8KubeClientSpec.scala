@@ -11,6 +11,7 @@ import scala.io.Source
 import akka.cli.cloudflow.{ CliLogger, Setup }
 import akka.cli.cloudflow.models.CRSummary
 import io.fabric8.kubernetes.api.model.{ NamespaceBuilder, SecretBuilder }
+import io.fabric8.kubernetes.client.{ Config, KubernetesClient, KubernetesClientBuilder }
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest._
@@ -21,6 +22,14 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
   implicit val testingLogger = new CliLogger(None)
 
   val server = new KubernetesServer(false)
+
+  /** Creates a KubernetesClient connected to the mock server with Scala deserialization support. */
+  def testClient(ignored: Config): KubernetesClient =
+    new KubernetesClientBuilder()
+      .withConfig(server.getClient().getConfiguration)
+      .withKubernetesSerialization(Setup.kubernetesSerialization())
+      .build()
+
   def setupCr() = {
     val swissKnifeCr = Source
       .fromResource("swiss-knife-cr.json")
@@ -44,7 +53,9 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
 
     server.expect.get
       .withPath("/apis/cloudflow.lightbend.com/v1alpha1/namespaces/my-ns/cloudflowapplications")
-      .andReturn(HttpURLConnection.HTTP_OK, "{}")
+      .andReturn(
+        HttpURLConnection.HTTP_OK,
+        """{"apiVersion":"cloudflow.lightbend.com/v1alpha1","kind":"CloudflowApplicationList","items":[]}""")
       .once
 
     server.expect.get
@@ -67,7 +78,7 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
 
     // Act
     val apps =
-      new KubeClientFabric8(None, (_) => server.getClient).listCloudflowApps(None)
+      new KubeClientFabric8(None, testClient).listCloudflowApps(None)
 
     // Assert
     apps.isSuccess shouldBe true
@@ -81,7 +92,7 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
 
     // Act
     val apps =
-      new KubeClientFabric8(None, (_) => server.getClient).listCloudflowApps(Some("my-ns"))
+      new KubeClientFabric8(None, testClient).listCloudflowApps(Some("my-ns"))
 
     // Assert
     apps.isSuccess shouldBe true
@@ -94,7 +105,7 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
 
     // Act
     val status =
-      new KubeClientFabric8(None, (_) => server.getClient).getCloudflowAppStatus("swiss-knife", "swiss-knife")
+      new KubeClientFabric8(None, testClient).getCloudflowAppStatus("swiss-knife", "swiss-knife")
 
     // Assert
     status.isSuccess shouldBe true
@@ -106,7 +117,7 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   it should "create a namespace" in {
     // Arrange
-    val client = new KubeClientFabric8(None, (_) => server.getClient)
+    val client = new KubeClientFabric8(None, testClient)
 
     val exampleNamespace = new NamespaceBuilder().withNewMetadata().withName("example").endMetadata().build()
     server.expect.post
@@ -128,7 +139,7 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   it should "create docker credentials" in {
     // Arrange
-    val client = new KubeClientFabric8(None, (_) => server.getClient)
+    val client = new KubeClientFabric8(None, testClient)
 
     val exampleNamespace = new NamespaceBuilder().withNewMetadata().withName("example").endMetadata().build()
     server.expect.get

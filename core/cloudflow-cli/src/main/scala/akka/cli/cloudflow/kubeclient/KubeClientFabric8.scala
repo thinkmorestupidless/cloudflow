@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2020-2026 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.cli.cloudflow.kubeclient
@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{ Failure, Success, Try }
 import akka.cli.cloudflow.kubeclient.KubeClient._
 import akka.datap.crd.App
-import akka.cli.cloudflow.{ models, CliException, CliLogger }
+import akka.cli.cloudflow.{ models, CliException, CliLogger, Setup }
 import akka.cli.common.Base64Helper
 import buildinfo.BuildInfo
 import com.fasterxml.jackson.annotation.{ JsonCreator, JsonProperty }
@@ -26,10 +26,9 @@ import io.fabric8.kubernetes.api.model.{
 }
 import io.fabric8.kubernetes.client.dsl.{ MixedOperation, Resource }
 import io.fabric8.kubernetes.client.utils.Serialization
-import io.fabric8.kubernetes.client.{ Config, DefaultKubernetesClient, KubernetesClient }
+import io.fabric8.kubernetes.client.{ Config, KubernetesClient, KubernetesClientBuilder }
 
 import scala.io.Source
-import scala.sys.process.{ Process, ProcessIO }
 
 object KubeClientFabric8 {
   @JsonDeserialize(using = classOf[JsonDeserializer.None])
@@ -50,7 +49,11 @@ object KubeClientFabric8 {
 
 class KubeClientFabric8(
     val config: Option[File],
-    clientFactory: Config => KubernetesClient = new DefaultKubernetesClient(_))(implicit val logger: CliLogger)
+    clientFactory: Config => KubernetesClient = (cfg: Config) =>
+      new KubernetesClientBuilder()
+        .withConfig(cfg)
+        .withKubernetesSerialization(Setup.kubernetesSerialization())
+        .build())(implicit val logger: CliLogger)
     extends KubeClient {
   import KubeClientFabric8._
 
@@ -63,33 +66,12 @@ class KubeClientFabric8(
         .getOrElse(Config.autoConfigure(null))
     }
 
-    val client = {
-      val _client = clientFactory(getConfig())
-      Try {
-        _client.secrets().list().getItems()
-        _client
-      }.recover {
-        case ex: Throwable =>
-          // WORKAROUND for:
-          // https://github.com/fabric8io/kubernetes-client/issues/2112#issue-594548439
-          // not implemented yet:
-          // https://github.com/fabric8io/kubernetes-client/issues/2612#issuecomment-748809432
-          Try {
-            logger.warn("Workaround to refresh credentials leveraging `kubectl`", ex)
-            val processIo = new ProcessIO(_ => (), _ => (), _ => ())
-            Process(Seq("kubectl", "get", "pods")).run(processIo).exitValue()
-            _client.close()
-          }
-          clientFactory(getConfig())
-      }
-    }
-
-    client
+    clientFactory(getConfig())
   }.recover {
     case ex: Throwable =>
       logger.error("Failed to create the kubernetes client", ex)
       throw ex
-  }.flatten
+  }
 
   private def withClient[T](fn: KubernetesClient => Try[T]): Try[T] = {
     for {
@@ -102,9 +84,10 @@ class KubeClientFabric8(
 
   private def getCloudflowApplicationsClient(client: KubernetesClient) =
     Try {
-      val cloudflowClient = {
-        client.customResources(App.customResourceDefinitionContext, classOf[App.Cr], classOf[App.List])
-      }
+      val cloudflowClient =
+        client
+          .resources(classOf[App.Cr])
+          .asInstanceOf[MixedOperation[App.Cr, App.List, Resource[App.Cr]]]
 
       cloudflowClient
     }.recoverWith {
@@ -583,7 +566,8 @@ class KubeClientFabric8(
 
       cloudflowApps
         .inNamespace(namespace)
-        .delete(app)
+        .withName(app.getMetadata.getName)
+        .delete()
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2020-2026 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.datap.crd
@@ -78,7 +78,7 @@ object App {
       .withNewSpec()
       .withGroup(GroupName)
       .withNewNames()
-      .withNewKind(Kind)
+      .withKind(Kind)
       .withListKind(KindList)
       .withSingular(Singular)
       .withPlural(Plural)
@@ -99,9 +99,11 @@ object App {
   @Kind(Kind)
   @Plural(Plural)
   final case class Cr(
+      @JsonProperty("spec")
       _spec: Spec,
       @JsonProperty("metadata")
       _metadata: ObjectMeta,
+      @JsonProperty("status")
       _status: AppStatus = null)
       extends CustomResource[Spec, AppStatus]
       with Namespaced {
@@ -112,6 +114,14 @@ object App {
     override def initStatus = _status
     def name: String = getMetadata.getName()
     def namespace: String = getMetadata.getNamespace()
+    // Override equals/hashCode because fabric8 6.x added CustomResource.equals() which
+    // accesses this.metadata (set via setMetadata) and NPEs when _metadata is null.
+    // Scala 2 does not generate equals for case classes whose superclass already defines it.
+    override def equals(obj: Any): Boolean = obj match {
+      case that: Cr => _spec == that._spec && _metadata == that._metadata && _status == that._status
+      case _        => false
+    }
+    override def hashCode: Int = scala.util.hashing.MurmurHash3.productHash(this)
   }
 
   @JsonCreator
