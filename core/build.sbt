@@ -1,5 +1,7 @@
 Global / cancelable := true
 
+ThisBuild / resolvers ++= LightbendCredentials.lightbendResolvers
+
 lazy val tooling =
   Project(id = "tooling", base = file("tooling"))
     .dependsOn(cloudflowCli)
@@ -11,7 +13,6 @@ lazy val cloudflowCrd =
     .settings(
       name := "cloudflow-crd",
       scalaVersion := Dependencies.Scala213,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
       // make version compatible with docker for publishing
       ThisBuild / dynverSeparator := "-",
       Defaults.itSettings)
@@ -113,7 +114,7 @@ lazy val cloudflowCli =
         }
       })
     .enablePlugins(BuildInfoPlugin, GraalVMNativeImagePlugin)
-    .dependsOn(cloudflowConfig, cloudflowRunnerConfig213)
+    .dependsOn(cloudflowConfig, cloudflowRunnerConfig)
 
 lazy val cloudflowIt =
   Project(id = "cloudflow-it", base = file("cloudflow-it"))
@@ -134,6 +135,7 @@ lazy val cloudflowNewItLibrary =
 lazy val cloudflowNewIt =
   Project(id = "cloudflow-new-it", base = file("cloudflow-new-it"))
     .settings(
+      // ScriptedPlugin runs inside the SBT process (Scala 2.12); must stay at 2.12.
       scalaVersion := Dependencies.Scala212,
       scriptedLaunchOpts := {
         scriptedLaunchOpts.value ++
@@ -193,6 +195,9 @@ addCommandAlias(
   s""";project tooling ; set run / fork := true; set run / javaOptions += "-agentlib:native-image-agent=config-output-dir=${file(
     ".").getAbsolutePath}/cloudflow-cli/src/main/resources/META-INF/native-image"; runMain cli.CodepathCoverageMain""")
 
+// cloudflowBlueprint cross-compiles for both Scala 2.12 (consumed by cloudflow-sbt-plugin) and
+// Scala 2.13 (consumed by cloudflow-operator and cloudflow-localrunner). sbt-cross is retained
+// solely for this project; all other modules are Scala 2.13 only.
 lazy val cloudflowBlueprintCross = cloudflowBlueprint.cross
 lazy val cloudflowBlueprint213 = cloudflowBlueprintCross(Dependencies.Scala213)
 lazy val cloudflowBlueprint212 = cloudflowBlueprintCross(Dependencies.Scala212)
@@ -203,8 +208,7 @@ lazy val cloudflowAvro =
     .enablePlugins(GenJavadocPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowAvro)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true)
 
 lazy val cloudflowBlueprint =
@@ -247,7 +251,11 @@ lazy val cloudflowOperator =
       dockerRepository := sys.props.get("docker.registry"),
       dockerBaseImage := "adoptopenjdk/openjdk11:alpine-jre")
     .settings(dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0"))
+    .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat)
 
+// cloudflow-extractor, cloudflow-build-support, cloudflow-cr-generator, and
+// cloudflow-maven-plugin remain on Scala 2.12 because cloudflow-sbt-plugin (an SBT 1.x
+// plugin, which must compile with Scala 2.12) depends on them.
 lazy val cloudflowExtractor =
   Project(id = "cloudflow-extractor", base = file("cloudflow-extractor"))
     .enablePlugins(ScalafmtPlugin, BuildInfoPlugin)
@@ -264,8 +272,7 @@ lazy val cloudflowProto =
     .enablePlugins(GenJavadocPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowProto)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true)
 
 lazy val cloudflowSbtPlugin =
@@ -290,17 +297,12 @@ lazy val cloudflowSbtPlugin =
       },
       scriptedBufferLog := false)
 
-lazy val cloudflowRunnerConfigCross = cloudflowRunnerConfig.cross
-lazy val cloudflowRunnerConfig213 = cloudflowRunnerConfigCross(Dependencies.Scala213)
-lazy val cloudflowRunnerConfig212 = cloudflowRunnerConfigCross(Dependencies.Scala212)
-
 lazy val cloudflowRunnerConfig =
   Project(id = "cloudflow-runner-config", base = file("cloudflow-runner-config"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowRunnerConfig)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true)
 
 lazy val cloudflowStreamlets =
@@ -308,8 +310,7 @@ lazy val cloudflowStreamlets =
     .enablePlugins(GenJavadocPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowStreamlet)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true)
 
 lazy val cloudflowAkka =
@@ -318,8 +319,7 @@ lazy val cloudflowAkka =
     .dependsOn(cloudflowStreamlets)
     .settings(Dependencies.cloudflowAkka)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       javacOptions += "-Xlint:deprecation",
       scalafmtOnCompile := true)
 
@@ -329,8 +329,7 @@ lazy val cloudflowAkkaTestkit =
     .dependsOn(cloudflowAkka, (cloudflowAvro % "test->test").classpathDependency)
     .settings(Dependencies.cloudflowAkkaTestkit)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true,
       javacOptions ++= Seq("-Xlint:deprecation", "-Xlint:unchecked"),
       (Test / sourceGenerators) += (Test / avroScalaGenerateSpecific).taskValue)
@@ -341,8 +340,7 @@ lazy val cloudflowAkkaUtil =
     .dependsOn(cloudflowAkka, (cloudflowAkkaTestkit % "test->test").classpathDependency)
     .settings(Dependencies.cloudflowAkkaUtil)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true,
       javacOptions += "-Xlint:deprecation",
       (Test / sourceGenerators) += (Test / avroScalaGenerateSpecific).taskValue)
@@ -353,8 +351,7 @@ lazy val cloudflowAkkaTests =
     .dependsOn(cloudflowAkka, (cloudflowAkkaTestkit % "test->test").classpathDependency)
     .settings(Dependencies.cloudflowAkkaTests)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true,
       javacOptions += "-Xlint:deprecation",
       inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
@@ -367,8 +364,7 @@ lazy val cloudflowRunner =
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
     .dependsOn(cloudflowStreamlets)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true,
       Compile / packageBin / artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
         "runner" + "." + artifact.extension
@@ -389,10 +385,9 @@ lazy val cloudflowRunner =
 lazy val cloudflowLocalRunner =
   Project(id = "cloudflow-localrunner", base = file("cloudflow-localrunner"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
-    .dependsOn(cloudflowStreamlets, cloudflowBlueprint, cloudflowRunnerConfig)
+    .dependsOn(cloudflowStreamlets, cloudflowBlueprint213, cloudflowRunnerConfig)
     .settings(
-      scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212, Dependencies.Scala213),
+      scalaVersion := Dependencies.Scala213,
       scalafmtOnCompile := true)
 
 lazy val cloudflowCrGenerator =
@@ -414,7 +409,6 @@ lazy val cloudflowBuildSupport =
     .settings(Dependencies.cloudflowBuildSupport)
     .settings(
       scalaVersion := Dependencies.Scala212,
-      crossScalaVersions := Vector(Dependencies.Scala212),
       scalafmtOnCompile := true)
 
 lazy val cloudflowMavenPlugin =
@@ -425,7 +419,6 @@ lazy val cloudflowMavenPlugin =
     .settings(
       crossPaths := false,
       crossVersion := CrossVersion.disabled,
-      crossScalaVersions := Vector(Dependencies.Scala212),
       scalaVersion := Dependencies.Scala212,
       scalafmtOnCompile := true)
 

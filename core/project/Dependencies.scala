@@ -3,70 +3,69 @@ import sbt._
 
 object Dependencies {
 
-  val Scala212 = "2.12.15" // has to be the very same as sbt
+  val Scala212 = "2.12.15" // retained for cloudflow-sbt-plugin (SBT 1.x plugin constraint) and its dependencies
   val Scala213 = "2.13.8"
 
   object Versions {
-    val akka = "2.6.20"
-    val akkaHttp = "10.2.10"
-    val akkaGrpc = "2.1.6"
-    val alpakkaKafka = "2.1.1"
-    val akkaMgmt = "1.1.4"
-    val spark = "2.4.5"
-    val fabric8 = "5.0.3"
-    val jackson = "2.14.1"
-    //TODO remove jacksonDatabind when jackson 2.13.3 plus excludes in avro and jacksonScala
-    val jacksonDatabind = "2.14.1"
-    val slf4j = "1.7.30"
-    val scalaTest = "3.2.14"
-    val maven = "3.8.5"
+    val akka          = "2.6.20"
+    val akkaHttp      = "10.2.10"
+    val akkaGrpc      = "2.1.6"
+    val alpakkaKafka  = "2.1.1"
+    val akkaMgmt      = "1.1.4"
+    val spark         = "2.4.5"
+    val fabric8       = "6.13.4"
+    val jackson       = "2.17.2"
+    val jacksonDatabind = "2.17.2"
+    val scalaTest     = "3.2.18"
+    val maven         = "3.9.8"
   }
 
   object Compile {
     val fabric8KubernetesClient = "io.fabric8" % "kubernetes-client" % Versions.fabric8
 
-    val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
-    val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.17.1"
+    val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
+    val pureConfig     = "com.github.pureconfig" %% "pureconfig" % "0.17.7"
     val scopt =
       "com.github.scopt" %% "scopt" % "4.1.0" // FIXME generating docs for CLI fails with concurrent modification with 2.13 and this version.
-    val airframeLog = "org.wvlet.airframe" %% "airframe-log" % "22.5.0"
-    val asciiTable = "de.vandermeer" % "asciitable" % "0.3.2"
+    val airframeLog = "org.wvlet.airframe" %% "airframe-log" % "24.9.0"
+    val asciiTable  = "de.vandermeer" % "asciitable" % "0.3.2"
 
-    val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
+    val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
 
-    val scalatest = "org.scalatest" %% "scalatest" % Versions.scalaTest
+    val scalatest             = "org.scalatest" %% "scalatest" % Versions.scalaTest
     val scalatestMustMatchers = "org.scalatest" %% "scalatest-mustmatchers" % Versions.scalaTest
     // These two dependencies are required to be present at runtime by fabric8, specifically its pod file read methods.
     // Reference:
     // https://github.com/fabric8io/kubernetes-client/blob/0c4513ff30ac9229426f1481a46fde2eb54933d9/kubernetes-client/src/main/java/io/fabric8/kubernetes/client/dsl/internal/core/v1/PodOperationsImpl.java#L451
-    val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
-    val commonsCompress = "org.apache.commons" % "commons-compress" % "1.21"
+    val commonsCodec     = "commons-codec" % "commons-codec" % "1.17.1"
+    val commonsCompress  = "org.apache.commons" % "commons-compress" % "1.27.1"
 
-    val bouncyCastleCore = "org.bouncycastle" % "bcpkix-jdk15on" % "1.70"
-    val bouncyCastleExt = "org.bouncycastle" % "bcprov-ext-jdk15on" % "1.70"
+    // Artifact IDs changed from jdk15on to jdk18on in BouncyCastle 1.72+
+    val bouncyCastleCore = "org.bouncycastle" % "bcpkix-jdk18on" % "1.78.1"
+    val bouncyCastleExt  = "org.bouncycastle" % "bcprov-ext-jdk18on" % "1.78.1"
 
-    val akkaActor = "com.typesafe.akka" %% "akka-actor" % Versions.akka
-    val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka
-    val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
-    val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka
-    val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
-    val akkaProtobuf = "com.typesafe.akka" %% "akka-protobuf" % Versions.akka
-    val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
-    val akkaShardingTyped = "com.typesafe.akka" %% "akka-cluster-sharding-typed" % Versions.akka
-    val akkaCluster = "com.typesafe.akka" %% "akka-cluster" % Versions.akka
+    val akkaActor          = "com.typesafe.akka" %% "akka-actor" % Versions.akka
+    val akkaTestkit        = "com.typesafe.akka" %% "akka-testkit" % Versions.akka
+    val akkaStream         = "com.typesafe.akka" %% "akka-stream" % Versions.akka
+    val akkaStreamTestkit  = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka
+    val akkaSlf4j          = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
+    val akkaProtobuf       = "com.typesafe.akka" %% "akka-protobuf" % Versions.akka
+    val akkaDiscovery      = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
+    val akkaShardingTyped  = "com.typesafe.akka" %% "akka-cluster-sharding-typed" % Versions.akka
+    val akkaCluster        = "com.typesafe.akka" %% "akka-cluster" % Versions.akka
 
-    val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
+    val akkaHttp          = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     val akkaHttpSprayJson = "com.typesafe.akka" %% "akka-http-spray-json" % Versions.akkaHttp
-    val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
+    val akkaHttp2Support  = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
 
     val akkaStreamKafka = ("com.typesafe.akka" %% "akka-stream-kafka" % Versions.alpakkaKafka)
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-    val akkaStreamKafaSharding = "com.typesafe.akka" %% "akka-stream-kafka-cluster-sharding" % Versions.alpakkaKafka
-    val akkaStreamKafkaTestkit = ("com.typesafe.akka" %% "akka-stream-kafka-testkit" % Versions.alpakkaKafka)
+    val akkaStreamKafaSharding  = "com.typesafe.akka" %% "akka-stream-kafka-cluster-sharding" % Versions.alpakkaKafka
+    val akkaStreamKafkaTestkit  = ("com.typesafe.akka" %% "akka-stream-kafka-testkit" % Versions.alpakkaKafka)
       .exclude("com.typesafe.akka", "akka-stream-testkit")
 
-    val akkaManagement = "com.lightbend.akka.management" %% "akka-management" % Versions.akkaMgmt
+    val akkaManagement      = "com.lightbend.akka.management" %% "akka-management" % Versions.akkaMgmt
     val akkaClusterBootstrap =
       "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % Versions.akkaMgmt
     val akkaDiscoveryK8 = "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % Versions.akkaMgmt
@@ -74,39 +73,40 @@ object Dependencies {
     val akkaGrpcRuntime = "com.lightbend.akka.grpc" %% "akka-grpc-runtime" % Versions.akkaGrpc
 
     val akkaStreamContrib = "com.typesafe.akka" %% "akka-stream-contrib" % "0.11"
-    val avro = ("org.apache.avro" % "avro" % "1.11.1")
+    val avro = ("org.apache.avro" % "avro" % "1.12.0")
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
 
-    val jacksonCore = "com.fasterxml.jackson.core" % "jackson-core" % Versions.jackson
+    val jacksonCore    = "com.fasterxml.jackson.core" % "jackson-core" % Versions.jackson
     val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % Versions.jacksonDatabind
-    val jacksonScala = ("com.fasterxml.jackson.module" %% "jackson-module-scala" % Versions.jackson)
+    val jacksonScala   = ("com.fasterxml.jackson.module" %% "jackson-module-scala" % Versions.jackson)
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
 
-    val slf4jApi = "org.slf4j" % "slf4j-api" % "2.0.3"
-    val sprayJson = "io.spray" %% "spray-json" % "1.3.6"
+    val slf4jApi     = "org.slf4j" % "slf4j-api" % "2.0.3"
+    val sprayJson    = "io.spray" %% "spray-json" % "1.3.6"
     val scalaPbRuntime = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion
 
     val bijection = "com.twitter" %% "bijection-avro" % "0.9.7"
 
     val ficus = "com.iheart" %% "ficus" % "1.5.2"
 
-    val kubeActions = "com.lightbend.akka" %% "kube-actions" % "0.1.1"
+    // kube-actions was vendored into cloudflow-operator for fabric8 6.x compatibility.
+    val sourcecode = "com.lihaoyi" %% "sourcecode" % "0.3.1"
 
-    val kafkaClient = "org.apache.kafka" % "kafka-clients" % "3.2.2"
+    val kafkaClient = "org.apache.kafka" % "kafka-clients" % "3.8.0"
 
-    val classgraph = "io.github.classgraph" % "classgraph" % "4.8.149"
+    val classgraph = "io.github.classgraph" % "classgraph" % "4.8.176"
 
     val scalaPbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
-    val testcontainersKafka = "org.testcontainers" % "kafka" % "1.17.5"
-    val asciigraphs = "com.github.mutcianm" %% "ascii-graphs" % "0.0.6"
+    val testcontainersKafka   = "org.testcontainers" % "kafka" % "1.20.1"
+    val asciigraphs           = "com.github.mutcianm" %% "ascii-graphs" % "0.0.6"
 
-    val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven
-    val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven
-    val mavenEmbedder = "org.apache.maven" % "maven-embedder" % Versions.maven
-    val mavenPluginAnnotations = "org.apache.maven.plugin-tools" % "maven-plugin-annotations" % "3.6.4"
-    val mavenProject = "org.apache.maven" % "maven-project" % "2.2.1"
-    val mojoExecutor = "org.twdata.maven" % "mojo-executor" % "2.4.0"
-    val junit = "junit" % "junit" % "4.13.2"
+    val mavenPluginApi         = "org.apache.maven" % "maven-plugin-api" % Versions.maven
+    val mavenCore              = "org.apache.maven" % "maven-core" % Versions.maven
+    val mavenEmbedder          = "org.apache.maven" % "maven-embedder" % Versions.maven
+    val mavenPluginAnnotations = "org.apache.maven.plugin-tools" % "maven-plugin-annotations" % "3.9.0"
+    val mavenProject           = "org.apache.maven" % "maven-project" % "2.2.1"
+    val mojoExecutor           = "org.twdata.maven" % "mojo-executor" % "2.4.0"
+    val junit                  = "junit" % "junit" % "4.13.2"
   }
 
   object TestDeps {
@@ -182,7 +182,7 @@ object Dependencies {
         Compile.logback,
         Compile.jacksonScala,
         Compile.jacksonDatabind,
-        Compile.kubeActions,
+        Compile.sourcecode,
         Compile.kafkaClient,
         Compile.scalatest % Test,
         TestDeps.avro4s)
