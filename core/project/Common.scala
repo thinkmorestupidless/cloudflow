@@ -40,6 +40,10 @@ object Common extends AutoPlugin {
     // TODO: disabled since there are problems in cross JVMs compilation re-enable me possibly
     javafmtOnCompile := false,
     run / fork := false,
+    // Pass the Akka license key to any forked JVM (run or test).
+    // Non-forked processes receive it via the AKKA_LICENSE_KEY env var or application.conf.
+    run / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
+    Test / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
     unidocGenjavadocVersion := "0.18_2.13.8",
     // show full stack traces and test case durations
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),

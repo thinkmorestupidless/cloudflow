@@ -15,6 +15,10 @@ examples/*/target-env.sbt
 .env
 .bsp
 
+# Local development credentials — never commit these
+.lightbend-token
+.akka-license-key
+
 # IntelliJ
 .idea/
 *.iml
