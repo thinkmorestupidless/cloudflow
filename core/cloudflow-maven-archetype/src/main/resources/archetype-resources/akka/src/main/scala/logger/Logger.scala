@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2026 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package logger
 
 import cloudflow.akkastream._

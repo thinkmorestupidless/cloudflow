@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2020-2026 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import java.io.File
@@ -12,7 +12,7 @@ import akka.cli.cloudflow.models.ApplicationStatus
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.dsl.PodResource
+import io.fabric8.kubernetes.client.dsl.{ Deletable, PodResource }
 import org.scalatest.AppendedClues
 import org.scalatest.Informing
 import org.scalatest.Notifying
@@ -23,14 +23,8 @@ import org.slf4j.LoggerFactory
 object ItSetup {
 
   private var lastClient = new DefaultKubernetesClient()
-  def client: DefaultKubernetesClient = {
-    if (lastClient.getHttpClient.connectionPool().connectionCount() <= 0) {
-      lastClient = new DefaultKubernetesClient()
-      lastClient
-    } else {
-      lastClient
-    }
-  }
+  // fabric8 6.x removed connectionPool() from HttpClient; just return the existing client
+  def client: DefaultKubernetesClient = lastClient
 
   private var lastCli = new TestingCli(client)
   def cli: TestingCli = {
@@ -99,19 +93,19 @@ trait ItSetup {
     logger.debug("Performing a safe cleanup (might take time)")
     withK8s { k8s =>
       logger.debug("deleting pvcs")
-      k8s.persistentVolumeClaims().inNamespace(namespace).delete()
+      k8s.persistentVolumeClaims().inNamespace(namespace).asInstanceOf[Deletable].delete()
       eventually {
         assert {
           k8s.persistentVolumeClaims().inNamespace(namespace).list().getItems.isEmpty
         }
       }
       logger.debug("deleting service accounts")
-      k8s.serviceAccounts().inNamespace(namespace).delete()
+      k8s.serviceAccounts().inNamespace(namespace).asInstanceOf[Deletable].delete()
       logger.debug("deleting secrets")
-      k8s.secrets().inNamespace(namespace).delete()
+      k8s.secrets().inNamespace(namespace).asInstanceOf[Deletable].delete()
       logger.debug("deleting namespace")
       k8s.namespaces().list().getItems.asScala.find(_.getMetadata.getName == namespace).map { ns =>
-        k8s.namespaces().delete(ns)
+        k8s.namespaces().withName(ns.getMetadata.getName).delete()
       }
       eventually {
         assert {
@@ -200,7 +194,7 @@ trait ItSetup {
   def withK8s[A](action: KubernetesClient => A): A =
     Using(client)(action).get
 
-  def withStreamletPod[A](status: ApplicationStatus, streamletName: String)(action: PodResource[Pod] => A): A = {
+  def withStreamletPod[A](status: ApplicationStatus, streamletName: String)(action: PodResource => A): A = {
     val streamlet = status.streamletsStatuses.find(s => s.name == streamletName)
     val podName = streamlet.get.podsStatuses.head.name
     withK8s { k8s => action(k8s.pods().inNamespace(status.summary.namespace).withName(podName)) }
