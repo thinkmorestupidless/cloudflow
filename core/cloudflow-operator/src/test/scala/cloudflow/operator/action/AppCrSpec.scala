@@ -356,7 +356,7 @@ class AppCrSpec
         mkContainerStatus(
           state = new ContainerStateBuilder()
             .withNewWaiting()
-            .withNewReason(CloudflowStatus.PodStatus.CrashLoopBackOff)
+            .withReason(CloudflowStatus.PodStatus.CrashLoopBackOff)
             .endWaiting()
             .build(),
           ready = false,

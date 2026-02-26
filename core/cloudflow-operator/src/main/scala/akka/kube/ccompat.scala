@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package cloudflow.operator
-package event
+// Vendored from com.lightbend.akka:kube-actions 0.1.1 (no changes needed).
 
-object ConfigInput {
-  val SecretDataKey = "secret.conf"
-  val RuntimeConfigDataKey = "runtime-config.conf"
-  val PodsConfigDataKey = "pods-config.conf"
+package akka.kube
+
+import java.{ util => jul }
+
+object ccompat {
+
+  def asScala[T](l: jul.List[T]): Vector[T] = {
+    import scala.jdk.CollectionConverters._
+    l.asScala.toVector
+  }
+
+  def asJava[T](l: List[T]): jul.List[T] = {
+    import scala.jdk.CollectionConverters._
+    l.asJava
+  }
 }

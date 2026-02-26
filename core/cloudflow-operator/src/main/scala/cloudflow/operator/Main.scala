@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,6 @@ object Main extends {
       Serialization.jsonMapper().setSerializationInclusion(Include.NON_ABSENT)
 
       val client = connectToKubernetes(settings)
-
-      // this registers deserializer
-      client.customResources(App.customResourceDefinitionContext, classOf[App.Cr], classOf[App.List])
 
       checkCRD(settings, client)
 

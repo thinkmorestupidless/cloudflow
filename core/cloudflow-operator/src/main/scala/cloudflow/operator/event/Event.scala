@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,15 @@ package cloudflow.operator
 package event
 
 import io.fabric8.kubernetes.api.model.{ HasMetadata, ObjectReference }
-import io.fabric8.kubernetes.client.informers.EventType
+
+// fabric8 6.x removed io.fabric8.kubernetes.client.informers.EventType; define our own
+sealed trait WatchEventType
+object WatchEventType {
+  case object ADDITION extends WatchEventType
+  case object UPDATION extends WatchEventType
+  case object DELETION extends WatchEventType
+  case object ERROR extends WatchEventType
+}
 
 object Event extends Event {
   def toObjectReference(hm: HasMetadata): ObjectReference = {
@@ -42,4 +50,4 @@ trait Event {
     if (Option(obj.getKind).isEmpty) obj.getClass.getSimpleName else obj.getKind // sometimes kind is empty.
 }
 
-case class WatchEvent[T <: HasMetadata](obj: T, eventType: EventType)
+case class WatchEvent[T <: HasMetadata](obj: T, eventType: WatchEventType)

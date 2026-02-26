@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ object EndpointActions {
         .withPort(Integer.valueOf(endpoint.containerPort.getOrElse(DefaultContainerPort)))
         .withTargetPort(
           new IntOrStringBuilder()
-            .withNewStrVal(Name.ofContainerPort(endpoint.containerPort.getOrElse(DefaultContainerPort)))
+            .withValue(Name.ofContainerPort(endpoint.containerPort.getOrElse(DefaultContainerPort)))
             .build())
         .build()
     }

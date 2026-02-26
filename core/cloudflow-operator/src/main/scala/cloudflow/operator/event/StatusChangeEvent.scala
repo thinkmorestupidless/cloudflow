@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import akka.kube.actions.Action
 import cloudflow.operator.action._
 import cloudflow.operator.action.runner.Runner
 import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.client.informers.EventType
 import org.slf4j._
 
 import scala.collection.immutable.Seq
@@ -52,7 +51,7 @@ object StatusChangeEvent extends Event {
     val absoluteName = s"$namespace.$objName"
 
     watchEvent.eventType match {
-      case EventType.DELETION =>
+      case WatchEventType.DELETION =>
         val events = (for {
           appId <- Option(metadata.getLabels.get(CloudflowLabels.AppIdLabel))
           streamletName <- Option(metadata.getLabels.get(CloudflowLabels.StreamletNameLabel))
@@ -62,7 +61,7 @@ object StatusChangeEvent extends Event {
         }).toList
         (currentObjects - absoluteName, events)
 
-      case EventType.ADDITION | EventType.UPDATION =>
+      case WatchEventType.ADDITION | WatchEventType.UPDATION =>
         (for {
           appId <- Option(metadata.getLabels.get(CloudflowLabels.AppIdLabel))
           streamletName <- Option(metadata.getLabels.get(CloudflowLabels.StreamletNameLabel))
@@ -71,7 +70,7 @@ object StatusChangeEvent extends Event {
           (currentObjects + (absoluteName -> watchEvent), List(StatusChangeEvent(appId, streamletName, watchEvent)))
         }).getOrElse((currentObjects, List()))
 
-      case EventType.ERROR =>
+      case WatchEventType.ERROR =>
         throw new Exception("Received Error event!")
     }
   }
@@ -108,13 +107,13 @@ object StatusChangeEvent extends Event {
         statusChangeEvent match {
           case StatusChangeEvent(appId, streamletName, watchEvent) =>
             watchEvent.eventType match {
-              case EventType.ADDITION | EventType.UPDATION =>
+              case WatchEventType.ADDITION | WatchEventType.UPDATION =>
                 log.debug(
                   s"[Status changes] app: $appId status of streamlet $streamletName changed: ${changeInfo(watchEvent)}")
                 val newStatus =
                   CloudflowStatus.updatePod(appCr.getStatus)(streamletName, watchEvent.obj)
                 appCr.setStatus(newStatus)
-              case EventType.DELETION =>
+              case WatchEventType.DELETION =>
                 log.debug(
                   s"[Status changes] app: $appId status of streamlet $streamletName changed: ${changeInfo(watchEvent)}")
                 val newStatus =

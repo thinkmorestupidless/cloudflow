@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import akka.datap.crd.App
 import akka.kube.actions.Action
 import cloudflow.operator.action._
 import io.fabric8.kubernetes.api.model.{ HasMetadata, ObjectReference }
-import io.fabric8.kubernetes.client.informers.EventType
 import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.Seq
@@ -74,9 +73,9 @@ object AppEvent {
     }
 
     watchEvent.eventType match {
-      case EventType.DELETION =>
+      case WatchEventType.DELETION =>
         (currentApps - appId, List(UndeployEvent(cr, Event.toObjectReference(watchEvent.obj))))
-      case EventType.ADDITION | EventType.UPDATION =>
+      case WatchEventType.ADDITION | WatchEventType.UPDATION =>
         if (hasChanged) {
           (
             currentApps + (appId -> watchEvent),
@@ -84,7 +83,7 @@ object AppEvent {
         } else {
           (currentApps, List())
         }
-      case EventType.ERROR =>
+      case WatchEventType.ERROR =>
         log.error("Received an error event!")
         (Map.empty[String, WatchEvent[App.Cr]], List.empty[AppEvent])
     }

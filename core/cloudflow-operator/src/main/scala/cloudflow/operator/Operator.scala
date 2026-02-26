@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,7 @@ import cloudflow.operator.event._
 import cloudflow.operator.flow._
 import io.fabric8.kubernetes.api.model.{ WatchEvent => _, _ }
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.dsl.base.OperationContext
-import io.fabric8.kubernetes.client.informers.{
-  EventType,
-  ResourceEventHandler,
-  SharedIndexInformer,
-  SharedInformerFactory
-}
+import io.fabric8.kubernetes.client.informers.{ ResourceEventHandler, SharedIndexInformer, SharedInformerFactory }
 import org.slf4j.LoggerFactory
 
 import java.util.concurrent.Executors
@@ -85,7 +79,7 @@ object Operator {
     val sharedInformerFactory = client.informers()
 
     runStream(
-      watchCr(sharedInformerFactory, DefaultWatchOptions)
+      watchCr(client, DefaultWatchOptions)
         .via(AppEventFlow.fromWatchEvent(logAttributes))
         .via(AppEventFlow.toAction(runners, podName, podNamespace))
         .via(executeActions(actionExecutor, logAttributes))
@@ -108,7 +102,7 @@ object Operator {
       CloudflowLabels.ConfigFormat -> CloudflowLabels.StreamletDeploymentConfigFormat)
 
     runStream(
-      watchSecret(sharedInformerFactory, watchOptions)
+      watchSecret(client, watchOptions)
         .via(StreamletChangeEventFlow.fromWatchEvent())
         .via(mapToAppInSameNamespace(client))
         .via(StreamletChangeEventFlow.toConfigUpdateAction(runners, podName))
@@ -119,7 +113,7 @@ object Operator {
 
     // handleStatusUpdates
     runStream(
-      watchPod(sharedInformerFactory, DefaultWatchOptions)
+      watchPod(client, DefaultWatchOptions)
         .via(StatusChangeEventFlow.fromWatchEvent())
         .log("status-change-event", StatusChangeEvent.detected)
         .via(mapToAppInSameNamespace(client))
@@ -150,7 +144,7 @@ object Operator {
       Future {
         Option(
           client
-            .customResources(App.customResourceDefinitionContext, classOf[App.Cr], classOf[App.List])
+            .resources(classOf[App.Cr])
             .inNamespace(ns)
             .withName(changeEvent.appId)
             .get())
@@ -161,15 +155,15 @@ object Operator {
 
     new ResourceEventHandler[T]() {
       override def onAdd(elem: T): Unit = {
-        fn(WatchEvent[T](elem, EventType.ADDITION))
+        fn(WatchEvent[T](elem, WatchEventType.ADDITION))
       }
 
       override def onUpdate(oldElem: T, newElem: T): Unit = {
-        fn(WatchEvent[T](newElem, EventType.UPDATION))
+        fn(WatchEvent[T](newElem, WatchEventType.UPDATION))
       }
 
       override def onDelete(elem: T, deletedFinalStateUnknown: Boolean): Unit = {
-        fn(WatchEvent[T](elem, EventType.DELETION))
+        fn(WatchEvent[T](elem, WatchEventType.DELETION))
       }
     }
   }
@@ -192,19 +186,11 @@ object Operator {
     sourceMat.offer(event)
   }
 
-  private def watchCr(sharedInformerFactory: SharedInformerFactory, options: Map[String, String])(
+  private def watchCr(client: KubernetesClient, options: Map[String, String])(
       implicit system: ActorSystem): Source[WatchEvent[App.Cr], NotUsed] = {
 
-    val informer = setOnceAndGet(
-      crInformer,
-      () =>
-        sharedInformerFactory
-          .sharedIndexInformerForCustomResource(
-            App.customResourceDefinitionContext,
-            classOf[App.Cr],
-            classOf[App.List],
-            new OperationContext().withLabels(options.asJava),
-            1000L * 60L * 10L))
+    val informer =
+      setOnceAndGet(crInformer, () => client.resources(classOf[App.Cr]).withLabels(options.asJava).inform())
 
     val (sourceMat, source) = {
       Source
@@ -219,18 +205,11 @@ object Operator {
 
   private val secretInformer = new AtomicReference[SharedIndexInformer[Secret]]()
 
-  private def watchSecret(sharedInformerFactory: SharedInformerFactory, options: Map[String, String])(
+  private def watchSecret(client: KubernetesClient, options: Map[String, String])(
       implicit system: ActorSystem): Source[WatchEvent[Secret], NotUsed] = {
 
-    val informer = setOnceAndGet(
-      secretInformer,
-      () =>
-        sharedInformerFactory
-          .sharedIndexInformerFor(
-            classOf[Secret],
-            classOf[SecretList],
-            new OperationContext().withLabels(options.asJava),
-            1000L * 60L * 10L))
+    val informer =
+      setOnceAndGet(secretInformer, () => client.resources(classOf[Secret]).withLabels(options.asJava).inform())
 
     val (sourceMat, source) = {
       Source
@@ -245,18 +224,10 @@ object Operator {
 
   private val podInformer = new AtomicReference[SharedIndexInformer[Pod]]()
 
-  private def watchPod(sharedInformerFactory: SharedInformerFactory, options: Map[String, String])(
+  private def watchPod(client: KubernetesClient, options: Map[String, String])(
       implicit system: ActorSystem): Source[WatchEvent[Pod], NotUsed] = {
 
-    val informer = setOnceAndGet(
-      podInformer,
-      () =>
-        sharedInformerFactory
-          .sharedIndexInformerFor(
-            classOf[Pod],
-            classOf[PodList],
-            new OperationContext().withLabels(options.asJava),
-            1000L * 60L * 10L))
+    val informer = setOnceAndGet(podInformer, () => client.resources(classOf[Pod]).withLabels(options.asJava).inform())
 
     val (sourceMat, source) = {
       Source

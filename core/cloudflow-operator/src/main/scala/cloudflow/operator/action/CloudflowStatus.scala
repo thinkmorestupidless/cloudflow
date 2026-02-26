@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,13 +271,14 @@ object CloudflowStatus {
   }
 
   implicit val adapter =
-    CustomResourceAdapter[App.Cr, App.List](App.customResourceDefinitionContext)
+    CustomResourceAdapter[App.Cr, App.List]()
 
   def statusUpdateAction(app: App.Cr)(retry: Int = 3): Action = {
     Action.operation[App.Cr, App.List, Try[Option[App.Cr]]](
       { client: KubernetesClient =>
         client
-          .customResources(App.customResourceDefinitionContext, classOf[App.Cr], classOf[App.List])
+          .resources(classOf[App.Cr])
+          .asInstanceOf[MixedOperation[App.Cr, App.List, Resource[App.Cr]]]
       }, { cr: MixedOperation[App.Cr, App.List, Resource[App.Cr]] =>
         Try {
           val current =

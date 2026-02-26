@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import akka.kube.actions.Action
 import cloudflow.operator.action._
 import cloudflow.operator.action.runner._
 import io.fabric8.kubernetes.api.model.{ HasMetadata, ObjectReference, Secret }
-import io.fabric8.kubernetes.client.informers.EventType
 import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.Seq
@@ -53,7 +52,7 @@ object StreamletChangeEvent extends Event {
     }
 
     watchEvent.eventType match {
-      case EventType.DELETION =>
+      case WatchEventType.DELETION =>
         val events = (for {
           appId <- Option(metadata.getLabels.get(CloudflowLabels.AppIdLabel))
           streamletName <- Option(metadata.getLabels.get(CloudflowLabels.StreamletNameLabel))
@@ -61,7 +60,7 @@ object StreamletChangeEvent extends Event {
           StreamletChangeEvent[Secret](appId, streamletName, watchEvent)
         }).toList
         (currentObjects - absoluteName, events)
-      case EventType.ADDITION | EventType.UPDATION =>
+      case WatchEventType.ADDITION | WatchEventType.UPDATION =>
         if (currentObjects.get(absoluteName).forall(hasChanged)) {
           (for {
             appId <- Option(metadata.getLabels.get(CloudflowLabels.AppIdLabel))
@@ -72,7 +71,7 @@ object StreamletChangeEvent extends Event {
               List(StreamletChangeEvent[Secret](appId, streamletName, watchEvent)))
           }).getOrElse((currentObjects, List()))
         } else (currentObjects, List())
-      case EventType.ERROR =>
+      case WatchEventType.ERROR =>
         log.error("Received an error event!")
         (Map.empty[String, WatchEvent[Secret]], List.empty[StreamletChangeEvent[Secret]])
     }
@@ -84,7 +83,7 @@ object StreamletChangeEvent extends Event {
       runners: Map[String, Runner[_]],
       podName: String): Seq[Action] =
     (mappedApp, event) match {
-      case (Some(app), streamletChangeEvent) if streamletChangeEvent.watchEvent.eventType == EventType.UPDATION =>
+      case (Some(app), streamletChangeEvent) if streamletChangeEvent.watchEvent.eventType == WatchEventType.UPDATION =>
         import streamletChangeEvent._
         val secret = watchEvent.obj
         val metadata = secret.getMetadata
