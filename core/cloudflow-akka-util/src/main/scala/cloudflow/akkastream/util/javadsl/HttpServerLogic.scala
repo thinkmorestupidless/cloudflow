@@ -28,15 +28,14 @@ import cloudflow._
 import cloudflow.akkastream._
 import cloudflow.streamlets._
 
-/**
- * Creates [[HttpServerLogic]]s that can be used to write data to an outlet that has been received by PUT or POST requests.
- */
+/** Creates [[HttpServerLogic]]s that can be used to write data to an outlet that has been received by PUT or POST
+  * requests.
+  */
 object HttpServerLogic {
 
-  /**
-   * Creates a HttpServerLogic that receives POST or PUT requests, unmarshals using the `fromByteStringUnmarshaller` and
-   * writes the data to the providec `outlet`.
-   */
+  /** Creates a HttpServerLogic that receives POST or PUT requests, unmarshals using the `fromByteStringUnmarshaller`
+    * and writes the data to the providec `outlet`.
+    */
   final def createDefault[Out](
       server: Server,
       outlet: CodecOutlet[Out],
@@ -44,11 +43,9 @@ object HttpServerLogic {
       context: AkkaStreamletContext): HttpServerLogic =
     createDefault(server, outlet, None, fromByteStringUnmarshaller, context)
 
-  /**
-   * Creates a HttpServerLogic that receives POST or PUT requests, unmarshals using the `fromByteStringUnmarshaller` and
-   * writes the data to the providec `outlet`.
-   * A rejection handler can be provided to deal with rejections.
-   */
+  /** Creates a HttpServerLogic that receives POST or PUT requests, unmarshals using the `fromByteStringUnmarshaller`
+    * and writes the data to the providec `outlet`. A rejection handler can be provided to deal with rejections.
+    */
   final def createDefault[Out](
       server: Server,
       outlet: CodecOutlet[Out],
@@ -73,18 +70,20 @@ object HttpServerLogic {
             .defaultRoute(rejectionHandler, sinkRef(outlet)))
     }
 
-  /**
-   * Creates a HttpServerLogic that receives streaming POST or PUT requests, unmarshals using the `fromByteStringUnmarshaller` and
-   * the provided `EntityStreamingSupport` and writes the data to the providec `outlet`.
-   */
+  /** Creates a HttpServerLogic that receives streaming POST or PUT requests, unmarshals using the
+    * `fromByteStringUnmarshaller` and the provided `EntityStreamingSupport` and writes the data to the providec
+    * `outlet`.
+    */
   final def createDefaultStreaming[Out](
       server: Server,
       outlet: CodecOutlet[Out],
       fromByteStringUnmarshaller: Unmarshaller[ByteString, Out],
       ess: EntityStreamingSupport,
       context: AkkaStreamletContext): HttpServerLogic = new HttpServerLogic(server, context) {
-    implicit val fbu = fromByteStringUnmarshaller.asScala
-    implicit val essDelegate = EntityStreamingSupportDelegate(ess)
+    implicit val fbu: akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller[Out] =
+      fromByteStringUnmarshaller.asScala
+    implicit val essDelegate: akka.http.scaladsl.common.EntityStreamingSupport =
+      EntityStreamingSupportDelegate(ess)
     final override def createRoute(): akka.http.javadsl.server.Route =
       RouteAdapter.asJava(akkastream.util.scaladsl.HttpServerLogic.defaultStreamingRoute(sinkRef(outlet)))
   }
@@ -116,42 +115,39 @@ object HttpServerLogic {
   }
 }
 
-/**
- * [[cloudflow.akkastream.ServerStreamletLogic]] for accepting HTTP requests.
- * Requires a `Server` to be passed in when it is created.
- * [[cloudflow.akkastream.AkkaServerStreamlet]] extends [[cloudflow.akkastream.Server]], which can be used for this purpose.
- * When you define the logic inside the streamlet, you can just pass in `this`:
- *
- * [[HttpServerLogic]] also predefined logics (`HttpServerLogic.createDefault` and `HttpServerLogic.createDefaultStreaming`)
- * for accepting, transcoding, and writing to an outlet.
- *
- * {{{
- * class TestHttpServer extends AkkaServerStreamlet {
- *   AvroOutlet<Data> outlet = AvroOutlet.<Data>create("out",  d -> d.name(), Data.class);
- *   Unmarshaller<ByteString, Data> fbu = Jackson.byteStringUnmarshaller(Data.class);
- *
- *    public StreamletShape shape() {
- *      return StreamletShape.createWithOutlets(outlet);
- *    }
- *
- *    public HttpServerLogic createLogic() {
- *      return new HttpServerLogic(this, getStreamletContext()) {
- *        Route createRoute() {
- *          // define HTTP route here
- *        }
- *      }
- *    }
- *  }
- * }}}
- *
- */
+/** [[cloudflow.akkastream.ServerStreamletLogic]] for accepting HTTP requests. Requires a `Server` to be passed in when
+  * it is created. [[cloudflow.akkastream.AkkaServerStreamlet]] extends [[cloudflow.akkastream.Server]], which can be
+  * used for this purpose. When you define the logic inside the streamlet, you can just pass in `this`:
+  *
+  * [[HttpServerLogic]] also predefined logics (`HttpServerLogic.createDefault` and
+  * `HttpServerLogic.createDefaultStreaming`) for accepting, transcoding, and writing to an outlet.
+  *
+  * {{{
+  * class TestHttpServer extends AkkaServerStreamlet {
+  *   AvroOutlet<Data> outlet = AvroOutlet.<Data>create("out",  d -> d.name(), Data.class);
+  *   Unmarshaller<ByteString, Data> fbu = Jackson.byteStringUnmarshaller(Data.class);
+  *
+  *    public StreamletShape shape() {
+  *      return StreamletShape.createWithOutlets(outlet);
+  *    }
+  *
+  *    public HttpServerLogic createLogic() {
+  *      return new HttpServerLogic(this, getStreamletContext()) {
+  *        Route createRoute() {
+  *          // define HTTP route here
+  *        }
+  *      }
+  *    }
+  *  }
+  * }}}
+  */
 abstract class HttpServerLogic(server: Server, context: AkkaStreamletContext)
     extends akkastream.util.scaladsl.HttpServerLogic(server)(context) {
 
-  /**
-   * Override this method to define the HTTP route that this HttpServerLogic will use.
-   * @return the Route that will be used to handle HTTP requests.
-   */
+  /** Override this method to define the HTTP route that this HttpServerLogic will use.
+    * @return
+    *   the Route that will be used to handle HTTP requests.
+    */
   def createRoute(): akka.http.javadsl.server.Route
   override def route(): Route = createRoute().asScala
 }

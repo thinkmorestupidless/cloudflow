@@ -55,7 +55,9 @@ final case class StreamletRef(
       }
 
     copy(
-      className = descriptorFound.toOption.map(_.className).getOrElse(this.className), // use the raw value as found in the blueprint
+      className = descriptorFound.toOption
+        .map(_.className)
+        .getOrElse(this.className), // use the raw value as found in the blueprint
       problems = Vector(nameProblem, refProblem).flatten ++ descriptorFound.left.toSeq,
       verified = descriptorFound.toOption.map(descriptor => VerifiedStreamlet(name, descriptor)))
   }

@@ -38,14 +38,13 @@ object PrintUtils {
       outputFolder: File,
       topics: Seq[String],
       localConfMsg: String): Unit = {
-    val streamletInfoPerProject = descriptors.map {
-      case (pid, rd) => (pid, rd.outputFile, streamletInfo(rd.appDescriptor))
+    val streamletInfoPerProject = descriptors.map { case (pid, rd) =>
+      (pid, rd.outputFile, streamletInfo(rd.appDescriptor))
     }
-    val streamletReport = streamletInfoPerProject.map {
-      case (pid, outputFile, streamletInfo) =>
-        s"$pid - output file: ${outputFile.toURI.toString}\n\n" + streamletInfo.foldLeft("") {
-          case (agg, str) => s"$agg\t$str\n"
-        }
+    val streamletReport = streamletInfoPerProject.map { case (pid, outputFile, streamletInfo) =>
+      s"$pid - output file: ${outputFile.toURI.toString}\n\n" + streamletInfo.foldLeft("") { case (agg, str) =>
+        s"$agg\t$str\n"
+      }
     }
     infoBanner("Streamlets per project")(streamletReport.mkString("\n"))
     infoBanner("Topics")(topics.map(t => s"[$t]").mkString("\n"))

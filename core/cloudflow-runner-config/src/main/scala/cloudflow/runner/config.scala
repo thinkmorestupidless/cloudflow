@@ -26,7 +26,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 object config {
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class Topic(
@@ -37,7 +37,7 @@ object config {
       @JsonProperty("config")
       config: JsonNode)
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class VolumeMount(
@@ -48,7 +48,7 @@ object config {
       @JsonProperty("access_mode")
       accessMode: String)
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class StreamletContext(
@@ -63,7 +63,7 @@ object config {
       @JsonProperty("port_mappings")
       portMappings: Map[String, Topic] = Map.empty)
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class Streamlet(
@@ -74,21 +74,21 @@ object config {
       @JsonProperty("context")
       context: StreamletContext)
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class Runner(
       @JsonProperty("streamlet")
       streamlet: Streamlet)
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class Cloudflow(
       @JsonProperty("runner")
       runner: Runner)
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonInclude(Include.NON_NULL)
   @JsonCreator
   case class CloudflowRoot(

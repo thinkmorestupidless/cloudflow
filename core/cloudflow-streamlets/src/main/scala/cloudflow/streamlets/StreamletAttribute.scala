@@ -16,11 +16,10 @@
 
 package cloudflow.streamlets
 
-/**
- * Describes that a streamlet requires specific configuration by the cloudflow platform.
- *
- * The configuration value will be added by the platform under the `configPath` path in the Streamlet configuration.
- */
+/** Describes that a streamlet requires specific configuration by the cloudflow platform.
+  *
+  * The configuration value will be added by the platform under the `configPath` path in the Streamlet configuration.
+  */
 trait StreamletAttribute {
 
   /** the prefix used for all attribute driven configuration, to prevent clashes with user defined configuration */

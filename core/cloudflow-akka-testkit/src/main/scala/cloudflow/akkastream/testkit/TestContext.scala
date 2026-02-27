@@ -44,7 +44,7 @@ private[testkit] case class TestContext(
     volumeMounts: List[VolumeMount],
     override val config: Config = ConfigFactory.empty())
     extends AkkaStreamletContext {
-  implicit val sys = system
+  implicit val sys: ActorSystem = system
 
   override def streamletDefinition: StreamletDefinition =
     StreamletDefinition("appId", "appVersion", streamletRef, "streamletClass", List(), volumeMounts, config)
@@ -63,10 +63,9 @@ private[testkit] case class TestContext(
         _.source
           .asInstanceOf[Source[(T, CommittableOffset), NotUsed]]
           .via(killSwitch.flow)
-          .mapError {
-            case cause: Throwable =>
-              execution.complete(Failure(cause))
-              cause
+          .mapError { case cause: Throwable =>
+            execution.complete(Failure(cause))
+            cause
           }
           .asSourceWithContext(_._2)
           .map(_._1))
@@ -99,10 +98,9 @@ private[testkit] case class TestContext(
         val tout = outletTap.asInstanceOf[OutletTap[T]]
         flow
           .via(killSwitch.flow)
-          .mapError {
-            case cause: Throwable =>
-              execution.complete(Failure(cause))
-              cause
+          .mapError { case cause: Throwable =>
+            execution.complete(Failure(cause))
+            cause
           }
           .alsoTo(Flow[T].map(t => tout.toPartitionedValue(t)).to(tout.sink))
           .asFlowWithContext[T, Committable, Committable]((el, _) => el)(_ => TestCommittableOffset())
@@ -121,10 +119,9 @@ private[testkit] case class TestContext(
         val tout = outletTap.asInstanceOf[OutletTap[T]]
         flow
           .via(killSwitch.flow)
-          .mapError {
-            case cause: Throwable =>
-              execution.complete(Failure(cause))
-              cause
+          .mapError { case cause: Throwable =>
+            execution.complete(Failure(cause))
+            cause
           }
           .alsoTo(Flow[immutable.Seq[T]].mapConcat(identity).map(t => tout.toPartitionedValue(t)).to(tout.sink))
           .asFlowWithContext[immutable.Seq[T], Committable, Committable]((el, _) => el)(_ => TestCommittableOffset())
@@ -142,7 +139,10 @@ private[testkit] case class TestContext(
 
   private[akkastream] def flexiFlow[T](
       outlet: CodecOutlet[T]): Flow[(immutable.Seq[_ <: T], Committable), (Unit, Committable), NotUsed] =
-    seqFlowWithCommittableContext[T](outlet).map(_ => ()).asFlow
+    seqFlowWithCommittableContext[T](outlet)
+      .map(_ => ())
+      .asFlow
+      .asInstanceOf[Flow[(immutable.Seq[_ <: T], Committable), (Unit, Committable), NotUsed]]
 
   @deprecated("Use `committableSink` instead.", "1.3.1")
   def sinkWithOffsetContext[T](committerSettings: CommitterSettings): Sink[(T, CommittableOffset), NotUsed] =
@@ -168,14 +168,15 @@ private[testkit] case class TestContext(
     }(system.dispatcher))
   }
 
-  def plainSink[T](outlet: CodecOutlet[T]): Sink[T, NotUsed] = sinkRef[T](outlet).sink.contramap { el =>
+  def plainSink[T](outlet: CodecOutlet[T]): Sink[T, NotUsed] = sinkRef[T](outlet).sink().contramap { el =>
     (el, TestCommittableOffset())
   }
   def sinkRef[T](outlet: CodecOutlet[T]): WritableSinkRef[T] =
     new WritableSinkRef[T] {
-      lazy val sink = writeSink.contramap[(T, Committable)] {
-        case (t, c) => (t, Promise.successful(t), TestCommittableOffset())
-      }
+      def sink(): akka.stream.scaladsl.Sink[(T, Committable), akka.NotUsed] =
+        writeSink.contramap[(T, Committable)] { case (t, _) =>
+          (t, Promise.successful(t), TestCommittableOffset())
+        }
       val writeSink: Sink[(T, Promise[T], Committable), NotUsed] = {
         val flow = Flow[(T, Promise[T], Committable)]
         outletTaps
@@ -185,14 +186,13 @@ private[testkit] case class TestContext(
             flow
               .map { case (t, p, _) => outletTap.toPartitionedValue(t, p) }
               .via(killSwitch.flow)
-              .mapError {
-                case cause: Throwable =>
-                  execution.complete(Failure(cause))
-                  cause
+              .mapError { case cause: Throwable =>
+                execution.complete(Failure(cause))
+                cause
               }
               .via(outletTap.flow)
               .map { pv =>
-                pv.promise.trySuccess(pv.getValue)
+                pv.promise.trySuccess(pv.getValue())
                 pv
               }
               .to(Sink.ignore)
@@ -201,14 +201,14 @@ private[testkit] case class TestContext(
             throw TestContextException(outlet.name, s"Bad test context, could not find sink for outlet ${outlet.name}"))
       }
 
-      val valueSink: Sink[(T, Promise[T]), NotUsed] = writeSink.contramap[(T, Promise[T])] {
-        case (t, p) => (t, p, TestCommittableOffset())
+      val valueSink: Sink[(T, Promise[T]), NotUsed] = writeSink.contramap[(T, Promise[T])] { case (t, p) =>
+        (t, p, TestCommittableOffset())
       }
 
       val runnableGraph: RunnableGraph[Sink[(T, Promise[T]), NotUsed]] =
         MergeHub.source[(T, Promise[T])].to(valueSink)
       val hubSink = runnableGraph.run()
-      implicit val ec = system.dispatcher
+      implicit val ec: scala.concurrent.ExecutionContext = system.dispatcher
       def write(value: T): Future[T] = {
         val p = Promise[T]
         Source

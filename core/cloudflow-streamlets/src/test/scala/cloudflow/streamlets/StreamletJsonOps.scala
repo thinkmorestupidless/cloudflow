@@ -53,7 +53,7 @@ object StreamletJsonOps {
       val format = port.schemaDefinition.format
       schema.field("format").value must haveStringValue(format)
 
-      val fls1 = schema.fields.collect { case JsString(s) => s }.toList
+      val fls1 = schema.fields().collect { case JsString(s) => s }.toList
       val fls2 =
         List(
           port.schemaDefinition.fingerprint,

@@ -23,10 +23,8 @@ import io.fabric8.kubernetes.api.model.OwnerReference
 
 import scala.collection.immutable._
 
-/**
- * Creates a sequence of resource actions for preparing the namespace where the application is
- * installed
- */
+/** Creates a sequence of resource actions for preparing the namespace where the application is installed
+  */
 object PrepareNamespaceActions {
   def apply(
       app: App.Cr,

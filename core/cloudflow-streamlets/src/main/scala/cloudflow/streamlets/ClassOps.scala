@@ -45,34 +45,30 @@ object ClassOps {
     override def instance(): Try[Any] = Try(clazz.newInstance)
   }
 
-  /**
-   * Try to create an instance of the class `name`
-   */
+  /** Try to create an instance of the class `name`
+    */
   private def instanceFromClass(name: String): Try[Any] =
     for {
       c <- loadClass(name)
-      i <- Clazz(c).instance
+      i <- Clazz(c).instance()
     } yield i
 
-  /**
-   * Try to create a singleton object of name `name`
-   */
+  /** Try to create a singleton object of name `name`
+    */
   private def instanceFromObject(name: String): Try[Any] =
     for {
       c <- loadClass(name + "$")
-      i <- Obj(c).instance
+      i <- Obj(c).instance()
     } yield i
 
-  /**
-   * Helper method to use a `Try` for handling exceptions
-   */
+  /** Helper method to use a `Try` for handling exceptions
+    */
   private def loadClass(className: String): Try[Class[_]] = Try {
     Class.forName(className)
   }
 
-  /**
-   * Try to create an instance of a class or share a single object with name `className`.
-   */
+  /** Try to create an instance of a class or share a single object with name `className`.
+    */
   def instanceOf(className: String): Try[Any] =
     // name ending with `$` indicates it's a singleton object
     if (className.endsWith("$")) instanceFromObject(className.dropRight(1))

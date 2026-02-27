@@ -51,8 +51,11 @@ object AvroInlet {
       clazz: Class[T],
       hasUniqueGroupId: Boolean,
       errorHandler: (Array[Byte], Throwable) => Optional[T]): AvroInlet[T] =
-    AvroInlet[T](name, hasUniqueGroupId, (a, t) => {
-      val opt = errorHandler(a, t)
-      if (opt.isPresent) Some(opt.get()) else None
-    })(ClassTag.apply(clazz))
+    AvroInlet[T](
+      name,
+      hasUniqueGroupId,
+      (a, t) => {
+        val opt = errorHandler(a, t)
+        if (opt.isPresent) Some(opt.get()) else None
+      })(ClassTag.apply(clazz))
 }

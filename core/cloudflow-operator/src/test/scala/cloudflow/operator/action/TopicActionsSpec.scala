@@ -47,7 +47,7 @@ class TopicActionsSpec
   val defaultClusterSecret = {
     new SecretBuilder()
       .withData(Map("secret.conf" ->
-      Base64Helper.encode(s"""
+        Base64Helper.encode(s"""
              |bootstrap.servers = "$defaultBootstrapServers"
              |partitions = "$defaultPartitions"
              |replicas = "$defaultReplicas"
@@ -66,24 +66,23 @@ class TopicActionsSpec
 
       Then("only create topic actions must be created between the streamlets")
       val createActions =
-        actions.collect {
-          case p: GetAction[Secret] =>
-            // try to get Kafka connection info from empty application secret
-            val fallbackProvidedAction = p
-              .getAction(None)
-              .asInstanceOf[GetAction[Secret]]
+        actions.collect { case p: GetAction[Secret] =>
+          // try to get Kafka connection info from empty application secret
+          val fallbackProvidedAction = p
+            .getAction(None)
+            .asInstanceOf[GetAction[Secret]]
 
-            // assert that we fallback to provide the 'default' cluster secret
-            fallbackProvidedAction.resourceName mustBe TopicActions.KafkaClusterNameFormat.format(
-              TopicActions.DefaultConfigurationName)
+          // assert that we fallback to provide the 'default' cluster secret
+          fallbackProvidedAction.resourceName mustBe TopicActions.KafkaClusterNameFormat.format(
+            TopicActions.DefaultConfigurationName)
 
-            // fallback to get Kafka connection info from 'default' cluster secret
-            fallbackProvidedAction
-              .getAction(Option(defaultClusterSecret))
-              .asInstanceOf[CompositeAction[_]]
-              .actions
-              .collect { case act: CreateOrReplaceAction[TopicActions.TopicResource] => act }
-              .head
+          // fallback to get Kafka connection info from 'default' cluster secret
+          fallbackProvidedAction
+            .getAction(Option(defaultClusterSecret))
+            .asInstanceOf[CompositeAction[_]]
+            .actions
+            .collect { case act: CreateOrReplaceAction[TopicActions.TopicResource] => act }
+            .head
         }
       val topics = newApp.getSpec.deployments.flatMap(_.portMappings.values).distinct
       createActions.size mustBe actions.size
@@ -189,7 +188,7 @@ class TopicActionsSpec
       val clusterSecret = {
         new SecretBuilder()
           .withData(Map("secret.conf" ->
-          Base64Helper.encode(s"""
+            Base64Helper.encode(s"""
                |bootstrap.servers = "localhost:19092"
                |partitions = "100"
                |replicas = "3"
@@ -205,23 +204,22 @@ class TopicActionsSpec
 
       Then("only create topic actions must be created between the streamlets")
       val createActions =
-        actions.collect {
-          case p: GetAction[Secret] =>
-            // try to get Kafka connection info from empty application secret
-            val fallbackProvidedAction = p
-              .getAction(None)
-              .asInstanceOf[GetAction[Secret]]
+        actions.collect { case p: GetAction[Secret] =>
+          // try to get Kafka connection info from empty application secret
+          val fallbackProvidedAction = p
+            .getAction(None)
+            .asInstanceOf[GetAction[Secret]]
 
-            // assert that we fallback to provide the 'cluster-baz' cluster secret as specified in topic config
-            fallbackProvidedAction.resourceName mustBe TopicActions.KafkaClusterNameFormat.format(clusterName)
+          // assert that we fallback to provide the 'cluster-baz' cluster secret as specified in topic config
+          fallbackProvidedAction.resourceName mustBe TopicActions.KafkaClusterNameFormat.format(clusterName)
 
-            // fallback to get Kafka connection info from 'cluster-baz' cluster secret
-            fallbackProvidedAction
-              .getAction(Option(clusterSecret))
-              .asInstanceOf[CompositeAction[_]]
-              .actions
-              .collect { case act: CreateOrReplaceAction[TopicActions.TopicResource] => act }
-              .head
+          // fallback to get Kafka connection info from 'cluster-baz' cluster secret
+          fallbackProvidedAction
+            .getAction(Option(clusterSecret))
+            .asInstanceOf[CompositeAction[_]]
+            .actions
+            .collect { case act: CreateOrReplaceAction[TopicActions.TopicResource] => act }
+            .head
         }
       val topics = newApp.getSpec.deployments.flatMap(_.portMappings.values).distinct
       createActions.size mustBe actions.size

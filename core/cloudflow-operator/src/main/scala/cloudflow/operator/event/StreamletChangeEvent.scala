@@ -26,9 +26,8 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.Seq
 
-/**
- * Indicates that a streamlet has changed.
- */
+/** Indicates that a streamlet has changed.
+  */
 case class StreamletChangeEvent[T <: HasMetadata](appId: String, streamletName: String, watchEvent: WatchEvent[T])
     extends AppChangeEvent[T] {
   def namespace = watchEvent.obj.getMetadata.getNamespace

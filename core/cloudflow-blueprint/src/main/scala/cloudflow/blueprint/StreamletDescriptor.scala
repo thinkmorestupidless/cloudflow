@@ -71,5 +71,6 @@ final case class VolumeMountDescriptor(
     name: String,
     path: String,
     accessMode: String,
-    pvcName: String = "" // This string is only used in the operator and will remain empty until deserialized on the operator side
+    pvcName: String =
+      "" // This string is only used in the operator and will remain empty until deserialized on the operator side
 )

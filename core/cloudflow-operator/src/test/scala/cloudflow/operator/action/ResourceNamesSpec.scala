@@ -153,9 +153,8 @@ class ResourceNamesSpec
       val endpointActions = EndpointActions(testApp01, None)
 
       endpointActions
-        .collect {
-          case action: CreateServiceAction =>
-            action.service
+        .collect { case action: CreateServiceAction =>
+          action.service
         }
         .head
         .getMetadata

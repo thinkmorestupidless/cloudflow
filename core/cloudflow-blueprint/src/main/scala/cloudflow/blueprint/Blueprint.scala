@@ -45,11 +45,12 @@ object Blueprint {
   val ReplicasKey = "replicas"
   val TopicConfigKey = "topic"
 
-  /**
-   * Parses the blueprint from a String.
-   * @param blueprintString the blueprint file contents
-   * @param streamletDescriptors the streamlet descriptors
-   */
+  /** Parses the blueprint from a String.
+    * @param blueprintString
+    *   the blueprint file contents
+    * @param streamletDescriptors
+    *   the streamlet descriptors
+    */
   def parseString(blueprintString: String, streamletDescriptors: Vector[StreamletDescriptor]): Blueprint =
     try {
       parseConfig(ConfigFactory.parseString(blueprintString).resolve(), streamletDescriptors)
@@ -57,11 +58,12 @@ object Blueprint {
       case e: ConfigException => Blueprint(globalProblems = Vector(BlueprintFormatError(e.getMessage)))
     }
 
-  /**
-   * Parses the blueprint from a String.
-   * @param config a Config containing the blueprint contents
-   * @param streamletDescriptors the streamlet descriptors
-   */
+  /** Parses the blueprint from a String.
+    * @param config
+    *   a Config containing the blueprint contents
+    * @param streamletDescriptors
+    *   the streamlet descriptors
+    */
   def parseConfig(config: Config, streamletDescriptors: Vector[StreamletDescriptor]): Blueprint =
     if (!config.hasPath(StreamletsSectionKey)) {
       Blueprint(globalProblems = Vector(MissingStreamletsSection))
@@ -163,7 +165,10 @@ final case class Blueprint(
     val unconnectedPortProblems = verifyPortsConnected(verifiedStreamlets, verifiedTopics)
     val portsBoundToManyTopics = verifyPortsBoundToManyTopics(verifiedTopics)
     val globalProblems =
-      Vector(emptyStreamletsProblem, emptyStreamletDescriptorsProblem, duplicatesProblem).flatten ++ unconnectedPortProblems ++ portsBoundToManyTopics ++ portNameProblems ++ configParameterProblems ++ volumeMountProblems
+      Vector(
+        emptyStreamletsProblem,
+        emptyStreamletDescriptorsProblem,
+        duplicatesProblem).flatten ++ unconnectedPortProblems ++ portsBoundToManyTopics ++ portNameProblems ++ configParameterProblems ++ volumeMountProblems
 
     copy(streamlets = newStreamlets, topics = newTopics, globalProblems = globalProblems)
   }
@@ -214,11 +219,10 @@ final case class Blueprint(
     verifiedTopics
       .flatMap(verifiedTopic => verifiedTopic.connections.map(_ -> verifiedTopic.id))
       .groupBy { case (verifiedPort, _) => verifiedPort }
-      .flatMap {
-        case (verifiedPort, groupedTopicIds) =>
-          val topicIds = groupedTopicIds.map { case (_, topic) => topic }
-          if (topicIds.size > 1) Some(PortBoundToManyTopics(verifiedPort.portPath.toString, topicIds))
-          else None
+      .flatMap { case (verifiedPort, groupedTopicIds) =>
+        val topicIds = groupedTopicIds.map { case (_, topic) => topic }
+        if (topicIds.size > 1) Some(PortBoundToManyTopics(verifiedPort.portPath.toString, topicIds))
+        else None
       }
       .toVector
       .sortBy(_.path)
@@ -310,7 +314,7 @@ final case class Blueprint(
         descriptor.configParameters.map { configKey =>
           configKey.key match {
             case ConfigParameterKeyPattern(_) => None
-            case _                            => Some(InvalidConfigParameterKeyName(descriptor.className, configKey.key))
+            case _ => Some(InvalidConfigParameterKeyName(descriptor.className, configKey.key))
           }
         }
       }

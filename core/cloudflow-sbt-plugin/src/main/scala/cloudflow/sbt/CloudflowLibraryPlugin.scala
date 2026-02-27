@@ -21,11 +21,10 @@ import sbt.Keys._
 
 import cloudflow.sbt.CloudflowKeys.cloudflowVersion
 
-/**
- * SBT Plugin for building generic libraries that use Cloudflow concepts.
- *
- * This library is assumed to not contain any runtime-specific streamlet implementation.
- */
+/** SBT Plugin for building generic libraries that use Cloudflow concepts.
+  *
+  * This library is assumed to not contain any runtime-specific streamlet implementation.
+  */
 object CloudflowLibraryPlugin extends AutoPlugin {
 
   /** This plugin depends on these other plugins: */
@@ -34,6 +33,6 @@ object CloudflowLibraryPlugin extends AutoPlugin {
   /** Set default values for keys. */
   override def projectSettings =
     Seq(libraryDependencies ++= Vector(
-        "com.lightbend.cloudflow" % s"cloudflow-streamlets_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value))
+      "com.lightbend.cloudflow" % s"cloudflow-streamlets_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value))
 
 }

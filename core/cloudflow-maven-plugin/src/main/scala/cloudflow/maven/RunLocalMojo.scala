@@ -87,8 +87,8 @@ class RunLocalMojo extends AbstractMojo {
       val stagedLog4jFile = tempDir.resolve(filename)
       FileUtil.writeFile(stagedLog4jFile.toFile, log4JSrc)
       stagedLog4jFile
-    }.recoverWith {
-      case ex: Throwable => Failure(new Exception("Failed to prepare the log4j file.", ex))
+    }.recoverWith { case ex: Throwable =>
+      Failure(new Exception("Failed to prepare the log4j file.", ex))
     }
 
   def execute(): Unit = {
@@ -122,8 +122,8 @@ class RunLocalMojo extends AbstractMojo {
         }
       }.flatten
 
-      val runtimeDescriptorByProject = Scaffold.getDescriptorsOrFail(descriptorByProject.map {
-        case (p, projectDescriptor) =>
+      val runtimeDescriptorByProject =
+        Scaffold.getDescriptorsOrFail(descriptorByProject.map { case (p, projectDescriptor) =>
           p -> Scaffold.scaffoldRuntime(
             p.getName,
             projectDescriptor,
@@ -132,7 +132,7 @@ class RunLocalMojo extends AbstractMojo {
             configDir,
             prepareLog4JFile(configDir, Option(log4jConfig)),
             (f, c) => FileUtil.writeFile(f, c))
-      })(getLog().error)
+        })(getLog().error)
 
       val topics = appDescriptor.deployments
         .flatMap { deployment =>
@@ -152,26 +152,25 @@ class RunLocalMojo extends AbstractMojo {
         topics,
         loadedLocalConfig.message)
 
-      val processes = runtimeDescriptorByProject.zipWithIndex.map {
-        case ((p, rd), debugPortOffset) =>
-          val classpath = FileUtil
-            .readLines(new File(p.getBuild.getDirectory, Constants.FULL_CLASSPATH))
-            .mkString("")
-            .split(Constants.PATH_SEPARATOR)
-            .map(s => new URL(s))
+      val processes = runtimeDescriptorByProject.zipWithIndex.map { case ((p, rd), debugPortOffset) =>
+        val classpath = FileUtil
+          .readLines(new File(p.getBuild.getDirectory, Constants.FULL_CLASSPATH))
+          .mkString("")
+          .split(Constants.PATH_SEPARATOR)
+          .map(s => new URL(s))
 
-          runPipelineJVM(
-            p.getName,
-            rd.appDescriptorFile,
-            classpath.toArray,
-            rd.outputFile,
-            rd.logConfig,
-            rd.localConfPath,
-            kafkaHost,
-            remoteDebug,
-            baseDebugPort + debugPortOffset,
-            None,
-            getLog)
+        runPipelineJVM(
+          p.getName,
+          rd.appDescriptorFile,
+          classpath.toArray,
+          rd.outputFile,
+          rd.logConfig,
+          rd.localConfPath,
+          kafkaHost,
+          remoteDebug,
+          baseDebugPort + debugPortOffset,
+          None,
+          getLog)
       }
 
       getLog.info(s"Running ${appDescriptor.appId}. To terminate, press [ENTER]")
@@ -226,7 +225,7 @@ class RunLocalMojo extends AbstractMojo {
     // Using file://localhost/path instead of file:///path or even file://path (as it was originally)
     // appears to be necessary for runLocal to work on both Windows and real systems.
     val forkOptions = ForkOptions()
-      .withOutputStrategy(OutputStrategy.StdoutOutput) //.LoggedOutput(outputFile))
+      .withOutputStrategy(OutputStrategy.StdoutOutput) // .LoggedOutput(outputFile))
       .withConnectInput(false)
       .withRunJVMOptions(jvmOptions)
 

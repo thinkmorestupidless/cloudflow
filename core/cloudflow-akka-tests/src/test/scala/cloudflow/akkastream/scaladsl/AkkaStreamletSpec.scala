@@ -40,9 +40,9 @@ import cloudflow.akkastream.testkit.scaladsl._
 
 class AkkaStreamletSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
-  private implicit val system = ActorSystem("AkkaStreamletSpec")
+  private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
   val timeout = 10.seconds.dilated
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   "An AkkaStreamlet" should {
@@ -214,7 +214,7 @@ class AkkaStreamletSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll
 
     override final def createLogic = new AkkaStreamletLogic() {
       def run() =
-        result = scala.concurrent.Await.result(plainSource(in).toMat(sink)(Keep.right).run, timeout)
+        result = scala.concurrent.Await.result(plainSource(in).toMat(sink)(Keep.right).run(), timeout)
     }
   }
 }

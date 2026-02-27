@@ -34,29 +34,29 @@ object CloudflowAkkaPlugin extends AutoPlugin {
   override def projectSettings =
     Seq(
       libraryDependencies ++= Vector(
-          "com.lightbend.cloudflow" % s"cloudflow-akka-util_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
-          "com.lightbend.cloudflow" % s"cloudflow-akka_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
-          "com.lightbend.cloudflow" % s"cloudflow-akka-testkit_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value % "test"),
+        "com.lightbend.cloudflow" % s"cloudflow-akka-util_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
+        "com.lightbend.cloudflow" % s"cloudflow-akka_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
+        "com.lightbend.cloudflow" % s"cloudflow-akka-testkit_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value % "test"),
       cloudflowStageAppJars := Def.taskDyn {
-          Def.task {
-            val stagingDir = stage.value
-            val projectJars = (Runtime / internalDependencyAsJars).value.map(_.data)
-            val depJars = (Runtime / externalDependencyClasspath).value.map(_.data)
+        Def.task {
+          val stagingDir = stage.value
+          val projectJars = (Runtime / internalDependencyAsJars).value.map(_.data)
+          val depJars = (Runtime / externalDependencyClasspath).value.map(_.data)
 
-            val appJarDir = new File(stagingDir, AppJarsDir)
-            val depJarDir = new File(stagingDir, DepJarsDir)
+          val appJarDir = new File(stagingDir, AppJarsDir)
+          val depJarDir = new File(stagingDir, DepJarsDir)
 
-            IO.delete(appJarDir)
-            IO.delete(depJarDir)
+          IO.delete(appJarDir)
+          IO.delete(depJarDir)
 
-            projectJars.foreach { jar =>
-              IO.copyFile(jar, new File(appJarDir, jar.getName))
-            }
-            depJars.foreach { jar =>
-              IO.copyFile(jar, new File(depJarDir, jar.getName))
-            }
+          projectJars.foreach { jar =>
+            IO.copyFile(jar, new File(appJarDir, jar.getName))
           }
-        }.value,
+          depJars.foreach { jar =>
+            IO.copyFile(jar, new File(depJarDir, jar.getName))
+          }
+        }
+      }.value,
       baseDockerInstructions := {
         val appDir: File = stage.value
         val appJarsDir: File = new File(appDir, AppJarsDir)

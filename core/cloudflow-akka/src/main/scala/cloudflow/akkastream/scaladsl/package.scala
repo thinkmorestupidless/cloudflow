@@ -28,14 +28,13 @@ package object scaladsl {
 
   object FlowWithCommittableContext {
 
-    /**
-     * Creates a [[akka.stream.scaladsl.FlowWithContext FlowWithContext]] that makes it possible for Cloudflow to commit reads when
-     * `StreamletLogic.atLeastOnceSource` and `StreamletLogic.atLeastOnceSink` is used.
-     */
+    /** Creates a [[akka.stream.scaladsl.FlowWithContext FlowWithContext]] that makes it possible for Cloudflow to
+      * commit reads when `StreamletLogic.atLeastOnceSource` and `StreamletLogic.atLeastOnceSink` is used.
+      */
     def apply[In](): FlowWithCommittableContext[In, In] = FlowWithContext[In, Committable]
   }
 
-  /** Deprecated API **/
+  /** Deprecated API * */
 
   @deprecated("Use `FlowWithCommittableContext` instead.", "1.3.1")
   type FlowWithOffsetContext[-In, +Out] = FlowWithContext[In, CommittableOffset, Out, CommittableOffset, NotUsed]
@@ -46,10 +45,9 @@ package object scaladsl {
   @deprecated("Use `FlowWithCommittableContext` instead.", "1.3.1")
   object FlowWithOffsetContext {
 
-    /**
-     * Creates a [[akka.stream.scaladsl.FlowWithContext FlowWithContext]] that makes it possible for cloudflow to commit reads when
-     * `StreamletLogic.atLeastOnceSource` and `StreamletLogic.atLeastOnceSink` is used.
-     */
+    /** Creates a [[akka.stream.scaladsl.FlowWithContext FlowWithContext]] that makes it possible for cloudflow to
+      * commit reads when `StreamletLogic.atLeastOnceSource` and `StreamletLogic.atLeastOnceSink` is used.
+      */
     @deprecated("Use `FlowWithCommittableContext` instead.", "1.3.1")
     def apply[In]() = FlowWithContext[In, CommittableOffset]
   }

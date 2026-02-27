@@ -43,9 +43,8 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 
-/**
- * Implementation of the StreamletContext trait.
- */
+/** Implementation of the StreamletContext trait.
+  */
 @InternalApi
 final class AkkaStreamletContextImpl(
     private[cloudflow] override val streamletDefinition: StreamletDefinition,
@@ -66,9 +65,8 @@ final class AkkaStreamletContextImpl(
   private val execution = new StreamletExecutionImpl(this)
   override val streamletExecution: StreamletExecution = execution
 
-  /**
-   * See https://doc.akka.io/docs/alpakka-kafka/current/consumer.html#controlled-shutdown
-   */
+  /** See https://doc.akka.io/docs/alpakka-kafka/current/consumer.html#controlled-shutdown
+    */
   @InternalApi
   object KafkaControls {
     import akka.kafka.scaladsl.Consumer.Control
@@ -81,37 +79,32 @@ final class AkkaStreamletContextImpl(
 
     def get: Set[Control] = controls.get()
 
-    /**
-     * Stop producing messages from all inlets and complete the streams.
-     *
-     * The underlying Kafka consumer stays alive so that it can handle commits for the
-     * already enqueued messages. It does not unsubscribe from any topics/partitions
-     * as that could trigger a consumer group rebalance.
-     */
+    /** Stop producing messages from all inlets and complete the streams.
+      *
+      * The underlying Kafka consumer stays alive so that it can handle commits for the already enqueued messages. It
+      * does not unsubscribe from any topics/partitions as that could trigger a consumer group rebalance.
+      */
     def stopInflow()(implicit ec: ExecutionContext) = {
       log.debug("Stopping inflow from {}", streamletDefinitionMsg)
       Future
-        .sequence(controls.get.map(_.stop().recover {
-          case cause =>
-            log.error("stopping the consumer source failed.", cause)
-            Done
+        .sequence(controls.get.map(_.stop().recover { case cause =>
+          log.error("stopping the consumer source failed.", cause)
+          Done
         }))
         .map(_ => Done)
     }
 
-    /**
-     * Shut down the consumer `Source`.
-     *
-     * After this no more commits from enqueued messages can be handled.
-     * The actor will wait for acknowledgements of the already sent offset commits from the Kafka broker before shutting down.
-     */
+    /** Shut down the consumer `Source`.
+      *
+      * After this no more commits from enqueued messages can be handled. The actor will wait for acknowledgements of
+      * the already sent offset commits from the Kafka broker before shutting down.
+      */
     def shutdownConsumers()(implicit ec: ExecutionContext) = {
       log.debug("Shutting down consumers of {}", streamletDefinitionMsg)
       Future
-        .sequence(controls.get.map(_.shutdown().recover {
-          case cause =>
-            log.error("shutting down the consumer source failed.", cause)
-            Done
+        .sequence(controls.get.map(_.shutdown().recover { case cause =>
+          log.error("shutting down the consumer source failed.", cause)
+          Done
         }))
         .map(_ => Done)
     }
@@ -227,12 +220,11 @@ final class AkkaStreamletContextImpl(
       .withProperties(topic.kafkaProducerProperties)
 
     Flow[(T, Committable)]
-      .map {
-        case (value, committable) =>
-          val key = outlet.partitioner(value)
-          val bytesKey = keyBytes(key)
-          val bytesValue = outlet.codec.encode(value)
-          ProducerMessage.Message(new ProducerRecord(topic.name, bytesKey, bytesValue), committable)
+      .map { case (value, committable) =>
+        val key = outlet.partitioner(value)
+        val bytesKey = keyBytes(key)
+        val bytesValue = outlet.codec.encode(value)
+        ProducerMessage.Message(new ProducerRecord(topic.name, bytesKey, bytesValue), committable)
       }
       .via(handleTermination)
       .toMat(Producer.committableSink(producerSettings, committerSettings))(Keep.left)
@@ -249,13 +241,13 @@ final class AkkaStreamletContextImpl(
       .withProperties(topic.kafkaProducerProperties)
 
     Flow[(immutable.Seq[T], Committable)]
-      .map {
-        case (values, committable) =>
-          ProducerMessage.MultiMessage(values.map(value => producerRecord(outlet, topic, value)), committable)
+      .map { case (values, committable) =>
+        ProducerMessage.MultiMessage(values.map(value => producerRecord(outlet, topic, value)), committable)
       }
       .via(handleTermination)
       .via(Producer.flexiFlow(producerSettings))
       .map(results => ((), results.passThrough))
+      .asInstanceOf[Flow[(immutable.Seq[_ <: T], Committable), (Unit, Committable), NotUsed]]
   }
 
   private def producerRecord[T](outlet: CodecOutlet[T], topic: Topic, value: T) = {
@@ -274,12 +266,11 @@ final class AkkaStreamletContextImpl(
       .withProperties(topic.kafkaProducerProperties)
 
     Flow[(T, CommittableOffset)]
-      .map {
-        case (value, committable) =>
-          val key = outlet.partitioner(value)
-          val bytesKey = keyBytes(key)
-          val bytesValue = outlet.codec.encode(value)
-          ProducerMessage.Message(new ProducerRecord(topic.name, bytesKey, bytesValue), committable)
+      .map { case (value, committable) =>
+        val key = outlet.partitioner(value)
+        val bytesKey = keyBytes(key)
+        val bytesValue = outlet.codec.encode(value)
+        ProducerMessage.Message(new ProducerRecord(topic.name, bytesKey, bytesValue), committable)
       }
       .toMat(Producer.committableSink(producerSettings, committerSettings))(Keep.left)
   }

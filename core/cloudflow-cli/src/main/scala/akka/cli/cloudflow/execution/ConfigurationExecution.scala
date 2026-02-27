@@ -18,8 +18,8 @@ final case class ConfigurationExecution(c: Configuration, client: KubeClient, lo
     for {
       _ <- validateProtocolVersion(client, c.operatorNamespace, logger)
       res <- client.getAppInputSecret(c.cloudflowApp, c.namespace.getOrElse(c.cloudflowApp))
-      config <- Try { ConfigFactory.parseString(res) }.recover {
-        case ex => throw CliException("Failed to parse the current configuration", ex)
+      config <- Try { ConfigFactory.parseString(res) }.recover { case ex =>
+        throw CliException("Failed to parse the current configuration", ex)
       }
     } yield {
       ConfigurationResult(config)

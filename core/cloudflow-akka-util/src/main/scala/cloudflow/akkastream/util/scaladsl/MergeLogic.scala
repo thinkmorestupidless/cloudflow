@@ -29,16 +29,14 @@ import cloudflow.streamlets._
 import cloudflow.akkastream.scaladsl._
 import akka.kafka.ConsumerMessage._
 
-/**
- * Merges two or more sources, or inlets, of the same type, into one source.
- */
+/** Merges two or more sources, or inlets, of the same type, into one source.
+  */
 object Merger {
 
-  /**
-   * Creates a graph to merge two or more sources into one source.
-   * Elements from all sources will be processed with at-least-once semantics. The elements will be processed
-   * in semi-random order and with equal priority for all sources.
-   */
+  /** Creates a graph to merge two or more sources into one source. Elements from all sources will be processed with
+    * at-least-once semantics. The elements will be processed in semi-random order and with equal priority for all
+    * sources.
+    */
   def graph[T](sources: Seq[SourceWithContext[T, Committable, _]]): Graph[SourceShape[(T, Committable)], NotUsed] =
     GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
@@ -47,50 +45,43 @@ object Merger {
       SourceShape[(T, Committable)](merge.out)
     }
 
-  /**
-   * Merges two or more sources into one source.
-   * Elements from all inlets will be processed with at-least-once semantics. The elements will be processed
-   * in semi-random order and with equal priority for all sources.
-   */
+  /** Merges two or more sources into one source. Elements from all inlets will be processed with at-least-once
+    * semantics. The elements will be processed in semi-random order and with equal priority for all sources.
+    */
   def source[T](sources: Seq[SourceWithContext[T, Committable, _]]): SourceWithContext[T, Committable, _] =
     Source.fromGraph(graph(sources)).asSourceWithContext { case (_, offset) => offset }.map { case (t, _) => t }
 
-  /**
-   * Merges two or more inlets into one source.
-   * Elements from all inlets will be processed with at-least-once semantics. The elements will be processed
-   * in semi-random order and with equal priority for all inlets.
-   */
-  def source[T](inlets: Seq[CodecInlet[T]])(
-      implicit context: AkkaStreamletContext): SourceWithContext[T, Committable, _] =
+  /** Merges two or more inlets into one source. Elements from all inlets will be processed with at-least-once
+    * semantics. The elements will be processed in semi-random order and with equal priority for all inlets.
+    */
+  def source[T](inlets: Seq[CodecInlet[T]])(implicit
+      context: AkkaStreamletContext): SourceWithContext[T, Committable, _] =
     Source
       .fromGraph(graph(inlets.map(context.sourceWithCommittableContext(_))))
       .asSourceWithContext { case (_, offset) => offset }
-      .map {
-        case (t, _) => t
+      .map { case (t, _) =>
+        t
       }
-  def source[T](inlet: CodecInlet[T], inlets: CodecInlet[T]*)(
-      implicit context: AkkaStreamletContext): SourceWithContext[T, Committable, _] =
+  def source[T](inlet: CodecInlet[T], inlets: CodecInlet[T]*)(implicit
+      context: AkkaStreamletContext): SourceWithContext[T, Committable, _] =
     Source
       .fromGraph(graph((inlet +: inlets.toList).map(context.sourceWithCommittableContext(_))))
       .asSourceWithContext { case (_, offset) => offset }
       .map { case (t, _) => t }
 }
 
-/**
- * A `MergeLogic` merges two or more inlets into one outlet.
- * Elements from all inlets will be processed with at-least-once semantics. The elements will be processed
- * in semi-random order and with equal priority for all inlets.
- */
+/** A `MergeLogic` merges two or more inlets into one outlet. Elements from all inlets will be processed with
+  * at-least-once semantics. The elements will be processed in semi-random order and with equal priority for all inlets.
+  */
 @deprecated("Use `Merger.source` instead.", "1.3.1")
-class MergeLogic[T](inletPorts: immutable.IndexedSeq[CodecInlet[T]], outlet: CodecOutlet[T])(
-    implicit context: AkkaStreamletContext)
+class MergeLogic[T](inletPorts: immutable.IndexedSeq[CodecInlet[T]], outlet: CodecOutlet[T])(implicit
+    context: AkkaStreamletContext)
     extends RunnableGraphStreamletLogic {
   require(inletPorts.size >= 2)
 
-  /**
-   * The graph is built from input elements using at-least-once processing semantics
-   */
-  override def runnableGraph() = {
+  /** The graph is built from input elements using at-least-once processing semantics
+    */
+  override def runnableGraph = {
 
     val inlets = inletPorts.map(inlet => sourceWithCommittableContext[T](inlet)).toList
     val out = committableSink[T](outlet)

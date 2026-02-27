@@ -26,9 +26,8 @@ import org.slf4j.LoggerFactory
 import com.typesafe.config.{ Config, ConfigFactory }
 import cloudflow.streamlets._
 
-/**
- * Runner for cluster deployments. Assumes Linux-style paths!
- */
+/** Runner for cluster deployments. Assumes Linux-style paths!
+  */
 object Runner extends RunnerConfigResolver with StreamletLoader {
   lazy val log = LoggerFactory.getLogger(getClass.getName)
 

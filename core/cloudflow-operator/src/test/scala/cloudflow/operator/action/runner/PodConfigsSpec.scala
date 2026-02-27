@@ -86,9 +86,11 @@ class PodsConfigSpec extends AnyWordSpecLike with OptionValues with TryValues wi
         .pods("pod")
         .containers("container")
         .env(0) mustBe (new EnvVarBuilder().withName("JAVA_OPTS").withValue("-XX:MaxRAMPercentage=40.0").build())
-      Quantity.getAmountInBytes(podConfigs.pods("pod").containers("container").resources.value.getRequests.get("cpu")) mustBe Quantity
+      Quantity.getAmountInBytes(
+        podConfigs.pods("pod").containers("container").resources.value.getRequests.get("cpu")) mustBe Quantity
         .getAmountInBytes(Quantity.parse("500m"))
-      Quantity.getAmountInBytes(podConfigs.pods("pod").containers("container").resources.value.getLimits.get("cpu")) mustBe Quantity
+      Quantity.getAmountInBytes(
+        podConfigs.pods("pod").containers("container").resources.value.getLimits.get("cpu")) mustBe Quantity
         .getAmountInBytes(Quantity.parse("2"))
       podConfigs
         .pods("driver")

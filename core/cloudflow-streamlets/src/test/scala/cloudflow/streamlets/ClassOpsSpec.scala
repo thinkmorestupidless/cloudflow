@@ -59,11 +59,11 @@ class ClassOpsSpec extends AnyWordSpec with Matchers with TryValues {
     }
 
     "reuse the object instance of a singleton Object" in {
-      instanceOf("cloudflow.streamlets.BarObject").success.value mustBe (BarObject)
+      instanceOf("cloudflow.streamlets.BarObject").success.value mustBe BarObject
     }
 
     "reuse the object instance of a singleton Object with name passed with a $" in {
-      instanceOf("cloudflow.streamlets.BarObject$").success.value mustBe (BarObject)
+      instanceOf("cloudflow.streamlets.BarObject$").success.value mustBe BarObject
     }
 
     "fail to create an instance for a class without a no-args constructor" in {
@@ -75,7 +75,8 @@ class ClassOpsSpec extends AnyWordSpec with Matchers with TryValues {
     }
 
     "reuse the object instance when we have a class with no no-arg constructor along with a companion Object" in {
-      instanceOf("cloudflow.streamlets.ClassWithArgsAndCompanionObject").success.value mustBe (ClassWithArgsAndCompanionObject)
+      instanceOf(
+        "cloudflow.streamlets.ClassWithArgsAndCompanionObject").success.value mustBe ClassWithArgsAndCompanionObject
     }
   }
 }

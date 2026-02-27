@@ -20,13 +20,10 @@ import scala.util.Try
 import com.typesafe.config._
 import cloudflow.blueprint._
 
-/**
- * A full description of all information required to deploy and operate
- * a Cloudflow application.
- *
- * Note: this class represents a wire format and therefore tries to minimize
- *       duplication of data
- */
+/** A full description of all information required to deploy and operate a Cloudflow application.
+  *
+  * Note: this class represents a wire format and therefore tries to minimize duplication of data
+  */
 final case class ApplicationDescriptor(
     appId: String,
     appVersion: String,
@@ -69,19 +66,24 @@ object ApplicationDescriptor {
     val namedStreamletDescriptors = blueprint.streamlets.map(streamletToNamedStreamletDescriptor)
     val deployments =
       namedStreamletDescriptors
-        .map {
-          case (streamlet, instance) =>
-            StreamletDeployment(
-              sanitizedApplicationId,
-              instance,
-              images(streamlet.name),
-              portMappingsForStreamlet(streamlet, blueprint))
+        .map { case (streamlet, instance) =>
+          StreamletDeployment(
+            sanitizedApplicationId,
+            instance,
+            images(streamlet.name),
+            portMappingsForStreamlet(streamlet, blueprint))
         }
 
-    ApplicationDescriptor(sanitizedApplicationId, appVersion, namedStreamletDescriptors.map {
-      case (_, instance) =>
+    ApplicationDescriptor(
+      sanitizedApplicationId,
+      appVersion,
+      namedStreamletDescriptors.map { case (_, instance) =>
         StreamletInstance(instance.name, sanitizeDescriptor(instance.descriptor))
-    }, deployments, agentPaths, Version, libraryVersion)
+      },
+      deployments,
+      agentPaths,
+      Version,
+      libraryVersion)
   }
 
   def portMappingsForStreamlet(streamlet: VerifiedStreamlet, blueprint: VerifiedBlueprint): Map[String, Topic] =
@@ -93,11 +95,9 @@ object ApplicationDescriptor {
   private def streamletToNamedStreamletDescriptor(streamlet: VerifiedStreamlet) =
     (streamlet, StreamletInstance(streamlet.name, streamlet.descriptor))
 
-  /**
-   *  Deletes every schema
-   *  StreamletDescriptor.[inlets | outlets].SchemaDescriptor.schema
-   *  to avoid adding the description of each type of the schema in the CR
-   */
+  /** Deletes every schema StreamletDescriptor.[inlets | outlets].SchemaDescriptor.schema to avoid adding the
+    * description of each type of the schema in the CR
+    */
   private def sanitizeDescriptor(descriptor: StreamletDescriptor): StreamletDescriptor = {
     val sanitizedInlets = descriptor.inlets.map(each => each.copy(schema = each.schema.copy(schema = "")))
     val sanitizedOutlets = descriptor.outlets.map(each => each.copy(schema = each.schema.copy(schema = "")))
@@ -105,17 +105,13 @@ object ApplicationDescriptor {
   }
 }
 
-/**
- * Describes an instance of the specified streamlet descriptor.
- * This is the Descriptor counterpart of Streamlet, which is the application-level abstraction.
- * The provided `name` is the name given in the application blueprint definition.
- */
+/** Describes an instance of the specified streamlet descriptor. This is the Descriptor counterpart of Streamlet, which
+  * is the application-level abstraction. The provided `name` is the name given in the application blueprint definition.
+  */
 final case class StreamletInstance(name: String, descriptor: StreamletDescriptor)
 
-/**
- * Describes the deployable unit for a single streamlet instance, e.g. everything
- * required to deploy it.
- */
+/** Describes the deployable unit for a single streamlet instance, e.g. everything required to deploy it.
+  */
 final case class StreamletDeployment(
     name: String,
     runtime: String,
@@ -190,7 +186,8 @@ object Topic {
 
 final case class Topic(
     id: String,
-    cluster: Option[String] = None, // needs to be top level and not part of config so can be easily parsed in app spec in cli
+    cluster: Option[String] =
+      None, // needs to be top level and not part of config so can be easily parsed in app spec in cli
     config: Config = ConfigFactory.empty()) {
   def name: String = Try(config.getString(Blueprint.TopicKey)).getOrElse(id)
   def managed: Boolean = Try(config.getBoolean(Blueprint.ManagedKey)).getOrElse(true)

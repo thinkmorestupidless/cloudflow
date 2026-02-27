@@ -33,9 +33,8 @@ trait WithConfiguration {
           volumeMounts = Option(deployment.volumeMounts).getOrElse(Seq.empty).map { vm =>
             cloudflow.runner.config.VolumeMount(name = vm.name, path = vm.path, accessMode = vm.accessMode)
           },
-          portMappings = Option(deployment.portMappings).getOrElse(Map.empty).map {
-            case (name, pm) =>
-              name -> cloudflow.runner.config.Topic(id = pm.id, cluster = pm.cluster, config = pm.config)
+          portMappings = Option(deployment.portMappings).getOrElse(Map.empty).map { case (name, pm) =>
+            name -> cloudflow.runner.config.Topic(id = pm.id, cluster = pm.cluster, config = pm.config)
           }))
 
     ConfigFactory.parseString(cloudflow.runner.config.toJson(configStreamlet))
@@ -93,7 +92,7 @@ trait WithConfiguration {
       case Nil => Success(())
       case missings =>
         Failure(CliException(s"Configuration contains streamlets: [${missings
-          .mkString(", ")}] that are not present in the CR, available streamlets are [${crStreamlets.mkString(", ")}]"))
+            .mkString(", ")}] that are not present in the CR, available streamlets are [${crStreamlets.mkString(", ")}]"))
     }
   }
 
@@ -170,7 +169,7 @@ trait WithConfiguration {
             case Nil =>
             case unmatched =>
               throw CliException(s"Streamlet ${streamlet.name} contains undeclared configuration parameters ${unmatched
-                .mkString("[", ", ", "]")}")
+                  .mkString("[", ", ", "]")}")
           }
           configParameters.foreach { parameter =>
             if (s.configParameters.hasPath(parameter.key)) {
@@ -252,44 +251,43 @@ trait WithConfiguration {
     // Adding bootstrap-servers key for backwards compatibility
     val kafkaBootstrapServersCompat2010 = defaultClusterConfig.map(_.getString("bootstrap.servers"))
 
-    val portMappingConfigs = deployment.portMappings.flatMap {
-      case (portName, portMapping) =>
-        Try {
-          val configCluster =
-            appConfig.cloudflow.topics.get(portName).flatMap(_.cluster)
+    val portMappingConfigs = deployment.portMappings.flatMap { case (portName, portMapping) =>
+      Try {
+        val configCluster =
+          appConfig.cloudflow.topics.get(portName).flatMap(_.cluster)
 
-          val clusterSecretConfig = {
-            configCluster
-              .flatMap(clusterName => clusterSecretConfigs.get(clusterName))
-              .orElse(
-                portMapping.cluster
-                  .flatMap(clusterName => clusterSecretConfigs.get(clusterName))
-                  .orElse(defaultClusterConfig))
-              .getOrElse(ConfigFactory.empty())
+        val clusterSecretConfig = {
+          configCluster
+            .flatMap(clusterName => clusterSecretConfigs.get(clusterName))
+            .orElse(
+              portMapping.cluster
+                .flatMap(clusterName => clusterSecretConfigs.get(clusterName))
+                .orElse(defaultClusterConfig))
+            .getOrElse(ConfigFactory.empty())
+        }
+
+        val portMappingConfig = {
+          appConfig.cloudflow.topics.find { case (k, _) => k == portMapping.id } match {
+            case Some((_, config)) =>
+              ConfigFactory.empty().withFallback(CloudflowConfig.writeTopic(config))
+            case _ => ConfigFactory.empty().withFallback(CloudflowConfig.writeConfig(appConfig))
+          }
+        }
+
+        val originalPortMappingconfig =
+          if (portMapping.config != null) {
+            ConfigFactory
+              .parseString(
+                Serialization
+                  .jsonMapper()
+                  .writeValueAsString(portMapping.config))
+          } else {
+            ConfigFactory.empty()
           }
 
-          val portMappingConfig = {
-            appConfig.cloudflow.topics.find { case (k, _) => k == portMapping.id } match {
-              case Some((_, config)) =>
-                ConfigFactory.empty().withFallback(CloudflowConfig.writeTopic(config))
-              case _ => ConfigFactory.empty().withFallback(CloudflowConfig.writeConfig(appConfig))
-            }
-          }
-
-          val originalPortMappingconfig =
-            if (portMapping.config != null) {
-              ConfigFactory
-                .parseString(
-                  Serialization
-                    .jsonMapper()
-                    .writeValueAsString(portMapping.config))
-            } else {
-              ConfigFactory.empty()
-            }
-
-          val portMappingWithFallbackConfig = portMappingConfig
-            .withFallback(originalPortMappingconfig)
-            .withFallback(clusterSecretConfig)
+        val portMappingWithFallbackConfig = portMappingConfig
+          .withFallback(originalPortMappingconfig)
+          .withFallback(clusterSecretConfig)
 
           // format: off
           CloudflowConfig.CloudflowRoot(
@@ -301,7 +299,7 @@ trait WithConfiguration {
                       id = portMapping.id,
                       config = portMappingWithFallbackConfig))))))))
           // format: on
-        }.toOption
+      }.toOption
     }
 
     val conf = portMappingConfigs
@@ -357,13 +355,12 @@ trait WithConfiguration {
         }.toMap
       }
     } yield {
-      res.map {
-        case (k, v) =>
-          k -> Map(
-            ApplicationDataKey -> render(v.application),
-            SecretDataKey -> render(v.streamlet),
-            RuntimeConfigDataKey -> render(v.runtime),
-            PodsConfigDataKey -> render(v.pods))
+      res.map { case (k, v) =>
+        k -> Map(
+          ApplicationDataKey -> render(v.application),
+          SecretDataKey -> render(v.streamlet),
+          RuntimeConfigDataKey -> render(v.runtime),
+          PodsConfigDataKey -> render(v.pods))
       }
     }
   }

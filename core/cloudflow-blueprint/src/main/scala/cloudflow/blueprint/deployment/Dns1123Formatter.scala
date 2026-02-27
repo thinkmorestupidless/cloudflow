@@ -29,9 +29,8 @@ import java.text.Normalizer
 
 object Dns1123Formatter {
 
-  /**
-   * Removes from the leading and trailing positions the specified characters.
-   */
+  /** Removes from the leading and trailing positions the specified characters.
+    */
   private def trim(name: String): String =
     name.stripPrefix(".").stripPrefix("-").stripSuffix(".").stripSuffix("-")
 
@@ -43,19 +42,15 @@ object Dns1123Formatter {
       .replace('.', '-')
       .replaceAll("[^-a-z0-9]", "")
 
-  /**
-   * Make a name compatible with DNS 1123 Label
-   * Limit the resulting name to 63 characters
-   */
+  /** Make a name compatible with DNS 1123 Label Limit the resulting name to 63 characters
+    */
   def transformToDNS1123Label(name: String): String = {
     val labelMaxLength = 63
     trim(normalize(name).take(labelMaxLength))
   }
 
-  /**
-   * Make a name compatible with DNS 1123 Subdomain
-   * Limit the resulting name to 253 characters
-   */
+  /** Make a name compatible with DNS 1123 Subdomain Limit the resulting name to 253 characters
+    */
   def transformToDNS1123SubDomain(name: String): String = {
     val subDomainMaxLenght = 253
     name

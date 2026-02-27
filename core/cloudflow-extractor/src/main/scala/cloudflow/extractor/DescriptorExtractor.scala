@@ -60,19 +60,20 @@ object DescriptorExtractor {
     val (problemsMap, descriptorsMap) = StreamletScanner
       .scanForStreamletDescriptors(cl, config.projectId)
       .partition { case (_, descriptorResult) => descriptorResult.isLeft }
-    ExtractResult(descriptors = descriptorsMap.collect {
-      case (className, Right(descriptor)) => className -> descriptor
-    }, problems = problemsMap.collect { case (className, Left(problem)) => problem }.toVector)
+    ExtractResult(
+      descriptors = descriptorsMap.collect { case (className, Right(descriptor)) =>
+        className -> descriptor
+      },
+      problems = problemsMap.collect { case (className, Left(problem)) => problem }.toVector)
   }
 
   def resolve(config: ResolveConfiguration, extractResult: ExtractResult): Config = {
-    val descriptor = extractResult.descriptors.foldLeft(ConfigFactory.empty) {
-      case (acc, (name, conf)) =>
-        acc.withValue(
-          s""""$name"""",
-          conf
-            .root()
-            .withValue("image", ConfigValueFactory.fromAnyRef(config.dockerImageName)))
+    val descriptor = extractResult.descriptors.foldLeft(ConfigFactory.empty) { case (acc, (name, conf)) =>
+      acc.withValue(
+        s""""$name"""",
+        conf
+          .root()
+          .withValue("image", ConfigValueFactory.fromAnyRef(config.dockerImageName)))
     }
 
     descriptor

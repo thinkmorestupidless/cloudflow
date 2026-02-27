@@ -18,16 +18,14 @@ package cloudflow.blueprint
 
 import com.typesafe.config._
 
-/**
- * Builds [[Blueprint]]s and [[VerifiedBlueprint]]s for testing purposes.
- * See [[BlueprintSpec]] for how the builder can be used.
- */
+/** Builds [[Blueprint]]s and [[VerifiedBlueprint]]s for testing purposes. See [[BlueprintSpec]] for how the builder can
+  * be used.
+  */
 object BlueprintBuilder extends StreamletDescriptorBuilder {
 
-  /**
-   * Creates an unconnected blueprint.
-   * Defines the given streamlets to be used in the blueprint, adds / uses a randomly named reference for every provided streamlet.
-   */
+  /** Creates an unconnected blueprint. Defines the given streamlets to be used in the blueprint, adds / uses a randomly
+    * named reference for every provided streamlet.
+    */
   def unconnectedBlueprint(streamletDescriptors: StreamletDescriptor*): Blueprint = {
     val blueprint = Blueprint()
     val descriptors = streamletDescriptors.toVector
@@ -40,12 +38,11 @@ object BlueprintBuilder extends StreamletDescriptorBuilder {
     refsAdded.verify
   }
 
-  /**
-   * Creates a connected blueprint in the order that the streamlet descriptors are specified.
-   * Defines the given streamlet descriptors to be used in the blueprint, adds / uses a randomly named reference for every provided streamlet descriptor,
-   * connects every streamlets one by one.
-   * Connections are made to all inlets of the next streamlet that match the outlet schema of the previous streamlet.
-   */
+  /** Creates a connected blueprint in the order that the streamlet descriptors are specified. Defines the given
+    * streamlet descriptors to be used in the blueprint, adds / uses a randomly named reference for every provided
+    * streamlet descriptor, connects every streamlets one by one. Connections are made to all inlets of the next
+    * streamlet that match the outlet schema of the previous streamlet.
+    */
   def connectedBlueprint(streamletDescriptors: StreamletDescriptor*): Blueprint = {
     val refsAdded = unconnectedBlueprint(streamletDescriptors: _*)
     val connected = streamletDescriptors.sliding(2, 1).foldLeft(refsAdded) { (bp, pair) =>
@@ -74,8 +71,8 @@ object BlueprintBuilder extends StreamletDescriptorBuilder {
 
     // generate topic named exactly as portPath connect to portPath of unconnected outlets.
     connectedInlets.problems
-      .collect {
-        case UnconnectedOutlets(unconnectedPorts) => unconnectedPorts
+      .collect { case UnconnectedOutlets(unconnectedPorts) =>
+        unconnectedPorts
       }
       .flatten
       .foldLeft(connectedInlets) { (connectingBlueprint, unconnectedPort) =>
@@ -86,27 +83,23 @@ object BlueprintBuilder extends StreamletDescriptorBuilder {
       .verify
   }
 
-  /**
-   * Forces verification of a blueprint. Fails with a scalatest value if the blueprint is not valid.
-   */
+  /** Forces verification of a blueprint. Fails with a scalatest value if the blueprint is not valid.
+    */
   def verified(blueprint: Blueprint): VerifiedBlueprint =
     blueprint.verified.value
 
-  /**
-   * Creates a connected [[VerifiedBlueprint]], see [[connectedBlueprint]].
-   */
+  /** Creates a connected [[VerifiedBlueprint]], see [[connectedBlueprint]].
+    */
   def verifiedConnectedBlueprint(streamletDescriptors: StreamletDescriptor*): VerifiedBlueprint =
     connectedBlueprint(streamletDescriptors: _*).verified.value
 
-  /**
-   * Adds methods to [[StreamletRef]] for ease of testing.
-   * The methods here make it possible to write:
-   * - `streamletRef.in`
-   * - `streamletRef.out`
-   * - `streamletRef.in0`
-   * - `streamletRef.in1`
-   * as a path to the inlet / outlet which can be used for connecting streamlets instead of manually constructing strings.
-   */
+  /** Adds methods to [[StreamletRef]] for ease of testing. The methods here make it possible to write:
+    *   - `streamletRef.in`
+    *   - `streamletRef.out`
+    *   - `streamletRef.in0`
+    *   - `streamletRef.in1` as a path to the inlet / outlet which can be used for connecting streamlets instead of
+    *     manually constructing strings.
+    */
   implicit class StreamletRefOps(streamletRef: StreamletRef) {
     def inlet(name: String) = s"${streamletRef.name}.$name"
     def outlet(name: String) = s"${streamletRef.name}.$name"

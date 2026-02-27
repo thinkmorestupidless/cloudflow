@@ -29,8 +29,8 @@ final class StreamletScannerSpec extends AnyWordSpec with TryValues with EitherV
   "StreamletScanner.scan" should {
     val classLoader = this.getClass.getClassLoader
     val results = StreamletScanner.scan(classLoader)
-    val (valid, invalid) = results.partition {
-      case (_, triedDiscoveredStreamlet) => triedDiscoveredStreamlet.isRight
+    val (valid, invalid) = results.partition { case (_, triedDiscoveredStreamlet) =>
+      triedDiscoveredStreamlet.isRight
     }
     val validStreamlets = valid.collect { case (k, Right(discovered)) => (k, discovered) }
     val invalidStreamlets = invalid.toMap

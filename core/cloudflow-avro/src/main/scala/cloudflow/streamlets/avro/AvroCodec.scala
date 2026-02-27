@@ -16,30 +16,32 @@
 
 package cloudflow.streamlets.avro
 
+import java.io.ByteArrayOutputStream
 import scala.util._
-
-import com.twitter.bijection.Injection
 import org.apache.avro.Schema
-import org.apache.avro.specific.SpecificRecordBase
-import com.twitter.bijection.avro.SpecificAvroCodecs
-
+import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
+import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter, SpecificRecordBase }
 import cloudflow.streamlets._
 
+/** Avro binary codec. The Twitter Bijection dependency (com.twitter:bijection-avro) has no Scala 3 artifact, so the
+  * encode/decode logic is inlined here using Apache Avro directly.
+  */
 class AvroCodec[T <: SpecificRecordBase](avroSchema: Schema) extends Codec[T] {
 
-  val recordInjection: Injection[T, Array[Byte]] = SpecificAvroCodecs.toBinary(avroSchema)
-  val avroSerde = new AvroSerde(recordInjection)
+  def encode(value: T): Array[Byte] = {
+    val writer = new SpecificDatumWriter[T](avroSchema)
+    val bos = new ByteArrayOutputStream()
+    val encoder = EncoderFactory.get().binaryEncoder(bos, null)
+    writer.write(value, encoder)
+    encoder.flush()
+    bos.toByteArray
+  }
 
-  def encode(value: T): Array[Byte] = avroSerde.encode(value)
-  def decode(bytes: Array[Byte]): Try[T] = avroSerde.decode(bytes)
+  def decode(bytes: Array[Byte]): Try[T] = Try {
+    val reader = new SpecificDatumReader[T](avroSchema)
+    val decoder = DecoderFactory.get().binaryDecoder(bytes, null)
+    reader.read(null.asInstanceOf[T], decoder)
+  }
+
   def schema: Schema = avroSchema
-}
-
-private[avro] class AvroSerde[T <: SpecificRecordBase](injection: Injection[T, Array[Byte]]) extends Serializable {
-  val inverted: Array[Byte] => Try[T] = injection.invert _
-
-  def encode(value: T): Array[Byte] = injection(value)
-
-  // TODO fix up the exception, maybe pas through input
-  def decode(bytes: Array[Byte]): Try[T] = inverted(bytes)
 }

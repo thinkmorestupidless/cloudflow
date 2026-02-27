@@ -29,7 +29,7 @@ trait WithUpdateReplicas {
   def updateReplicas(crApp: App.Cr, replicas: Map[String, Int]): Try[App.Cr] = {
     val allStreamlets = crApp.getSpec.deployments.map { streamlet => streamlet.streamletName }.distinct
 
-    (replicas.keys.toList.distinct.diff(allStreamlets)) match {
+    replicas.keys.toList.distinct.diff(allStreamlets) match {
       case Nil =>
         val clusterDeployments = crApp.getSpec.deployments.map { streamlet =>
           streamlet.streamletName match {

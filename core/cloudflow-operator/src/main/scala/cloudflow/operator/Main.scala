@@ -29,7 +29,7 @@ import java.lang.management.ManagementFactory
 import scala.jdk.CollectionConverters._
 import scala.util.{ Success, Try }
 
-object Main extends {
+object Main {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()

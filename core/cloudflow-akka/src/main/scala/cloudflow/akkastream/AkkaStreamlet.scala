@@ -31,16 +31,14 @@ import net.ceedubs.ficus.Ficus._
 
 import scala.util.control.NonFatal
 
-/**
- * Extend from this class to build Akka-based Streamlets.
- */
+/** Extend from this class to build Akka-based Streamlets.
+  */
 abstract class AkkaStreamlet extends Streamlet[AkkaStreamletContext] {
   final override val runtime = AkkaStreamletRuntime
 
-  /**
-   * Initialize the streamlet from the config. In some cases (e.g. the tests) we may pass a context
-   * directly to be used instead of building it from the config.
-   */
+  /** Initialize the streamlet from the config. In some cases (e.g. the tests) we may pass a context directly to be used
+    * instead of building it from the config.
+    */
   override protected final def createContext(config: Config): AkkaStreamletContext =
     (for {
       streamletDefinition <- StreamletDefinition.read(config)
@@ -78,8 +76,8 @@ abstract class AkkaStreamlet extends Streamlet[AkkaStreamletContext] {
         val system = ActorSystem(streamletDefinition.streamletRef, updatedStreamletDefinition.config)
         new AkkaStreamletContextImpl(updatedStreamletDefinition, system)
       }
-    }).recoverWith {
-      case th => Failure(new Exception(s"Failed to create context from $config", th))
+    }).recoverWith { case th =>
+      Failure(new Exception(s"Failed to create context from $config", th))
     }.get
 
   override final def run(context: AkkaStreamletContext): StreamletExecution =
@@ -87,7 +85,7 @@ abstract class AkkaStreamlet extends Streamlet[AkkaStreamletContext] {
       val localMode = context.config.as[Option[Boolean]]("cloudflow.local").getOrElse(false)
       context.ready(localMode)
 
-      val logic = createLogic()
+      val logic = createLogic
 
       context.alive(localMode)
       logic.run()
@@ -106,17 +104,20 @@ abstract class AkkaStreamlet extends Streamlet[AkkaStreamletContext] {
       |${buildInfo}
       """.stripMargin)
 
-  /**
-   * Implement this method to define the logic that this streamlet should execute once it is run.
-   */
-  protected def createLogic(): AkkaStreamletLogic
+  /** Implement this method to define the logic that this streamlet should execute once it is run.
+    */
+  protected def createLogic: AkkaStreamletLogic
 
   private def readyAfterStart(): Boolean = !attributes.contains(ServerAttribute)
 
   private val activateCluster: Boolean = attributes.contains(AkkaClusterAttribute)
 
   private def signalReadyAfterStart(): Unit =
-    if (readyAfterStart) context.signalReady
+    if (readyAfterStart()) context.signalReady()
+
+  // Scala 3: protected members of a class cannot be accessed from traits via self-type;
+  // provide a package-private accessor for the Server mixin.
+  private[akkastream] def _akkaContext: AkkaStreamletContext = context
 }
 
 final case object AkkaStreamletRuntime extends StreamletRuntime {

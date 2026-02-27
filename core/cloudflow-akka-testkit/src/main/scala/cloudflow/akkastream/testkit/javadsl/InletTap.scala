@@ -61,17 +61,16 @@ case class QueueInletTap[T](inlet: CodecInlet[T])(implicit system: ActorSystem) 
   val queue: akka.stream.javadsl.SourceQueueWithComplete[T] = q
 }
 
-/**
- * Copied over from Akka internals (akka.stream.impl.QueueSource.scala, 2.5.23)
- */
+/** Copied over from Akka internals (akka.stream.impl.QueueSource.scala, 2.5.23)
+  */
 private[testkit] final class SourceQueueAdapter[T](delegate: SourceQueueWithComplete[T])
     extends akka.stream.javadsl.SourceQueueWithComplete[T] {
   import java.util.concurrent.CompletionStage
-  import scala.compat.java8.FutureConverters._
+  import scala.jdk.FutureConverters._
   import akka.Done
 
-  def offer(elem: T): CompletionStage[QueueOfferResult] = delegate.offer(elem).toJava
-  def watchCompletion(): CompletionStage[Done] = delegate.watchCompletion().toJava
+  def offer(elem: T): CompletionStage[QueueOfferResult] = delegate.offer(elem).asJava
+  def watchCompletion(): CompletionStage[Done] = delegate.watchCompletion().asJava
   def complete(): Unit = delegate.complete()
   def fail(ex: Throwable): Unit = delegate.fail(ex)
 }

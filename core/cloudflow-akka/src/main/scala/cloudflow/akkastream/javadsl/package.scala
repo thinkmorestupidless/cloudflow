@@ -26,9 +26,9 @@ package javadsl {
   @deprecated("Use `FlowWithCommittableContext` instead.", "1.3.1")
   object FlowWithOffsetContext {
 
-    /**
-     * Creates a [[akka.stream.javadsl.FlowWithContext FlowWithContext]] that makes it possible for cloudflow to commit reads.
-     */
+    /** Creates a [[akka.stream.javadsl.FlowWithContext FlowWithContext]] that makes it possible for cloudflow to commit
+      * reads.
+      */
     @deprecated("Use `FlowWithCommittableContext` instead.", "1.3.1")
     def create[In](): FlowWithContext[In, CommittableOffset, In, CommittableOffset, NotUsed] =
       FlowWithContext.create[In, CommittableOffset]()
@@ -36,9 +36,9 @@ package javadsl {
 
   object FlowWithCommittableContext {
 
-    /**
-     * Creates a [[akka.stream.javadsl.FlowWithContext FlowWithContext]] that makes it possible for cloudflow to commit reads.
-     */
+    /** Creates a [[akka.stream.javadsl.FlowWithContext FlowWithContext]] that makes it possible for cloudflow to commit
+      * reads.
+      */
     def create[In](): FlowWithContext[In, Committable, In, Committable, NotUsed] =
       FlowWithContext.create[In, Committable]()
   }

@@ -23,19 +23,16 @@ import io.fabric8.kubernetes.api.model.{ ObjectReference, OwnerReference }
 
 import scala.collection.immutable._
 
-/**
- * Creates sequences of resource [[Action]]s deployment and undeployment of applications.
- * The [[Action]]s record the required changes between an optional current application and a new application.
- * The [[ActionExecutor]] executes these actions.
- */
+/** Creates sequences of resource [[Action]]s deployment and undeployment of applications. The [[Action]]s record the
+  * required changes between an optional current application and a new application. The [[ActionExecutor]] executes
+  * these actions.
+  */
 object Actions {
 
-  /**
-   * Creates the [[Action]]s to deploy the application.
-   * the deployment actions are derived from changes between the current application and the new application to deploy.
-   * A [[CloudflowApplication]] consists of 1-R runners(one for each streamlet), which expose 0-E endpoints.
-   * The application data is kept in 0-S savepoints.
-   */
+  /** Creates the [[Action]]s to deploy the application. the deployment actions are derived from changes between the
+    * current application and the new application to deploy. A [[CloudflowApplication]] consists of 1-R runners(one for
+    * each streamlet), which expose 0-E endpoints. The application data is kept in 0-S savepoints.
+    */
   def deploy(
       newApp: App.Cr,
       currentApp: Option[App.Cr] = None,
@@ -59,9 +56,8 @@ object Actions {
     EventActions.deployEvents(newApp, currentApp, runners, podName, cause)
   }
 
-  /**
-   * Creates the [[Action]]s to undeploy the application.
-   */
+  /** Creates the [[Action]]s to undeploy the application.
+    */
   def undeploy(app: App.Cr, podName: String, cause: ObjectReference): Seq[Action] =
     Seq(EventActions.undeployEvent(app, podName, cause))
 
@@ -77,5 +73,5 @@ object Actions {
 
   private def deployRunners(newApp: App.Cr, currentApp: Option[App.Cr], runners: Map[String, Runner[_]]): Seq[Action] =
     EndpointActions(newApp, currentApp) ++
-    runners.map { case (_, runner) => runner.actions(newApp, currentApp, runners) }.flatten
+      runners.map { case (_, runner) => runner.actions(newApp, currentApp, runners) }.flatten
 }

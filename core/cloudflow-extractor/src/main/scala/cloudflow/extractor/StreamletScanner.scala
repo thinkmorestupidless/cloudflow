@@ -97,17 +97,16 @@ object StreamletScanner {
       }
 
   private def getInstance(clazz: Class[_]): Either[ExtractProblem, Any] = {
-    getInstanceFromScalaObject(clazz).toEither.left.flatMap {
-      case _ => getInstanceFromDefaultConstructor(clazz)
+    getInstanceFromScalaObject(clazz).toEither.left.flatMap { case _ =>
+      getInstanceFromDefaultConstructor(clazz)
     }
   }
 
   private def getInstanceFromDefaultConstructor(streamletClass: Class[_]): Either[ExtractProblem, Any] = {
     getNoArgConstructor(streamletClass) match {
       case Some(constructor) =>
-        Try(constructor.newInstance()).toEither.left.flatMap {
-          case error =>
-            Left(ConstructorFailure(streamletClass, error))
+        Try(constructor.newInstance()).toEither.left.flatMap { case error =>
+          Left(ConstructorFailure(streamletClass, error))
         }
       case None =>
         Left(ConstructorMissing(streamletClass))

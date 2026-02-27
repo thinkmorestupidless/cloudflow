@@ -41,9 +41,8 @@ object AppEventFlow {
       .log("app-event", AppEvent.detected)
       .withAttributes(logAttributes)
 
-  /**
-   * Transforms [[AppEvent]]s into [[Action]]s.
-   */
+  /** Transforms [[AppEvent]]s into [[Action]]s.
+    */
   def toAction(runners: Map[String, Runner[_]], podName: String, podNamespace: String): Flow[AppEvent, Action, _] =
     Flow[AppEvent]
       .mapConcat(_.toActionList(runners, podName, podNamespace))

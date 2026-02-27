@@ -30,33 +30,32 @@ trait WithUpdateVolumeMounts {
     for {
       existingPvcs <- pvcs()
       map <- Try {
-        volumeMountsArgs.map {
-          case (streamletVolumeNamePath, pvcName) =>
-            if (!existingPvcs.contains(pvcName)) {
-              throw new CliException(
-                s"Cannot find persistent volume claim '$pvcName' specified via --volume-mount argument.")
-            }
-            // volumeMounts Map is "<streamlet-name>.<volume-mount-name>" -> pvc-name
-            val parts = streamletVolumeNamePath.split("\\.").toList
-            if (parts.size != 2) {
-              throw new CliException(
-                "--volume-mount argument is invalid, please provide as --volume-mount <streamlet-name>.<volume-mount-name>=<pvc-name>")
-            }
-            val streamletName = parts(0)
-            val volumeMountName = parts(1)
-            if (crApp.getSpec.deployments.find(_.streamletName == streamletName).isEmpty) {
-              throw new CliException(s"Cannot find streamlet '$streamletName' in --volume-mount argument")
-            }
+        volumeMountsArgs.map { case (streamletVolumeNamePath, pvcName) =>
+          if (!existingPvcs.contains(pvcName)) {
+            throw new CliException(
+              s"Cannot find persistent volume claim '$pvcName' specified via --volume-mount argument.")
+          }
+          // volumeMounts Map is "<streamlet-name>.<volume-mount-name>" -> pvc-name
+          val parts = streamletVolumeNamePath.split("\\.").toList
+          if (parts.size != 2) {
+            throw new CliException(
+              "--volume-mount argument is invalid, please provide as --volume-mount <streamlet-name>.<volume-mount-name>=<pvc-name>")
+          }
+          val streamletName = parts(0)
+          val volumeMountName = parts(1)
+          if (crApp.getSpec.deployments.find(_.streamletName == streamletName).isEmpty) {
+            throw new CliException(s"Cannot find streamlet '$streamletName' in --volume-mount argument")
+          }
 
-            if (crApp.getSpec.deployments
-                  .filter(_.streamletName == streamletName)
-                  .flatMap(_.volumeMounts)
-                  .find(_.name == volumeMountName)
-                  .isEmpty) {
-              throw new CliException(
-                s"Cannot find volume mount name '$volumeMountName' for streamlet '$streamletName' in --volume-mount argument")
-            }
-            (streamletName, volumeMountName) -> pvcName
+          if (crApp.getSpec.deployments
+              .filter(_.streamletName == streamletName)
+              .flatMap(_.volumeMounts)
+              .find(_.name == volumeMountName)
+              .isEmpty) {
+            throw new CliException(
+              s"Cannot find volume mount name '$volumeMountName' for streamlet '$streamletName' in --volume-mount argument")
+          }
+          (streamletName, volumeMountName) -> pvcName
         }.toMap
       }
     } yield map

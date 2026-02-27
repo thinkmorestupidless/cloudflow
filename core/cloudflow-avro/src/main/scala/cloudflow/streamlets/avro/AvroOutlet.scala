@@ -30,9 +30,8 @@ case class AvroOutlet[T <: SpecificRecordBase: ClassTag](name: String, partition
   def schemaDefinition = createSchemaDefinition(makeSchema)
   def schemaAsString = makeSchema.toString(false)
 
-  /**
-   * Returns a CodecOutlet with the partitioner set.
-   */
+  /** Returns a CodecOutlet with the partitioner set.
+    */
   def withPartitioner(partitioner: T => String): AvroOutlet[T] = copy(partitioner = partitioner)
 }
 

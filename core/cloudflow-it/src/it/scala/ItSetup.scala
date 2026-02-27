@@ -176,9 +176,8 @@ trait ItSetup {
     status
   }
 
-  /**
-   * Run an action, then wait for app to be Ready.
-   */
+  /** Run an action, then wait for app to be Ready.
+    */
   def configureApp[A](wait: FiniteDuration = resource.postConfigurationTimeout)(
       action: ApplicationStatus => Try[A]): A =
     withRunningApp { status =>

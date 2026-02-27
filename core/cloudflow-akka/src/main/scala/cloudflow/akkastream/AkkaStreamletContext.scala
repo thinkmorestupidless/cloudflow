@@ -32,13 +32,13 @@ import cloudflow.streamlets._
 
 import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 
-/**
- * Runtime context for [[AkkaStreamlet]]s, which provides means to create [[akka.stream.scaladsl.Source Source]]s and [[akka.stream.scaladsl.Sink Sink]]s respectively
- * for [[cloudflow.streamlets.CodecInlet CodeInlet]]s and [[cloudflow.streamlets.CodecOutlet CodeOutlet]]s.
- * The StreamletContext also contains some lifecycle hooks, like `signalReady`, `onStop` and `stop`
- * and provides access to the streamlet configuration.
- * It also provides the [[akka.actor.ActorSystem ActorSystem]] and [[akka.stream.Materializer Materializer]] that will be used to run the AkkaStreamlet.
- */
+/** Runtime context for [[AkkaStreamlet]]s, which provides means to create [[akka.stream.scaladsl.Source Source]]s and
+  * [[akka.stream.scaladsl.Sink Sink]]s respectively for [[cloudflow.streamlets.CodecInlet CodeInlet]]s and
+  * [[cloudflow.streamlets.CodecOutlet CodeOutlet]]s. The StreamletContext also contains some lifecycle hooks, like
+  * `signalReady`, `onStop` and `stop` and provides access to the streamlet configuration. It also provides the
+  * [[akka.actor.ActorSystem ActorSystem]] and [[akka.stream.Materializer Materializer]] that will be used to run the
+  * AkkaStreamlet.
+  */
 trait AkkaStreamletContext extends StreamletContext {
 
   private[akkastream] def sourceWithCommittableContext[T](
@@ -77,17 +77,18 @@ trait AkkaStreamletContext extends StreamletContext {
   private[akkastream] def sinkWithOffsetContext[T](
       committerSettings: CommitterSettings): Sink[(T, CommittableOffset), NotUsed]
 
-  /**
-   * Creates a [[akka.stream.SinkRef SinkRef]] to write to, for the specified [[cloudflow.streamlets.CodecOutlet CodecOutlet]]
-   *
-   * @param outlet the specified [[cloudflow.streamlets.CodecOutlet CodecOutlet]]
-   * @return the [[cloudflow.akkastream.WritableSinkRef WritableSinkRef]] created
-   */
+  /** Creates a [[akka.stream.SinkRef SinkRef]] to write to, for the specified
+    * [[cloudflow.streamlets.CodecOutlet CodecOutlet]]
+    *
+    * @param outlet
+    *   the specified [[cloudflow.streamlets.CodecOutlet CodecOutlet]]
+    * @return
+    *   the [[cloudflow.akkastream.WritableSinkRef WritableSinkRef]] created
+    */
   private[akkastream] def sinkRef[T](outlet: CodecOutlet[T]): WritableSinkRef[T]
 
-  /**
-   * The system in which the AkkaStreamlet will be run.
-   */
+  /** The system in which the AkkaStreamlet will be run.
+    */
   implicit def system: ActorSystem
   protected val killSwitch = KillSwitches.shared(streamletRef)
 
@@ -104,76 +105,68 @@ trait AkkaStreamletContext extends StreamletContext {
       implicit val ec: ExecutionContext = system.dispatcher
       Future
         .sequence(stoppers.get.map { f =>
-          f().recover {
-            case cause =>
-              system.log.error(cause, "onStop callback failed.")
-              Dun
+          f().recover { case cause =>
+            system.log.error(cause, "onStop callback failed.")
+            Dun
           }
         })
         .map(_ => Done)
     }
   }
 
-  /**
-   * Signals that the streamlet is ready to process data.
-   *
-   * When a streamlet is run using `AkkaStreamletTestkit.run`, a [[cloudflow.streamlets.StreamletExecution StreamletExecution]] is returned.
-   * `signalReady` completes the [[cloudflow.streamlets.StreamletExecution#ready ready]] future.
-   * [[cloudflow.streamlets.StreamletExecution#ready ready]] can be used for instance to wait
-   * for a [[cloudflow.akkastream.Server Server]] to signal that it is ready to accept requests.
-   *
-   * @return {@code true} if and only if successfully signalled. Otherwise {@code false}.
-   */
+  /** Signals that the streamlet is ready to process data.
+    *
+    * When a streamlet is run using `AkkaStreamletTestkit.run`, a
+    * [[cloudflow.streamlets.StreamletExecution StreamletExecution]] is returned. `signalReady` completes the
+    * [[cloudflow.streamlets.StreamletExecution#ready ready]] future.
+    * [[cloudflow.streamlets.StreamletExecution#ready ready]] can be used for instance to wait for a
+    * [[cloudflow.akkastream.Server Server]] to signal that it is ready to accept requests.
+    *
+    * @return
+    *   {@code true} if and only if successfully signalled. Otherwise {@code false} .
+    */
   def signalReady(): Boolean
 
-  /**
-   * Marks the streamlet pod "ready" for Kubernetes.
-   */
+  /** Marks the streamlet pod "ready" for Kubernetes.
+    */
   def ready(localMode: Boolean): Unit
 
-  /**
-   * Marks the streamlet pod "alive" for Kubernetes.
-   */
+  /** Marks the streamlet pod "alive" for Kubernetes.
+    */
   def alive(localMode: Boolean): Unit
 
-  /**
-   * Stops the streamlet knowing an exception occured.
-   */
+  /** Stops the streamlet knowing an exception occured.
+    */
   def stopOnException(nonFatal: Throwable): Unit
 
-  /**
-   * Stops the streamlet.
-   */
+  /** Stops the streamlet.
+    */
   def stop(): Future[Dun]
 
-  /**
-   * Registers a callback, which is called when the streamlet is stopped.
-   * It is usually used to close resources that have been created in the streamlet.
-   */
+  /** Registers a callback, which is called when the streamlet is stopped. It is usually used to close resources that
+    * have been created in the streamlet.
+    */
   def onStop(f: () => Future[Dun]): Unit = Stoppers.add(f)
 
   private[akkastream] def metricTags(): Map[String, String]
 }
 
-/**
- * The position to initially start reading from, when using `plainSource`.
- *
- * Maps to the "auto.offset.reset" Kafka setting with `autoOffsetReset`.
- */
+/** The position to initially start reading from, when using `plainSource`.
+  *
+  * Maps to the "auto.offset.reset" Kafka setting with `autoOffsetReset`.
+  */
 sealed trait ResetPosition {
   def autoOffsetReset: String
 }
 
-/**
- * Automatically reset the offset to the earliest offset.
- */
+/** Automatically reset the offset to the earliest offset.
+  */
 case object Earliest extends ResetPosition {
   val autoOffsetReset = "earliest"
 }
 
-/**
- * Automatically reset the offset to the latest offset.
- */
+/** Automatically reset the offset to the latest offset.
+  */
 case object Latest extends ResetPosition {
   val autoOffsetReset = "latest"
 }

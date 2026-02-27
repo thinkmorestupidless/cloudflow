@@ -29,14 +29,12 @@ object Fabric8ActionExecutor {
   val logger: Logger = LoggerFactory.getLogger(classOf[ActionExecutor])
 }
 
-/**
- * Executes Kubernetes resource actions using a Fabric8 KubernetesClient.
- */
-final case class Fabric8ActionExecutor(
-    client: KubernetesClient,
-    override implicit val executionContext: ExecutionContext)
+/** Executes Kubernetes resource actions using a Fabric8 KubernetesClient.
+  */
+final class Fabric8ActionExecutor(val client: KubernetesClient, val executionContext: ExecutionContext)
     extends ActionExecutor {
   import Fabric8ActionExecutor._
+  implicit private val _ec: ExecutionContext = executionContext
 
   override def execute(action: Action): Future[Action] = {
     logger.debug(action.executingMessage)

@@ -144,12 +144,14 @@ object DocGenMain extends App {
   def renderTwoColumnsUsage: String = {
     val xs = optionsForRender
     val descriptions = {
-      val col1Len = math.min(column1MaxLength, xs.map { x =>
-        usageColumn1(x).length + WW.length
-      } match {
-        case Nil  => 0
-        case list => list.max
-      })
+      val col1Len = math.min(
+        column1MaxLength,
+        xs.map { x =>
+          usageColumn1(x).length + WW.length
+        } match {
+          case Nil  => 0
+          case list => list.max
+        })
       xs.map { x =>
         usageTwoColumn(x, col1Len)
       }
@@ -177,10 +179,9 @@ object DocGenMain extends App {
       c.getParentId == parentId && !c.isHidden
     }
     if (cs.nonEmpty) text += cs.map { _.name }.mkString("[ ", " | ", " ]")
-    val os = options.toSeq.filter {
-      case x =>
-        (x.kind == Opt || x.kind == OptVersion || x.kind == OptHelp) &&
-        x.getParentId == parentId
+    val os = options.toSeq.filter { case x =>
+      (x.kind == Opt || x.kind == OptVersion || x.kind == OptHelp) &&
+      x.getParentId == parentId
     }
     val as = arguments.filter { _.getParentId == parentId }
     if (os.nonEmpty) text += "[options]"
@@ -194,5 +195,5 @@ object DocGenMain extends App {
 
   println(renderTwoColumnsUsage)
   import sys.process._
-  (s"echo '${renderTwoColumnsUsage}'".#>(new java.io.File("cloudflow.adoc"))).!
+  s"echo '${renderTwoColumnsUsage}'".#>(new java.io.File("cloudflow.adoc")).!
 }

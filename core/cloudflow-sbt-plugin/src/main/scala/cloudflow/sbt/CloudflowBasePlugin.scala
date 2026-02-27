@@ -27,10 +27,9 @@ import scala.util.control._
 import cloudflow.sbt.CloudflowKeys._
 import cloudflow.blueprint.StreamletDescriptor
 
-/**
- * Base class for all Cloudflow runtime plugins for multi-image use case. Contains some
- * methods which are reused across the runtime plugins.
- */
+/** Base class for all Cloudflow runtime plugins for multi-image use case. Contains some methods which are reused across
+  * the runtime plugins.
+  */
 object CloudflowBasePlugin extends AutoPlugin {
   final val AppHome = "${app_home}"
   final val AppTargetDir: String = "/app"
@@ -55,12 +54,12 @@ object CloudflowBasePlugin extends AutoPlugin {
     Seq(
       cloudflowDockerBaseImage := "adoptopenjdk/openjdk8:alpine",
       libraryDependencies ++= Vector(
-          "com.lightbend.cloudflow" % s"cloudflow-runner_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
-          "com.lightbend.cloudflow" % s"cloudflow-localrunner_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value),
+        "com.lightbend.cloudflow" % s"cloudflow-runner_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
+        "com.lightbend.cloudflow" % s"cloudflow-localrunner_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value),
       docker / buildOptions := BuildOptions(
-          cache = true,
-          removeIntermediateContainers = BuildOptions.Remove.OnSuccess,
-          pullBaseImage = BuildOptions.Pull.IfMissing),
+        cache = true,
+        removeIntermediateContainers = BuildOptions.Remove.OnSuccess,
+        pullBaseImage = BuildOptions.Pull.IfMissing),
       docker / imageNames := {
         val registry = cloudflowDockerRegistry.value
         val namespace = cloudflowDockerRepository.value
@@ -74,55 +73,53 @@ object CloudflowBasePlugin extends AutoPlugin {
         }.toSeq
       },
       build := showResultOfBuild
-          .dependsOn(docker.dependsOn(streamletDescriptorsInProject))
-          .value,
+        .dependsOn(docker.dependsOn(streamletDescriptorsInProject))
+        .value,
       buildAndPublish := Def.task {
-          val log = streams.value.log
-          log.err(
-            """`buildAndPublish` is deprecated since Cloudflow v2.0. Use `buildApp` instead.
+        val log = streams.value.log
+        log.err("""`buildAndPublish` is deprecated since Cloudflow v2.0. Use `buildApp` instead.
                      | See https://cloudflow.io/docs/current/project-info/migration-1_3-2_0.html#_build_process for more info.
                   """.stripMargin)
-        }.value,
+      }.value,
       buildAndPublishImage := Def.taskDyn {
-          def buildAndPublishLog(log: sbt.internal.util.ManagedLogger)(imageRef: ImageRef) = {
-            log.info(" ") // if you remove the space, the empty line will be auto-removed by SBT somehow...
-            log.info("Successfully built and published the following image:")
-            log.info(imageRef.fullReference)
-          }
+        def buildAndPublishLog(log: sbt.internal.util.ManagedLogger)(imageRef: ImageRef) = {
+          log.info(" ") // if you remove the space, the empty line will be auto-removed by SBT somehow...
+          log.info("Successfully built and published the following image:")
+          log.info(imageRef.fullReference)
+        }
 
-          val streamletDescriptors = streamletDescriptorsInProject.value.fold(e => throw e, identity)
-          if (cloudflowDockerRegistry.value.isEmpty) Def.task {
-            val _ = docker.value
-            val dockerImage = verifyDockerImage.value
+        val streamletDescriptors = streamletDescriptorsInProject.value.fold(e => throw e, identity)
+        if (cloudflowDockerRegistry.value.isEmpty) Def.task {
+          val _ = docker.value
+          val dockerImage = verifyDockerImage.value
 
-            val log = streams.value.log
-            val imageRef = BasicImageRef(dockerImage)
+          val log = streams.value.log
+          val imageRef = BasicImageRef(dockerImage)
 
-            buildAndPublishLog(log)(imageRef)
+          buildAndPublishLog(log)(imageRef)
 
-            log.warn("""*** WARNING ***""")
-            log.warn("""You haven't specified the "cloudflowDockerRegistry" in your build.sbt""")
-            log.warn("""To have a working deployment you should make the produced docker image available """)
-            log.warn("""in a docker registry accessible from your cluster nodes""")
-            log.warn(s"""The Cloudflow application CR points to ${dockerImage}""")
+          log.warn("""*** WARNING ***""")
+          log.warn("""You haven't specified the "cloudflowDockerRegistry" in your build.sbt""")
+          log.warn("""To have a working deployment you should make the produced docker image available """)
+          log.warn("""in a docker registry accessible from your cluster nodes""")
+          log.warn(s"""The Cloudflow application CR points to ${dockerImage}""")
 
+          (imageRef -> streamletDescriptors): (ImageRef, Map[String, StreamletDescriptor])
+        }
+        else
+          Def.task {
+            val imageNameToDigest: Map[ImageName, ImageDigest] =
+              dockerBuildAndPush.value.map { case (k, v) =>
+                ImageName(k.registry, k.namespace, k.repository, k.tag) -> ImageDigest(v.algorithm, v.digest)
+              }
+            if (imageNameToDigest.size > 1) throw TooManyImagesBuilt
+            val (imageName, imageDigest) = imageNameToDigest.head
+            val imageRef = ShaImageRef(imageName, imageDigest)
+
+            buildAndPublishLog(streams.value.log)(imageRef)
             (imageRef -> streamletDescriptors): (ImageRef, Map[String, StreamletDescriptor])
           }
-          else
-            Def.task {
-              val imageNameToDigest: Map[ImageName, ImageDigest] =
-                dockerBuildAndPush.value.map {
-                  case (k, v) =>
-                    ImageName(k.registry, k.namespace, k.repository, k.tag) -> ImageDigest(v.algorithm, v.digest)
-                }
-              if (imageNameToDigest.size > 1) throw TooManyImagesBuilt
-              val (imageName, imageDigest) = imageNameToDigest.head
-              val imageRef = ShaImageRef(imageName, imageDigest)
-
-              buildAndPublishLog(streams.value.log)(imageRef)
-              (imageRef -> streamletDescriptors): (ImageRef, Map[String, StreamletDescriptor])
-            }
-        }.value,
+      }.value,
       Compile / fork := true,
       extraDockerInstructions := Seq(),
       ownerInDockerImage := userAsOwner(UserInImage))

@@ -25,9 +25,8 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.Seq
 
-/**
- * Indicates that a cloudflow application was deployed or undeployed.
- */
+/** Indicates that a cloudflow application was deployed or undeployed.
+  */
 sealed trait AppEvent {
   def app: App.Cr
   def toActionList(runners: Map[String, runner.Runner[_]], podName: String, podNamespace: String): Seq[Action]
@@ -45,9 +44,8 @@ case class UndeployEvent(app: App.Cr, cause: ObjectReference) extends AppEvent {
     Actions.undeploy(app, podName, cause)
 }
 
-/**
- * Indicates that something changed in the cloudflow application.
- */
+/** Indicates that something changed in the cloudflow application.
+  */
 trait AppChangeEvent[T <: HasMetadata] {
   def watchEvent: WatchEvent[T]
   def namespace: String

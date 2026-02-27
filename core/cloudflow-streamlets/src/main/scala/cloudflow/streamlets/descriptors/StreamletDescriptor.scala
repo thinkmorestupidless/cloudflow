@@ -23,7 +23,8 @@ final case class VolumeMountDescriptor(
     name: String,
     path: String,
     accessMode: String,
-    pvcName: String = "" // This string is only used in the operator and will remain empty until deserialized on the operator side
+    pvcName: String =
+      "" // This string is only used in the operator and will remain empty until deserialized on the operator side
 )
 
 final case class ConfigParameterDescriptor private (
@@ -39,17 +40,24 @@ object ConfigParameterDescriptor {
       description: String,
       validationType: ValidationType,
       defaultValue: Option[T]): ConfigParameterDescriptor =
-    ConfigParameterDescriptor(
+    new ConfigParameterDescriptor(
       key,
       description,
       validationType.`type`,
       validationType.pattern,
       defaultValue.map(_.toString()))
+  def apply(
+      key: String,
+      description: String,
+      validationType: String,
+      validationPattern: Option[String],
+      defaultValue: Option[String]): ConfigParameterDescriptor =
+    new ConfigParameterDescriptor(key, description, validationType, validationPattern, defaultValue)
   // Java API
   def create(key: String, description: String, validationType: ValidationType) =
-    ConfigParameterDescriptor(key, description, validationType.`type`, validationType.pattern, Some(""))
+    new ConfigParameterDescriptor(key, description, validationType.`type`, validationType.pattern, Some(""))
   def create(key: String, description: String, validationType: ValidationType, defaultValue: String) =
-    ConfigParameterDescriptor(key, description, validationType.`type`, validationType.pattern, Some(defaultValue))
+    new ConfigParameterDescriptor(key, description, validationType.`type`, validationType.pattern, Some(defaultValue))
 
 }
 
@@ -67,7 +75,13 @@ object StreamletDescriptor extends DefaultJsonProtocol {
 
   implicit val configParameterDescriptorFormat: RootJsonFormat[ConfigParameterDescriptor] =
     jsonFormat(
-      ConfigParameterDescriptor.apply,
+      (
+          key: String,
+          description: String,
+          validationType: String,
+          validationPattern: Option[String],
+          defaultValue: Option[String]) =>
+        ConfigParameterDescriptor(key, description, validationType, validationPattern, defaultValue),
       "key",
       "description",
       "validation_type",
@@ -76,13 +90,7 @@ object StreamletDescriptor extends DefaultJsonProtocol {
 
   implicit final class ConfigParameterDescriptorToDescriptor(val configParameterDescriptor: ConfigParameterDescriptor)
       extends AnyVal {
-    def toDescriptor =
-      ConfigParameterDescriptor(
-        configParameterDescriptor.key,
-        configParameterDescriptor.description,
-        configParameterDescriptor.validationType,
-        configParameterDescriptor.validationPattern,
-        configParameterDescriptor.defaultValue)
+    def toDescriptor: ConfigParameterDescriptor = configParameterDescriptor
   }
 
   final case class StreamletAttributeDescriptor(attributeName: String, configPath: String)
@@ -90,7 +98,8 @@ object StreamletDescriptor extends DefaultJsonProtocol {
     implicit final class StreamletAttributeToDescriptor(val streamletAttribute: StreamletAttribute) extends AnyVal {
       def toDescriptor = StreamletAttributeDescriptor(streamletAttribute.attributeName, streamletAttribute.configPath)
     }
-    implicit val attributeFormat = jsonFormat(StreamletAttributeDescriptor.apply, "attribute_name", "config_path")
+    implicit val attributeFormat: RootJsonFormat[StreamletAttributeDescriptor] =
+      jsonFormat(StreamletAttributeDescriptor.apply, "attribute_name", "config_path")
   }
 
   final case class SchemaDescriptor(name: String, schema: String, fingerprint: String, format: String)

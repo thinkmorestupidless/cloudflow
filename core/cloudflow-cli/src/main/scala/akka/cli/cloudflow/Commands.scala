@@ -113,11 +113,10 @@ object OptionsParser {
       opt[File]("kube-config")
         .action((kc, o) => o.copy(kubeConfig = Some(kc)))
         .text("the kubernetes configuration file"),
-      checkConfig(
-        o =>
-          if (o.kubeConfig.isDefined && !o.kubeConfig.get.exists)
-            failure(s"Provided Kube configuration file [${o.kubeConfig.get.getAbsolutePath}] doesn't exist")
-          else success),
+      checkConfig(o =>
+        if (o.kubeConfig.isDefined && !o.kubeConfig.get.exists)
+          failure(s"Provided Kube configuration file [${o.kubeConfig.get.getAbsolutePath}] doesn't exist")
+        else success),
       help("help").text("prints this usage text"),
       note("Availble commands: " + sys.props("line.separator")))
   }
@@ -243,12 +242,12 @@ object OptionsParser {
         }),
         commandCheck[commands.Deploy](d => {
           if (d.noRegistryCredentials &&
-              (!d.dockerUsername.isEmpty ||
+            (!d.dockerUsername.isEmpty ||
               !d.dockerPassword.isEmpty)) {
             failure("--no-registry-credentials but credentials provided")
           } else if (!d.noRegistryCredentials &&
-                     (d.dockerUsername.isEmpty ||
-                     (d.dockerPassword.isEmpty && !d.dockerPasswordStdIn))) {
+            (d.dockerUsername.isEmpty ||
+              (d.dockerPassword.isEmpty && !d.dockerPasswordStdIn))) {
             failure(
               "Docker credentials not provided (use '-u', and '--password-stdin' or '-p'), the credentials will be stored in a Kubernetes image pull secret, so that the application can successfully be deployed")
           } else {
@@ -384,10 +383,9 @@ object OptionsParser {
   }
 
   private val finalValidation = {
-    checkConfig(
-      o =>
-        if (o.command.isEmpty) failure("Command not provided")
-        else success)
+    checkConfig(o =>
+      if (o.command.isEmpty) failure("Command not provided")
+      else success)
   }
 
   val optionParser = {
@@ -618,9 +616,8 @@ object commands {
             ConfigFactory
               .parseFile(f)
               .withFallback(c)
-          }.recoverWith {
-            case ex =>
-              Failure[Config](CliException(s"failed to parse '${f}'", ex))
+          }.recoverWith { case ex =>
+            Failure[Config](CliException(s"failed to parse '${f}'", ex))
           }
         }
       }
@@ -630,10 +627,8 @@ object commands {
       Try {
         val config = ConfigFactory.parseString(configKeys.map { case (k, v) => s"$k=$v" }.mkString("\n"))
         config.resolve()
-      }.recoverWith {
-        case ex =>
-          Failure[Config](
-            CliException(s"failed to parse configuration keys '${configKeys.mkString("[", ",", "]")}'", ex))
+      }.recoverWith { case ex =>
+        Failure[Config](CliException(s"failed to parse configuration keys '${configKeys.mkString("[", ",", "]")}'", ex))
       }
     }
 

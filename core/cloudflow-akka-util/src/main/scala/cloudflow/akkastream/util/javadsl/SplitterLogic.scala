@@ -29,17 +29,13 @@ import cloudflow.akkastream.javadsl.util.{ Either => JEither }
 import cloudflow.akkastream.scaladsl.FlowWithCommittableContext
 import cloudflow.streamlets._
 
-/**
- * Java API
- * Provides functions to split elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
- */
+/** Java API Provides functions to split elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
+  */
 object Splitter {
 
-  /**
-   * Java API
-   * A Sink that splits elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
-   * At-least-once semantics are used.
-   */
+  /** Java API A Sink that splits elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
+    * At-least-once semantics are used.
+    */
   @deprecated("prefer providing Outlets, this variant can't guarantee at-least-once", "2.10.12")
   def sink[I, L, R](
       flow: FlowWithContext[I, Committable, JEither[L, R], Committable, NotUsed],
@@ -48,18 +44,16 @@ object Splitter {
     akkastream.util.scaladsl.Splitter
       .sink[I, L, R](
         flow.via(toEitherFlow).asScala,
-        left.contramap[Tuple2[L, Committable]] { case (t, c)  => new Pair(t, c) }.asScala,
+        left.contramap[Tuple2[L, Committable]] { case (t, c) => new Pair(t, c) }.asScala,
         right.contramap[Tuple2[R, Committable]] { case (t, c) => new Pair(t, c) }.asScala)
       .contramap[Pair[I, Committable]] { pair =>
         (pair.first, pair.second)
       }
       .asJava
 
-  /**
-   * Java API
-   * A Sink that splits elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
-   * At-least-once semantics are used.
-   */
+  /** Java API A Sink that splits elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
+    * At-least-once semantics are used.
+    */
   def sink[I, L, R](
       flow: FlowWithContext[I, Committable, JEither[L, R], Committable, NotUsed],
       leftOutlet: CodecOutlet[L],
@@ -72,11 +66,9 @@ object Splitter {
       .to(akkastream.util.scaladsl.Splitter
         .sink[I, L, R](flow.via(toEitherFlow).asScala, leftOutlet, rightOutlet, committerSettings)(context))
 
-  /**
-   * Java API
-   * A Sink that splits elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
-   * At-least-once semantics are used.
-   */
+  /** Java API A Sink that splits elements based on a flow of type `FlowWithCommittableContext[I, Either[L, R]]`.
+    * At-least-once semantics are used.
+    */
   def sink[I, L, R](
       flow: FlowWithContext[I, Committable, JEither[L, R], Committable, NotUsed],
       leftOutlet: CodecOutlet[L],

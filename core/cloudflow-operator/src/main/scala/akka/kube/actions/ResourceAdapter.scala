@@ -64,8 +64,8 @@ final case class DefaultResourceAdapter[T <: HasMetadata]() extends ResourceAdap
     client.resource[T](resource)
 }
 
-final case class CustomResourceAdapter[T <: CustomResource[_, _], L <: KubernetesResourceList[T]]()(
-    implicit ct: ClassTag[T],
+final case class CustomResourceAdapter[T <: CustomResource[_, _], L <: KubernetesResourceList[T]]()(implicit
+    ct: ClassTag[T],
     cl: ClassTag[L])
     extends ResourceAdapter[T] {
   val elementClass: Class[T] = ct.runtimeClass.asInstanceOf[Class[T]]

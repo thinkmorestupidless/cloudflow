@@ -68,17 +68,16 @@ object Settings extends ExtensionId[Settings] with ExtensionIdProvider {
   }
 
   private def appendResourcesToString(paths: String*): String =
-    paths.foldLeft("") {
-      case (acc, path) =>
-        var source: BufferedSource = null
-        try {
-          source = Source.fromResource(path)
-          acc + source.getLines().mkString("\n") + "\n"
-        } catch {
-          case t: Throwable => throw new Exception(s"Could not load file from resources with path $path", t)
-        } finally {
-          source.close()
-        }
+    paths.foldLeft("") { case (acc, path) =>
+      var source: BufferedSource = null
+      try {
+        source = Source.fromResource(path)
+        acc + source.getLines().mkString("\n") + "\n"
+      } catch {
+        case t: Throwable => throw new Exception(s"Could not load file from resources with path $path", t)
+      } finally {
+        source.close()
+      }
     }
 }
 

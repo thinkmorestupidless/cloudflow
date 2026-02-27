@@ -19,9 +19,8 @@ package cloudflow.akkastream
 import scala.collection.immutable
 import scala.jdk.CollectionConverters._
 
-/**
- * Data class to support sending to multiple outlets from a single originating message.
- */
+/** Data class to support sending to multiple outlets from a single originating message.
+  */
 final class MultiData2[O1, O2] private (val data1: immutable.Seq[O1], val data2: immutable.Seq[O2]) {
 
   def withData1[O](data: immutable.Seq[O]) = new MultiData2[O, O2](data, data2)
@@ -32,9 +31,9 @@ final class MultiData2[O1, O2] private (val data1: immutable.Seq[O1], val data2:
 
   override def toString: String =
     "MultiData2(" +
-    s"data1=${data1.mkString(",")}, " +
-    s"data2=${data2.mkString(",")}" +
-    ")"
+      s"data1=${data1.mkString(",")}, " +
+      s"data2=${data2.mkString(",")}" +
+      ")"
 }
 
 object MultiData2 {

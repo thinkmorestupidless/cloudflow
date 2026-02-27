@@ -41,12 +41,13 @@ object AkkaRunner {
   val ProbePeriodSeconds = 10
 }
 
-/**
- * Creates the Resources that define an Akka [[Runner]].
- */
+/** Creates the Resources that define an Akka [[Runner]].
+  */
 final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[Deployment] {
   import AkkaRunner._
   import akkaRunnerDefaults._
+
+  override implicit protected val ct: ClassTag[Deployment] = ClassTag(classOf[Deployment])
 
   val runtime = Runtime
 
@@ -68,8 +69,8 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
     }
   }
 
-  case class PatchDeploymentAction(deployment: Deployment)(
-      implicit val lineNumber: sourcecode.Line,
+  case class PatchDeploymentAction(deployment: Deployment)(implicit
+      val lineNumber: sourcecode.Line,
       val file: sourcecode.File)
       extends Action {
 
@@ -96,7 +97,7 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
       streamletDeployment: App.Deployment,
       secret: Secret) = {
     Action.get[Deployment](streamletDeployment.name, app.namespace) { currentDeployment =>
-      val updateLabels = Map((CloudflowLabels.ConfigUpdateLabel -> System.currentTimeMillis.toString))
+      val updateLabels = Map(CloudflowLabels.ConfigUpdateLabel -> System.currentTimeMillis.toString)
 
       currentDeployment match {
         case Some(dep) =>
@@ -114,12 +115,13 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
 
   private def akkaRole(namespace: String, labels: CloudflowLabels, ownerReferences: List[OwnerReference]): Role = {
     new RoleBuilder()
-      .withNewMetadata()
-      .withName(Name.ofAkkaRole)
-      .withNamespace(namespace)
-      .withLabels(labels(Name.ofAkkaRole).asJava)
-      .withOwnerReferences(ownerReferences: _*)
-      .endMetadata()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(Name.ofAkkaRole)
+          .withNamespace(namespace)
+          .withLabels(labels(Name.ofAkkaRole).asJava)
+          .withOwnerReferences(ownerReferences: _*)
+          .build())
       .withKind("Role")
       .withRules(createAkkaClusterPolicyRule, createEventPolicyRule)
       .build()
@@ -131,12 +133,13 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
       labels: CloudflowLabels,
       ownerReferences: List[OwnerReference]): RoleBinding = {
     new RoleBindingBuilder()
-      .withNewMetadata()
-      .withName(Name.ofAkkaRoleBinding)
-      .withNamespace(namespace)
-      .withLabels(labels(Name.ofRoleBinding).asJava)
-      .withOwnerReferences(ownerReferences: _*)
-      .endMetadata()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(Name.ofAkkaRoleBinding)
+          .withNamespace(namespace)
+          .withLabels(labels(Name.ofRoleBinding).asJava)
+          .withOwnerReferences(ownerReferences: _*)
+          .build())
       .withKind("RoleBinding")
       .withRoleRef(
         new RoleRefBuilder()
@@ -200,28 +203,33 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
     val userConfiguredPorts = getContainerPorts(podsConfig, PodsConfig.CloudflowPodName)
     // Streamlet volume mounting (Defined by Streamlet.volumeMounts API)
     val pvcRefVolumes =
-      streamletToDeploy.map(_.descriptor.volumeMounts.map { mount =>
-        new VolumeBuilder()
-          .withName(mount.name)
-          .withPersistentVolumeClaim(
-            new PersistentVolumeClaimVolumeSourceBuilder()
-              .withClaimName(mount.pvcName.getOrElse(""))
-              .build())
-          .build()
-      }.toList)
+      streamletToDeploy.map(
+        _.descriptor.volumeMounts
+          .map { mount =>
+            new VolumeBuilder()
+              .withName(mount.name)
+              .withPersistentVolumeClaim(new PersistentVolumeClaimVolumeSourceBuilder()
+                .withClaimName(mount.pvcName.getOrElse(""))
+                .build())
+              .build()
+          }
+          .toList)
     val pvcVolumeMounts = streamletToDeploy
-      .map(_.descriptor.volumeMounts.map { mount =>
-        val readOnly = mount.accessMode match {
-          case "ReadWriteMany" => false
-          case "ReadOnlyMany"  => true
-        }
+      .map(
+        _.descriptor.volumeMounts
+          .map { mount =>
+            val readOnly = mount.accessMode match {
+              case "ReadWriteMany" => false
+              case "ReadOnlyMany"  => true
+            }
 
-        new VolumeMountBuilder()
-          .withName(mount.name)
-          .withMountPath(mount.path)
-          .withReadOnly(readOnly)
-          .build()
-      }.toList)
+            new VolumeMountBuilder()
+              .withName(mount.name)
+              .withMountPath(mount.path)
+              .withReadOnly(readOnly)
+              .build()
+          }
+          .toList)
       .getOrElse(List.empty)
 
     val secretName = deployment.secretName
@@ -296,13 +304,13 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
     // We only need to set this when we want to write to a volume in a pod
     val securityContext = pvcVolumeMounts
       .find(volume => volume.getReadOnly == false)
-      .flatMap(_ => Some(new PodSecurityContextBuilder().withFsGroup(dockerContainerGroupId).build()))
+      .flatMap(_ => Some(new PodSecurityContextBuilder().withFsGroup(dockerContainerGroupId.toLong).build()))
 
     val podSpec = {
       val allVolumes: List[Volume] =
         List(secretVolume, Runner.DownwardApiVolume) ++
-        pvcRefVolumes.getOrElse(List.empty) ++
-        configSecretVolumes
+          pvcRefVolumes.getOrElse(List.empty) ++
+          configSecretVolumes
 
       val podSpecBuilder = new PodSpecBuilder()
         .withServiceAccount(app.getSpec.serviceAccount.getOrElse(Name.ofServiceAccount))
@@ -320,16 +328,19 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
     val template = {
 
       new PodTemplateSpecBuilder()
-        .withNewMetadata()
-        .withName(podName)
-        .withLabels(
-          (labels.withComponent(podName, CloudflowLabels.StreamletComponent) ++ Map(
-            CloudflowLabels.StreamletNameLabel -> deployment.streamletName,
-            CloudflowLabels.AppIdLabel -> appId).view
-            .mapValues(Name.ofLabelValue) ++ getLabels(podsConfig, PodsConfig.CloudflowPodName) ++ updateLabels).asJava)
-        .withAnnotations((Map("prometheus.io/scrape" -> "true") ++
-        getAnnotations(podsConfig, PodsConfig.CloudflowPodName)).asJava)
-        .endMetadata()
+        .withMetadata(
+          new ObjectMetaBuilder()
+            .withName(podName)
+            .withLabels(
+              (labels.withComponent(podName, CloudflowLabels.StreamletComponent) ++ Map(
+                CloudflowLabels.StreamletNameLabel -> deployment.streamletName,
+                CloudflowLabels.AppIdLabel -> appId).view
+                .mapValues(Name.ofLabelValue) ++ getLabels(
+                podsConfig,
+                PodsConfig.CloudflowPodName) ++ updateLabels).asJava)
+            .withAnnotations((Map("prometheus.io/scrape" -> "true") ++
+              getAnnotations(podsConfig, PodsConfig.CloudflowPodName)).asJava)
+            .build())
         .withSpec(podSpec)
         .build()
     }
@@ -338,8 +349,7 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
       if (deployment.endpoint.isDefined) {
         new DeploymentStrategyBuilder()
           .withType("RollingUpdate")
-          .withNewRollingUpdate()
-          .endRollingUpdate()
+          .withRollingUpdate(new RollingUpdateDeploymentBuilder().build())
           .build()
       } else {
         new DeploymentStrategyBuilder()
@@ -350,17 +360,18 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
 
     val deploymentResource = {
       new DeploymentBuilder()
-        .withNewMetadata()
-        .withName(podName)
-        .withNamespace(app.namespace)
-        .withLabels(labels.withComponent(podName, CloudflowLabels.StreamletComponent).asJava)
-        .withOwnerReferences(ownerReferences: _*)
-        .endMetadata()
+        .withMetadata(
+          new ObjectMetaBuilder()
+            .withName(podName)
+            .withNamespace(app.namespace)
+            .withLabels(labels.withComponent(podName, CloudflowLabels.StreamletComponent).asJava)
+            .withOwnerReferences(ownerReferences: _*)
+            .build())
         .withSpec(
           new DeploymentSpecBuilder()
-            .withNewSelector()
-            .withMatchLabels(Map(CloudflowLabels.Name -> podName).asJava)
-            .endSelector()
+            .withSelector(new LabelSelectorBuilder()
+              .withMatchLabels(Map(CloudflowLabels.Name -> podName).asJava)
+              .build())
             .withReplicas(Integer.valueOf(deployment.replicas.getOrElse(DefaultReplicas)))
             .withTemplate(template)
             .withStrategy(deploymentStrategy)
@@ -429,9 +440,9 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
     } else Nil
 
     val defaultEnvironmentVariables = new EnvVarBuilder()
-        .withName(JavaOptsEnvVar)
-        .withValue(javaOptions)
-        .build() :: prometheusEnvVars
+      .withName(JavaOptsEnvVar)
+      .withValue(javaOptions)
+      .build() :: prometheusEnvVars
     val envVarsFomPodConfigMap = podsConfig.pods
       .get(PodsConfig.CloudflowPodName)
       .flatMap { podConfig =>

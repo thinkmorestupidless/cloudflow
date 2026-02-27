@@ -18,23 +18,19 @@ package cloudflow.streamlets
 
 import scala.concurrent.Future
 
-/**
- * A handle to the running [[Streamlet]].
- */
+/** A handle to the running [[Streamlet]].
+  */
 trait StreamletExecution {
 
-  /**
-   * Completes when the streamlet is ready to start processing.
-   */
+  /** Completes when the streamlet is ready to start processing.
+    */
   def ready: Future[Dun]
 
-  /**
-   * Stops the streamlet.
-   */
+  /** Stops the streamlet.
+    */
   def stop(): Future[Dun]
 
-  /**
-   * Completes when the streamlet is completed.
-   */
+  /** Completes when the streamlet is completed.
+    */
   def completed: Future[Dun]
 }

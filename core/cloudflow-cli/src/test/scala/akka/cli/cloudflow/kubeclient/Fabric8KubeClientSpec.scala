@@ -10,7 +10,7 @@ import java.util.Collections
 import scala.io.Source
 import akka.cli.cloudflow.{ CliLogger, Setup }
 import akka.cli.cloudflow.models.CRSummary
-import io.fabric8.kubernetes.api.model.{ NamespaceBuilder, SecretBuilder }
+import io.fabric8.kubernetes.api.model.{ NamespaceBuilder, ObjectMetaBuilder, SecretBuilder }
 import io.fabric8.kubernetes.client.{ Config, KubernetesClient, KubernetesClientBuilder }
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer
 import org.scalatest.flatspec.AnyFlatSpec
@@ -19,7 +19,7 @@ import matchers.should._
 
 class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
 
-  implicit val testingLogger = new CliLogger(None)
+  implicit val testingLogger: CliLogger = new CliLogger(None)
 
   val server = new KubernetesServer(false)
 
@@ -119,7 +119,8 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     // Arrange
     val client = new KubeClientFabric8(None, testClient)
 
-    val exampleNamespace = new NamespaceBuilder().withNewMetadata().withName("example").endMetadata().build()
+    val exampleNamespace =
+      new NamespaceBuilder().withMetadata(new ObjectMetaBuilder().withName("example").build()).build()
     server.expect.post
       .withPath("/api/v1/namespaces")
       .andReturn(HttpURLConnection.HTTP_CREATED, exampleNamespace)
@@ -141,7 +142,8 @@ class Fabric8KubeClientSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     // Arrange
     val client = new KubeClientFabric8(None, testClient)
 
-    val exampleNamespace = new NamespaceBuilder().withNewMetadata().withName("example").endMetadata().build()
+    val exampleNamespace =
+      new NamespaceBuilder().withMetadata(new ObjectMetaBuilder().withName("example").build()).build()
     server.expect.get
       .withPath("/api/v1/namespaces")
       .andReturn(HttpURLConnection.HTTP_OK, exampleNamespace)

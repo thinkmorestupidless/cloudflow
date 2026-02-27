@@ -23,9 +23,8 @@ import com.typesafe.config.Config
 
 case class LoadedStreamlet(streamlet: Streamlet[StreamletContext], config: StreamletDefinition)
 
-/**
- * Functions to load a streamlet from its configuration through reflection.
- */
+/** Functions to load a streamlet from its configuration through reflection.
+  */
 trait StreamletLoader {
 
   def loadStreamlet(config: Config): Try[LoadedStreamlet] =
@@ -40,8 +39,8 @@ trait StreamletLoader {
         case _: ClassNotFoundException => Failure(new StreamletClassNotFound(streamletClassName))
         case _: InstantiationException => Failure(new NoArgsConstructorExpectedException(streamletClassName))
       }
-      streamlet <- Try(instance.asInstanceOf[Streamlet[StreamletContext]]).recoverWith {
-        case ex: ClassCastException => Failure(new InvalidStreamletClass(streamletClassName, ex))
+      streamlet <- Try(instance.asInstanceOf[Streamlet[StreamletContext]]).recoverWith { case ex: ClassCastException =>
+        Failure(new InvalidStreamletClass(streamletClassName, ex))
       }
     } yield streamlet
 

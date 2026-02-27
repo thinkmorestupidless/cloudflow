@@ -18,16 +18,15 @@ package cloudflow.streamlets
 
 trait StreamletLogic[Context <: StreamletContext] extends Serializable {
 
-  /**
-   *
-   * Returns the [[StreamletContext]] in which this [[StreamletLogic]] is run. It can only be accessed when the streamlet is run.
-   */
+  /** Returns the [[StreamletContext]] in which this [[StreamletLogic]] is run. It can only be accessed when the
+    * streamlet is run.
+    */
   def context: Context
 
-  /**
-   * Java API
-   *
-   * Returns the [[StreamletContext]] in which this [[StreamletLogic]] is run. It can only be accessed when the streamlet is run.
-   */
+  /** Java API
+    *
+    * Returns the [[StreamletContext]] in which this [[StreamletLogic]] is run. It can only be accessed when the
+    * streamlet is run.
+    */
   def getContext(): Context = context
 }

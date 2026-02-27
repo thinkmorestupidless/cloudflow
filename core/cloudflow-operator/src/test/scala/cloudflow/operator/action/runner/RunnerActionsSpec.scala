@@ -78,17 +78,16 @@ class RunnerActionsSpec
       val actions = akkaRunner.actions(newApp, currentApp, runners)
 
       Then("only 'create actions' must be created for every runner")
-      val createActions = actions.collect {
-        case c: CreateOrReplaceAction[_] => c
+      val createActions = actions.collect { case c: CreateOrReplaceAction[_] =>
+        c
       }
 
-      val createDeploymentActions = actions.collect {
-        case p: OperatorAction[_, _, _, Try[Secret]] =>
-          p.createAction(Success(secret)).asInstanceOf[CreateOrReplaceAction[Deployment]]
+      val createDeploymentActions = actions.collect { case p: OperatorAction[_, _, _, Try[Secret]] =>
+        p.createAction(Success(secret)).asInstanceOf[CreateOrReplaceAction[Deployment]]
       }
 
-      val configMaps = createActions.map(_.resource).collect {
-        case configMap: ConfigMap => configMap
+      val configMaps = createActions.map(_.resource).collect { case configMap: ConfigMap =>
+        configMap
       }
       val akkaDeployments = createDeploymentActions.map(_.resource)
 
@@ -131,12 +130,11 @@ class RunnerActionsSpec
       val actions = akkaRunner.actions(newApp, currentApp, runners)
 
       Then("update actions should be created")
-      val updateActions = actions.collect {
-        case c: CreateOrReplaceAction[_] => c
+      val updateActions = actions.collect { case c: CreateOrReplaceAction[_] =>
+        c
       }
-      val updateDeploymentActions = actions.collect {
-        case p: GetAction[Secret] =>
-          p.getAction(Some(secret)).asInstanceOf[CreateOrReplaceAction[Deployment]]
+      val updateDeploymentActions = actions.collect { case p: GetAction[Secret] =>
+        p.getAction(Some(secret)).asInstanceOf[CreateOrReplaceAction[Deployment]]
       }
 
       (updateActions.size + updateDeploymentActions.size) mustBe actions.size
@@ -219,8 +217,8 @@ class RunnerActionsSpec
           p.getAction(Some(secret)).asInstanceOf[CreateOrReplaceAction[Deployment]]
       }
 
-      val configMaps = createActions.map(_.resource).collect {
-        case configMap: ConfigMap => configMap
+      val configMaps = createActions.map(_.resource).collect { case configMap: ConfigMap =>
+        configMap
       }
       val akkaDeployments = createDeploymentActions.map(_.resource)
       // create and update

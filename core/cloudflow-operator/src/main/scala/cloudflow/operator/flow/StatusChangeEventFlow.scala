@@ -28,7 +28,7 @@ import org.slf4j._
 
 import java.util.concurrent.atomic.AtomicReference
 
-object StatusChangeEventFlow extends {
+object StatusChangeEventFlow {
   import StatusChangeEvent._
 
   lazy val log = LoggerFactory.getLogger(this.getClass)
@@ -48,11 +48,10 @@ object StatusChangeEventFlow extends {
   def toStatusUpdateAction(
       runners: Map[String, Runner[_]]): Flow[(Option[App.Cr], StatusChangeEvent), Action, NotUsed] =
     Flow[(Option[App.Cr], StatusChangeEvent)]
-      .mapConcat {
-        case (mappedApp, event) =>
-          val currentStatuses = statusRef.get
-          val (updatedStatuses, actionList) = toActionList(currentStatuses, mappedApp, runners, event)
-          statusRef.set(updatedStatuses)
-          actionList
+      .mapConcat { case (mappedApp, event) =>
+        val currentStatuses = statusRef.get
+        val (updatedStatuses, actionList) = toActionList(currentStatuses, mappedApp, runners, event)
+        statusRef.set(updatedStatuses)
+        actionList
       }
 }

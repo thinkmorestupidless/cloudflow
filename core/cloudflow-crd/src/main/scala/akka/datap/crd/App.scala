@@ -13,11 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import io.fabric8.kubernetes.api.model.apiextensions.v1.{
-  CustomResourceDefinitionBuilder,
-  CustomResourceDefinitionVersion,
-  CustomResourceDefinitionVersionBuilder
-}
 import io.fabric8.kubernetes.api.model.{ KubernetesResource, Namespaced, ObjectMeta }
 import io.fabric8.kubernetes.client.{ CustomResource, CustomResourceList }
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext
@@ -52,15 +47,6 @@ object App {
   final val ProtocolVersionKey = "protocol-version"
   final val ProtocolVersion = "7"
 
-  val customResourceDefinitionVersion: CustomResourceDefinitionVersion = {
-    new CustomResourceDefinitionVersionBuilder()
-      .withName(GroupVersion)
-      .withNewSubresources()
-      .withNewStatus()
-      .endStatus()
-      .endSubresources()
-      .build()
-  }
   val customResourceDefinitionContext: CustomResourceDefinitionContext =
     new CustomResourceDefinitionContext.Builder()
       .withVersion(GroupVersion)
@@ -68,29 +54,6 @@ object App {
       .withGroup(GroupName)
       .withPlural(Plural)
       .withScope(Scope)
-      .build()
-
-  val Crd =
-    new CustomResourceDefinitionBuilder()
-      .withNewMetadata()
-      .withName(ResourceName)
-      .endMetadata()
-      .withNewSpec()
-      .withGroup(GroupName)
-      .withNewNames()
-      .withKind(Kind)
-      .withListKind(KindList)
-      .withSingular(Singular)
-      .withPlural(Plural)
-      .withShortNames(Short)
-      .endNames()
-      .withVersions(customResourceDefinitionVersion)
-      .withScope("Namespaced")
-      .withPreserveUnknownFields(true)
-      .endSpec()
-      .withNewStatus()
-      .withStoredVersions(GroupVersion)
-      .endStatus()
       .build()
 
   @JsonCreator
@@ -127,7 +90,7 @@ object App {
   @JsonCreator
   class List extends CustomResourceList[Cr] {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class Attribute(
       @JsonProperty("attribute_name")
@@ -136,7 +99,7 @@ object App {
       configPath: String)
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class InOutletSchema(
       @JsonProperty("fingerprint")
@@ -149,7 +112,7 @@ object App {
       format: String)
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class InOutlet(
       @JsonProperty("name")
@@ -158,7 +121,7 @@ object App {
       schema: InOutletSchema)
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class ConfigParameterDescriptor(
       @JsonProperty("key")
@@ -173,7 +136,7 @@ object App {
       defaultValue: String)
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class Descriptor(
       @JsonProperty("attributes")
@@ -195,7 +158,7 @@ object App {
       @JsonProperty("description")
       description: String)
       extends KubernetesResource {}
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class Streamlet(
       @JsonProperty("name")
@@ -204,7 +167,7 @@ object App {
       descriptor: Descriptor)
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class Endpoint(
       @JsonProperty("app_id")
@@ -215,7 +178,7 @@ object App {
       containerPort: Option[Int])
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class VolumeMountDescriptor(
       @JsonProperty("name")
@@ -228,7 +191,7 @@ object App {
       pvcName: Option[String])
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class PortMapping(
       @JsonProperty("id")
@@ -240,7 +203,7 @@ object App {
       cluster: Option[String])
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class Deployment(
       @JsonProperty("class_name")
@@ -269,7 +232,7 @@ object App {
       replicas: Option[Int])
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class Spec(
       @JsonProperty("app_id")
@@ -290,7 +253,7 @@ object App {
       serviceAccount: Option[String])
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class EndpointStatus(
       @JsonProperty("streamlet_name")
@@ -299,7 +262,7 @@ object App {
       url: URL // check if works...
   ) extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class PodStatus(
       @JsonProperty("name")
@@ -316,7 +279,7 @@ object App {
       status: String)
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class StreamletStatus(
       @JsonProperty("streamlet_name")
@@ -327,7 +290,7 @@ object App {
       podStatuses: immutable.Seq[PodStatus])
       extends KubernetesResource {}
 
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   final case class AppStatus(
       @JsonProperty("app_id")

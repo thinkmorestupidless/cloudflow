@@ -45,17 +45,16 @@ final class KafkaSinkRef[T](
     .withProperties(topic.kafkaProducerProperties)
   private val producer = producerSettings.createKafkaProducer()
 
-  def sink: Sink[(T, Committable), NotUsed] = {
+  def sink(): Sink[(T, Committable), NotUsed] = {
     system.log.info(s"Creating sink for topic: $topic")
 
     Flow[(T, Committable)]
-      .map {
-        case (value, offset) =>
-          val key = outlet.partitioner(value)
-          val bytesValue = outlet.codec.encode(value)
-          ProducerMessage.Message[Array[Byte], Array[Byte], Committable](
-            new ProducerRecord(topic.name, key.getBytes("UTF8"), bytesValue),
-            offset)
+      .map { case (value, offset) =>
+        val key = outlet.partitioner(value)
+        val bytesValue = outlet.codec.encode(value)
+        ProducerMessage.Message[Array[Byte], Array[Byte], Committable](
+          new ProducerRecord(topic.name, key.getBytes("UTF8"), bytesValue),
+          offset)
       }
       .via(Producer.flexiFlow(producerSettings.withProducer(producer)))
       .via(handleTermination)
@@ -82,12 +81,14 @@ final class KafkaSinkRef[T](
     val record = new ProducerRecord(topic.name, bytesKey, bytesValue)
     val promise = Promise[T]()
 
-    producer.send(record, new Callback() {
-      def onCompletion(metadata: RecordMetadata, exception: Exception) {
-        if (exception == null) promise.success(value)
-        else promise.failure(exception)
-      }
-    })
+    producer.send(
+      record,
+      new Callback() {
+        def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
+          if (exception == null) promise.success(value)
+          else promise.failure(exception)
+        }
+      })
 
     promise.future
   }

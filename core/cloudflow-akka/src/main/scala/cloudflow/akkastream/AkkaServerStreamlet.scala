@@ -18,32 +18,26 @@ package cloudflow.akkastream
 
 import cloudflow.streamlets._
 
-/**
- * An [[AkkaStreamlet]] that can listen on a port.
- * Using this trait instead of the [[AkkaStreamlet]] ensures that the streamlet will get an endpoint in Kubernetes.
- * This trait mixes on the `Server` trait which is required for using a [[ServerStreamletLogic]].
- * The [[ServerStreamletLogic]] provides a `containerPort` and a `getContainerPort()` method.
- * It returns the TCP port that is opened on the container. Listen on all interfaces ("0.0.0.0") and use the port
- * returned by `containerPort` to start a TCP server that will be exposed by an endpoint in Kubernetes.
- */
+/** An [[AkkaStreamlet]] that can listen on a port. Using this trait instead of the [[AkkaStreamlet]] ensures that the
+  * streamlet will get an endpoint in Kubernetes. This trait mixes on the `Server` trait which is required for using a
+  * [[ServerStreamletLogic]]. The [[ServerStreamletLogic]] provides a `containerPort` and a `getContainerPort()` method.
+  * It returns the TCP port that is opened on the container. Listen on all interfaces ("0.0.0.0") and use the port
+  * returned by `containerPort` to start a TCP server that will be exposed by an endpoint in Kubernetes.
+  */
 abstract class AkkaServerStreamlet extends AkkaStreamlet with Server
 
-/**
- * Provides `containerPort` and a `getContainerPort()` method.
- * It returns the TCP port that is opened on the container.
- * A [[ServerStreamletLogic]] requires an implementation of this trait (for instance an [[AkkaServerStreamlet]]) when it is created.
- */
+/** Provides `containerPort` and a `getContainerPort()` method. It returns the TCP port that is opened on the container.
+  * A [[ServerStreamletLogic]] requires an implementation of this trait (for instance an [[AkkaServerStreamlet]]) when
+  * it is created.
+  */
 trait Server { this: AkkaStreamlet =>
   protected[cloudflow] override def attributes = Set(ServerAttribute) ++ customAttributes
 
-  /**
-   * Returns a TCP port on the container that a streamlet can listen on.
-   */
-  final def containerPort: Int = ServerAttribute.containerPort(this.context.config)
+  /** Returns a TCP port on the container that a streamlet can listen on.
+    */
+  final def containerPort: Int = ServerAttribute.containerPort(this._akkaContext.config)
 
-  /**
-   * Java API
-   * Returns a TCP port on the container that a streamlet can listen on.
-   */
+  /** Java API Returns a TCP port on the container that a streamlet can listen on.
+    */
   final def getContainerPort(): Int = containerPort
 }

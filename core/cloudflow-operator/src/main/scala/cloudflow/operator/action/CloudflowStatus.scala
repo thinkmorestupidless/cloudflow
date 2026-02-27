@@ -198,9 +198,9 @@ object CloudflowStatus {
 
   private def calcAppStatus(streamletStatuses: Seq[App.StreamletStatus]): String = {
     if (streamletStatuses.forall { streamletStatus =>
-          hasExpectedPods(streamletStatus)(streamletStatus.podStatuses.size) &&
-          streamletStatus.podStatuses.forall(p => podReady(p, streamletStatus.expectedPodCount))
-        }) {
+        hasExpectedPods(streamletStatus)(streamletStatus.podStatuses.size) &&
+        streamletStatus.podStatuses.forall(p => podReady(p, streamletStatus.expectedPodCount))
+      }) {
       Status.Running
     } else if (streamletStatuses.flatMap(_.podStatuses).exists(_.status == PodStatus.CrashLoopBackOff)) {
       Status.CrashLoopBackOff
@@ -265,21 +265,22 @@ object CloudflowStatus {
   private def ignoreOnErrorStatus(oldApp: Option[App.Cr], newApp: App.Cr) = {
     val _ = newApp
     oldApp.map(_.getStatus) match {
-      case Some(status) if status.appStatus == Some(Status.Error) => false
-      case _                                                      => true
+      case Some(status) if status.appStatus == Status.Error => false
+      case _                                                => true
     }
   }
 
-  implicit val adapter =
+  implicit val adapter: CustomResourceAdapter[App.Cr, App.List] =
     CustomResourceAdapter[App.Cr, App.List]()
 
   def statusUpdateAction(app: App.Cr)(retry: Int = 3): Action = {
     Action.operation[App.Cr, App.List, Try[Option[App.Cr]]](
-      { client: KubernetesClient =>
+      { (client: KubernetesClient) =>
         client
           .resources(classOf[App.Cr])
           .asInstanceOf[MixedOperation[App.Cr, App.List, Resource[App.Cr]]]
-      }, { cr: MixedOperation[App.Cr, App.List, Resource[App.Cr]] =>
+      },
+      { (cr: MixedOperation[App.Cr, App.List, Resource[App.Cr]]) =>
         Try {
           val current =
             cr.inNamespace(app.namespace)
@@ -298,7 +299,8 @@ object CloudflowStatus {
               None
           }
         }
-      }, { res =>
+      },
+      { res =>
         res match {
           case Success(_) => Action.noop
           case Failure(err) if retry > 0 =>

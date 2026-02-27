@@ -51,7 +51,7 @@ class HttpServerSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll {
 
-  private implicit val system = ActorSystem("HttpServerSpec")
+  private implicit val system: ActorSystem = ActorSystem("HttpServerSpec")
 
   import system.dispatcher
 
@@ -167,7 +167,7 @@ class HttpServerSpec
   override def afterEach(): Unit =
     ref.stop().futureValue
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   def getFreePort(): Int = {

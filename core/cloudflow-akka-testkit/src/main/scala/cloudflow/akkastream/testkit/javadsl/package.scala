@@ -26,21 +26,24 @@ package object javadsl {
 package javadsl {
   case object Completed extends cloudflow.akkastream.testkit.Completed {
 
-    /**
-     * Java API: the singleton instance
-     */
+    /** Java API: the singleton instance
+      */
     def getInstance(): cloudflow.akkastream.testkit.Completed = this
 
-    /**
-     * Java API: the singleton instance
-     *
-     * This is equivalent to [[getInstance]], but can be used with static import.
-     */
+    /** Java API: the singleton instance
+      *
+      * This is equivalent to [[getInstance]], but can be used with static import.
+      */
     def completed(): cloudflow.akkastream.testkit.Completed = this
   }
 
   final case class ConfigParameterValueImpl private (configParameterKey: String, value: String)
       extends ConfigParameterValue
+
+  object ConfigParameterValueImpl {
+    def apply(configParameterKey: String, value: String): ConfigParameterValueImpl =
+      new ConfigParameterValueImpl(configParameterKey, value)
+  }
 
   object ConfigParameterValue {
     def create(configParameter: ConfigParameter, value: String): ConfigParameterValue =

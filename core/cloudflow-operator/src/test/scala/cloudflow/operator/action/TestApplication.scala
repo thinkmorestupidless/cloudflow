@@ -31,9 +31,8 @@ object CloudflowApplicationSpecBuilder {
     .withUid("123")
     .build()
 
-  /**
-   * Creates a App.Spec from a [[VerifiedBlueprint]].
-   */
+  /** Creates a App.Spec from a [[VerifiedBlueprint]].
+    */
   def create(
       appId: String,
       appVersion: String,
@@ -75,11 +74,15 @@ object CloudflowApplicationSpecBuilder {
   }
 
   private def toVolumeMount(vmd: VolumeMountDescriptor) = {
-    App.VolumeMountDescriptor(name = vmd.name, path = vmd.path, accessMode = vmd.accessMode, pvcName = {
-      if (vmd.pvcName == null || vmd.pvcName.isEmpty) {
-        Some(vmd.pvcName)
-      } else None
-    })
+    App.VolumeMountDescriptor(
+      name = vmd.name,
+      path = vmd.path,
+      accessMode = vmd.accessMode,
+      pvcName = {
+        if (vmd.pvcName == null || vmd.pvcName.isEmpty) {
+          Some(vmd.pvcName)
+        } else None
+      })
   }
 
   private def toConfigParam(cp: ConfigParameterDescriptor) = {

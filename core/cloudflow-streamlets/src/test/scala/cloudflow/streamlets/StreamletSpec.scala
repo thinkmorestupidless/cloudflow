@@ -31,7 +31,7 @@ class StreamletSpec extends AnyWordSpec with Matchers {
     "produce a valid descriptor" in {
       val jsonStr = simpleStreamlet.jsonDescriptor
       val json = JsonParser(jsonStr)
-      json mustBeAStreamletDescriptorFor (simpleStreamlet)
+      json mustBeAStreamletDescriptorFor simpleStreamlet
     }
 
   }

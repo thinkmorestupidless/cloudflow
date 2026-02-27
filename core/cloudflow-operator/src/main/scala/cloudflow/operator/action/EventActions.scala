@@ -19,7 +19,7 @@ import akka.datap.crd.App
 import akka.kube.actions.Action
 import cloudflow.operator.action.EventActions.EventType.EventType
 import cloudflow.operator.action.runner.Runner
-import io.fabric8.kubernetes.api.model.{ EventBuilder, EventSourceBuilder, ObjectReference }
+import io.fabric8.kubernetes.api.model.{ EventBuilder, EventSourceBuilder, ObjectMetaBuilder, ObjectReference }
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -52,11 +52,11 @@ object EventActions {
     deployEvent +: streamletScaledEvents(app, currentApp, runners, podName, cause)
   }
 
-  /**
-   * Create StreamletScaled events. Streamlet replica counts are part of a [[cloudflow.blueprint.deployment.StreamletDeployment]] in a
-   * [[cloudflow.operator.CloudflowApplication]]. Since it's in the app spec and not the streamlet secret it's not reported as a
-   * [[cloudflow.operator.event.StreamletChangeEvent]]
-   */
+  /** Create StreamletScaled events. Streamlet replica counts are part of a
+    * [[cloudflow.blueprint.deployment.StreamletDeployment]] in a [[cloudflow.operator.CloudflowApplication]]. Since
+    * it's in the app spec and not the streamlet secret it's not reported as a
+    * [[cloudflow.operator.event.StreamletChangeEvent]]
+    */
   private def streamletScaledEvents(
       app: App.Cr,
       currentAppOpt: Option[App.Cr],
@@ -114,11 +114,12 @@ object EventActions {
     fieldPath.foreach(path => objectReference.setFieldPath(path))
 
     val event = new EventBuilder()
-      .withNewMetadata()
-      .withName(metadataName)
-      .withNamespace(app.namespace)
-      .withLabels(CloudflowLabels(app).baseLabels.asJava)
-      .endMetadata()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(metadataName)
+          .withNamespace(app.namespace)
+          .withLabels(CloudflowLabels(app).baseLabels.asJava)
+          .build())
       .withInvolvedObject(objectReference)
       .withReason(reason)
       .withMessage(message)

@@ -45,6 +45,13 @@ object Common extends AutoPlugin {
     run / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
     Test / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
     unidocGenjavadocVersion := "0.18_2.13.8",
+    // genjavadoc-plugin does not exist for Scala 3; exclude the dependency and the compiler flag.
+    excludeDependencies ++= (if (scalaVersion.value.startsWith("3"))
+                               Seq(ExclusionRule("com.typesafe.genjavadoc"))
+                             else Nil),
+    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
+                         Seq(s"-P:genjavadoc:out=${target.value.getPath}/java")
+                       else Nil),
     // show full stack traces and test case durations
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     // -a Show stack traces and exception class name for AssertionErrors.

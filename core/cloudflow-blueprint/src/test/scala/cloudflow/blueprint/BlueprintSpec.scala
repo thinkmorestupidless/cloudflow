@@ -430,7 +430,7 @@ class BlueprintSpec extends AnyWordSpec with Matchers with EitherValues with Opt
       """)
 
       val added = blueprint.upsertStreamletRef(processorRef.name, Some(processor.className), Some(metadata))
-      exactly(1, added.streamlets) must have('metadata (Some(metadata)))
+      exactly(1, added.streamlets) must have('metadata(Some(metadata)))
 
       val updated = blueprint.upsertStreamletRef(ingressRef.name, Some(processor.className))
       updated.streamlets.find(_.name == ingressRef.name).value mustBe ingressRef.copy(

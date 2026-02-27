@@ -18,9 +18,8 @@ package cloudflow.streamlets
 
 import com.typesafe.config.Config
 
-/**
- * Describes that a Streamlet is a server, which will want to listen on a container port.
- */
+/** Describes that a Streamlet is a server, which will want to listen on a container port.
+  */
 case object ServerAttribute extends StreamletAttribute {
   final val attributeName = "server"
   final val configKey = "container-port"

@@ -28,6 +28,11 @@ package scaladsl {
   final case class ConfigParameterValueImpl private (configParameterKey: String, value: String)
       extends ConfigParameterValue
 
+  object ConfigParameterValueImpl {
+    def apply(configParameterKey: String, value: String): ConfigParameterValueImpl =
+      new ConfigParameterValueImpl(configParameterKey, value)
+  }
+
   object ConfigParameterValue {
     def apply(configParameter: ConfigParameter, value: String): ConfigParameterValue =
       ConfigParameterValueImpl(configParameter.key, value)

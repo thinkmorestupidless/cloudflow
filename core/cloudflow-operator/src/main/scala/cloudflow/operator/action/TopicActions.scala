@@ -23,7 +23,7 @@ import cloudflow.blueprint.deployment._
 import cloudflow.operator.action.runner.Base64Helper
 import cloudflow.operator.event.ConfigInput
 import com.typesafe.config.{ Config, ConfigFactory }
-import io.fabric8.kubernetes.api.model.{ ConfigMap, ConfigMapBuilder, Secret }
+import io.fabric8.kubernetes.api.model.{ ConfigMap, ConfigMapBuilder, ObjectMetaBuilder, Secret }
 import io.fabric8.kubernetes.client.KubernetesClient
 import org.apache.kafka.clients.admin.{ Admin, AdminClientConfig, CreateTopicsOptions, NewTopic }
 import org.apache.kafka.common.KafkaFuture
@@ -35,9 +35,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.jdk.CollectionConverters._
 
-/**
- * Creates topic actions for managed topics.
- */
+/** Creates topic actions for managed topics.
+  */
 object TopicActions {
 
   private val log = LoggerFactory.getLogger(TopicActions.getClass)
@@ -78,14 +77,12 @@ object TopicActions {
   val KafkaClusterNameFormat = "cloudflow-kafka-cluster-%s"
   val KafkaClusterNameLabel = "cloudflow.lightbend.com/kafka-cluster-name"
 
-  /**
-   * Create a topic using the correct Kafka configuration.
-   *
-   * Configuration resolution order:
-   * 1. App secret contains inline connection configuration for topic
-   * 2. User-defined topic cluster configuration name in blueprint
-   * 3. Default topic cluster configuration
-   */
+  /** Create a topic using the correct Kafka configuration.
+    *
+    * Configuration resolution order:
+    *   1. App secret contains inline connection configuration for topic 2. User-defined topic cluster configuration
+    *      name in blueprint 3. Default topic cluster configuration
+    */
   def action(
       appConfigSecretName: Option[String],
       runners: Map[String, runner.Runner[_]],
@@ -206,10 +203,9 @@ object TopicActions {
 
     def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Action] = {
       createTopic()
-        .recoverWith {
-          case t =>
-            log.error(s"Error creating topic: ${t.getMessage}", t)
-            CloudflowStatus.errorAction(newApp, runners, t.getMessage).execute(client)
+        .recoverWith { case t =>
+          log.error(s"Error creating topic: ${t.getMessage}", t)
+          CloudflowStatus.errorAction(newApp, runners, t.getMessage).execute(client)
         }
     }
   }
@@ -246,11 +242,12 @@ object TopicActions {
       bootstrapServers: String,
       labels: CloudflowLabels): ConfigMap = {
     new ConfigMapBuilder()
-      .withNewMetadata()
-      .withName(Name.makeDNS1123CompatibleSubDomainName(s"topic-${topic.id}"))
-      .withLabels(labels(topic.id).asJava)
-      .withNamespace(namespace)
-      .endMetadata()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(Name.makeDNS1123CompatibleSubDomainName(s"topic-${topic.id}"))
+          .withLabels(labels(topic.id).asJava)
+          .withNamespace(namespace)
+          .build())
       .withData((Map(
         "id" -> topic.id,
         "name" -> topic.name,

@@ -45,7 +45,7 @@ object StreamletChangeEventFlow {
       runners: Map[String, Runner[_]],
       podName: String): Flow[(Option[App.Cr], StreamletChangeEvent[Secret]), Action, NotUsed] =
     Flow[(Option[App.Cr], StreamletChangeEvent[Secret])]
-      .mapConcat {
-        case (mappedApp, event) => toActionList(mappedApp, event, runners, podName)
+      .mapConcat { case (mappedApp, event) =>
+        toActionList(mappedApp, event, runners, podName)
       }
 }

@@ -20,9 +20,8 @@ object Setup {
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
 
-  /** Returns a KubernetesSerialization that includes DefaultScalaModule.
-   *  Must be called after init().
-   */
+  /** Returns a KubernetesSerialization that includes DefaultScalaModule. Must be called after init().
+    */
   def kubernetesSerialization(): KubernetesSerialization =
     new KubernetesSerialization(Serialization.jsonMapper(), false)
 

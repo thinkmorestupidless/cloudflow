@@ -974,9 +974,8 @@ class CloudflowConfigSpec extends AnyFlatSpec with Matchers with OptionValues wi
         val cfgItems = configMap.getConfig("items")
         cfgItems.entrySet().asScala should have size (items.size)
 
-        items.foreach {
-          case (key, value) =>
-            cfgItems.getConfig(s""""$key"""").getString("path") shouldBe value
+        items.foreach { case (key, value) =>
+          cfgItems.getConfig(s""""$key"""").getString("path") shouldBe value
         }
       }
 

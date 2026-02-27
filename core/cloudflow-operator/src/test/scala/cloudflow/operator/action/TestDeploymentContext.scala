@@ -38,7 +38,7 @@ trait TestDeploymentContext {
   def getSecret(content: String) = {
     new SecretBuilder()
       .withData(Map(cloudflow.operator.event.ConfigInput.PodsConfigDataKey ->
-      Base64Helper.encode(content)).asJava)
+        Base64Helper.encode(content)).asJava)
       .build()
   }
 
@@ -46,9 +46,9 @@ trait TestDeploymentContext {
     new SecretBuilder()
       .withData(Map(
         cloudflow.operator.event.ConfigInput.PodsConfigDataKey ->
-        Base64Helper.encode(content),
+          Base64Helper.encode(content),
         cloudflow.operator.event.ConfigInput.RuntimeConfigDataKey ->
-        Base64Helper.encode(runtime)).asJava)
+          Base64Helper.encode(runtime)).asJava)
       .build()
   }
 }

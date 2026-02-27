@@ -156,7 +156,7 @@ class OptionsParserSpec extends AnyFlatSpec with Matchers {
       confFile1.getAbsolutePath)
 
     // Act
-    val in = new ByteArrayInputStream(("abc").getBytes)
+    val in = new ByteArrayInputStream("abc".getBytes)
 
     val res = Console.withIn(in) {
       OptionsParser(input)

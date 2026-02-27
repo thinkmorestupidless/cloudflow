@@ -58,12 +58,12 @@ class PushImagesMojo extends AbstractMojo {
 
       val lines = FileUtil.readLines(new File(mavenProject.getBuild.getDirectory, "docker-push-output.log"))
 
-      val imageName = lines.collect {
-        case FullImageName(name) => name
+      val imageName = lines.collect { case FullImageName(name) =>
+        name
       }.lastOption
 
-      val imageDigest = lines.collect {
-        case PushedImageDigestSha256(digest) => s"sha256:$digest"
+      val imageDigest = lines.collect { case PushedImageDigestSha256(digest) =>
+        s"sha256:$digest"
       }.lastOption
 
       (imageName, imageDigest) match {

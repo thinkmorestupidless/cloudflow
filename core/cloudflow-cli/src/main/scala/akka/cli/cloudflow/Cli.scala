@@ -19,8 +19,8 @@ object Cli {
   val ApplicationDescriptorVersion = 6
 }
 
-abstract class Cli(kubeConfig: Option[File], kubeClientFactory: (Option[File], CliLogger) => KubeClient)(
-    implicit logger: CliLogger) {
+abstract class Cli(kubeConfig: Option[File], kubeClientFactory: (Option[File], CliLogger) => KubeClient)(implicit
+    logger: CliLogger) {
   private lazy val kubeClient = kubeClientFactory(kubeConfig, logger)
 
   def transform[T](cmd: Command[T], res: T): T
@@ -33,11 +33,10 @@ abstract class Cli(kubeConfig: Option[File], kubeClientFactory: (Option[File], C
       res <- cmd.execution(kubeClient, logger).run()
     } yield {
       transform(cmd, res)
-    }).recoverWith {
-      case ex =>
-        logger.error("Failure", ex)
-        handleError(cmd, ex)
-        Failure[T](ex)
+    }).recoverWith { case ex =>
+      logger.error("Failure", ex)
+      handleError(cmd, ex)
+      Failure[T](ex)
     }
   }
 

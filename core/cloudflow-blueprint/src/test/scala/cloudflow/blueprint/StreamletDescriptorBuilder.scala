@@ -28,29 +28,28 @@ import org.scalatest._
 
 object StreamletDescriptorBuilder extends StreamletDescriptorBuilder
 
-/**
- * Builds [[StreamletDescriptor]]s for testing purposes.
- */
+/** Builds [[StreamletDescriptor]]s for testing purposes.
+  */
 trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
   private def randomClassName = "C" + java.util.UUID.randomUUID().toString.replaceAll("-", "") // TODO gen
 
-  /**
-   * Creates a random streamlet (descriptor) which can be further modified with the builder methods in [[StreamletDescriptorBuilderOps]].
-   */
+  /** Creates a random streamlet (descriptor) which can be further modified with the builder methods in
+    * [[StreamletDescriptorBuilderOps]].
+    */
   def randomStreamlet(): StreamletDescriptor = buildStreamletDescriptor(randomClassName)
   def randomStreamlet(runtime: String): StreamletDescriptor = buildStreamletDescriptor(randomClassName, runtime)
 
-  /**
-   * Creates a streamlet (descriptor) which can be further modified with the builder methods in [[StreamletDescriptorBuilderOps]].
-   */
+  /** Creates a streamlet (descriptor) which can be further modified with the builder methods in
+    * [[StreamletDescriptorBuilderOps]].
+    */
   def streamlet(className: String, runtime: String): StreamletDescriptor = buildStreamletDescriptor(className, runtime)
   def streamlet(className: String): StreamletDescriptor = buildStreamletDescriptor(className)
 
-  /**
-   * Adds builder methods to [[StreamletDescriptor]] for ease of testing. (In the docs, `StreamletDescriptor` and `streamlet` are used interchangeably.)
-   * Start with a `randomStreamlet()` or `streamlet(name)` in [[BlueprintBuilder]] to create a streamlet, which
-   * can then be easily modified by using `asIngress`, `asProcessor`, ... to a shape that is required for testing.
-   */
+  /** Adds builder methods to [[StreamletDescriptor]] for ease of testing. (In the docs, `StreamletDescriptor` and
+    * `streamlet` are used interchangeably.) Start with a `randomStreamlet()` or `streamlet(name)` in
+    * [[BlueprintBuilder]] to create a streamlet, which can then be easily modified by using `asIngress`, `asProcessor`,
+    * ... to a shape that is required for testing.
+    */
   implicit class StreamletDescriptorBuilderOps(streamletDescriptor: StreamletDescriptor) {
 
     /** Transforms the descriptor into a streamlet that has no connections (just for testing) */
@@ -69,9 +68,8 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
     def in0 = inlet
     def in1 = streamletDescriptor.inlets.lift(1).value
 
-    /**
-     * Transforms the streamlet into an ingress. A schema is auto generated for `T` and used in the outlet.
-     */
+    /** Transforms the streamlet into an ingress. A schema is auto generated for `T` and used in the outlet.
+      */
     def asIngress[T: ClassTag: SchemaFor](outletName: String = "out") = {
       val schemaName = classTag[T].runtimeClass.getName
       streamletDescriptor.copy(outlets = Vector(createOutletDescriptor(outletName, schemaName)), inlets = Vector.empty)
@@ -79,9 +77,9 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
 
     def asIngress[T: ClassTag: SchemaFor]: StreamletDescriptor = asIngress[T]()
 
-    /**
-     * Transforms the streamlet into a processor. A schema is auto generated for `I` and `O`, used in the outlet and inlet.
-     */
+    /** Transforms the streamlet into a processor. A schema is auto generated for `I` and `O`, used in the outlet and
+      * inlet.
+      */
     def asProcessor[I: ClassTag: SchemaFor, O: ClassTag: SchemaFor](
         inletName: String = "in",
         outletName: String = "out") = {
@@ -94,18 +92,17 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
 
     def asProcessor[I: ClassTag: SchemaFor, O: ClassTag: SchemaFor]: StreamletDescriptor = asProcessor[I, O]()
 
-    /**
-     * Transforms the streamlet into an egress. A schema is auto generated for `T`, used in the inlet.
-     */
+    /** Transforms the streamlet into an egress. A schema is auto generated for `T`, used in the inlet.
+      */
     def asEgress[T: ClassTag: SchemaFor]: StreamletDescriptor = asEgress()
     def asEgress[T: ClassTag: SchemaFor](inletName: String = "in"): StreamletDescriptor = {
       val schemaName = classTag[T].runtimeClass.getName
       streamletDescriptor.copy(outlets = Vector.empty, inlets = Vector(createInletDescriptor(inletName, schemaName)))
     }
 
-    /**
-     * Transforms the streamlet into a merge. A schema is auto generated for `I0`, `I1`, `O`, used as inlets and outlet respectively.
-     */
+    /** Transforms the streamlet into a merge. A schema is auto generated for `I0`, `I1`, `O`, used as inlets and outlet
+      * respectively.
+      */
     def asMerge[I0: ClassTag: SchemaFor, I1: ClassTag: SchemaFor, O: ClassTag: SchemaFor]: StreamletDescriptor =
       asMerge[I0, I1, O]()
 
@@ -123,9 +120,9 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
           createInletDescriptor[I1](inletName1, inletSchemaName1)))
     }
 
-    /**
-     * Transforms the streamlet into a splitter. A schema is auto generated for `I0`, `O0`, `O1`, used as inlet and outlets respectively.
-     */
+    /** Transforms the streamlet into a splitter. A schema is auto generated for `I0`, `O0`, `O1`, used as inlet and
+      * outlets respectively.
+      */
     def asSplitter[I: ClassTag: SchemaFor, O0: ClassTag: SchemaFor, O1: ClassTag: SchemaFor]: StreamletDescriptor =
       asSplitter[I, O0, O1]()
 
@@ -143,51 +140,44 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
         inlets = Vector(createInletDescriptor[I](inletName, inletSchemaName)))
     }
 
-    /**
-     * Adds volume mounts to the streamlet.
-     */
+    /** Adds volume mounts to the streamlet.
+      */
     def withVolumeMounts(volumeMounts: VolumeMountDescriptor*): StreamletDescriptor =
       streamletDescriptor.copy(volumeMounts = volumeMounts.toVector)
 
-    /**
-     * Adds config parameters to the streamlet.
-     */
+    /** Adds config parameters to the streamlet.
+      */
     def withConfigParameters(descriptors: ConfigParameterDescriptor*): StreamletDescriptor =
       streamletDescriptor.copy(configParameters = descriptors.toVector)
 
-    /**
-     * Adds attributes to the streamlet.
-     */
+    /** Adds attributes to the streamlet.
+      */
     def withAttributes(attributes: Vector[StreamletAttributeDescriptor]): StreamletDescriptor =
       streamletDescriptor.copy(attributes = attributes)
 
     def withRuntime(runtime: String): StreamletDescriptor =
       streamletDescriptor.copy(runtime = StreamletRuntimeDescriptor(runtime))
 
-    /**
-     * Adds a server attribute to the streamlet.
-     */
+    /** Adds a server attribute to the streamlet.
+      */
     def withServerAttribute: StreamletDescriptor =
       withAttributes(Vector(StreamletAttributeDescriptor("server", "cloudflow.internal.server.container-port")))
 
-    /** creates a random reference name*/
+    /** creates a random reference name */
     def randomRefName: String = "i" + java.util.UUID.randomUUID.toString // TODO use gen
 
-    /**
-     * Creates a [[StreamletRef]] reference to this streamlet.
-     */
+    /** Creates a [[StreamletRef]] reference to this streamlet.
+      */
     def ref(refName: String, metadata: Option[Config] = None): StreamletRef =
       StreamletRef(refName, streamletDescriptor.className, metadata = metadata)
 
-    /**
-     * Creates a random [[StreamletRef]] reference to this streamlet.
-     */
+    /** Creates a random [[StreamletRef]] reference to this streamlet.
+      */
     def randomRef: StreamletRef = ref(randomRefName) // TODO use gen
   }
 
-  /**
-   * Creates a streamlet descriptor from defaults. Use the [[StreamletDescriptorBuilderOps]] builder methods to modify.
-   */
+  /** Creates a streamlet descriptor from defaults. Use the [[StreamletDescriptorBuilderOps]] builder methods to modify.
+    */
   def buildStreamletDescriptor(className: String, runtime: String): StreamletDescriptor =
     StreamletDescriptor(
       className = className,
@@ -221,9 +211,8 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
       attributes = attributes,
       volumeMounts = volumeMounts)
 
-  /**
-   * Creates a streamlet descriptor from defaults. Use the StreamletDescriptorBuilderOps to modify.
-   */
+  /** Creates a streamlet descriptor from defaults. Use the StreamletDescriptorBuilderOps to modify.
+    */
   def buildStreamletDescriptor(className: String): StreamletDescriptor =
     StreamletDescriptor(
       className = className,

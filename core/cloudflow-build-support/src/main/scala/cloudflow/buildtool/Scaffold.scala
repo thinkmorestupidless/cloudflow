@@ -18,10 +18,9 @@ object Scaffold {
   def getDescriptorsOrFail[T](descriptors: Iterable[(T, Try[RuntimeDescriptor])])(
       error: String => Unit): Iterable[(T, RuntimeDescriptor)] = {
     descriptors
-      .collect {
-        case (_, Failure(ex)) =>
-          error(s"Determining runtime descriptors failed: ${ex.getMessage}")
-          ex
+      .collect { case (_, Failure(ex)) =>
+        error(s"Determining runtime descriptors failed: ${ex.getMessage}")
+        ex
       }
       .foreach { ex =>
         throw ex
@@ -106,13 +105,12 @@ object Scaffold {
       val localVolumeMounts = volumeMounts.map { volumeMount =>
         val tryLocalPath = Try {
           streamletVolumeConf.getString(volumeMount.name)
-        }.recoverWith {
-          case _ =>
-            Try {
-              val path = localStorageDir.resolve(volumeMount.name).toFile
-              path.mkdirs() // create the temp dir
-              path.getAbsolutePath
-            }
+        }.recoverWith { case _ =>
+          Try {
+            val path = localStorageDir.resolve(volumeMount.name).toFile
+            path.mkdirs() // create the temp dir
+            path.getAbsolutePath
+          }
         }
         tryLocalPath.map(localPath => volumeMount.copy(path = localPath))
       }

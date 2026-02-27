@@ -42,15 +42,12 @@ import io.fabric8.kubernetes.client.utils.Serialization
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-/**
- * Captures an action to create, delete or update a Kubernetes resource.
- */
+/** Captures an action to create, delete or update a Kubernetes resource.
+  */
 trait Action {
 
-  /**
-   * Executes the action using a KubernetesClient.
-   * Returns the action that was executed
-   */
+  /** Executes the action using a KubernetesClient. Returns the action that was executed
+    */
   def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Action]
 
   /*
@@ -74,9 +71,8 @@ trait Action {
   val errorMessageExtraInfo: String
 }
 
-/**
- * Creates actions.
- */
+/** Creates actions.
+  */
 object Action {
   val log: Logger = LoggerFactory.getLogger(classOf[Action])
 
@@ -99,11 +95,10 @@ object Action {
   def fullResourceName(namespace: Option[String], resourceName: String): String =
     s"${namespace.map(_ + "/").getOrElse("")}$resourceName"
 
-  /**
-   * Creates a [[CreateOrReplaceAction]].
-   */
-  def createOrReplace[T <: HasMetadata](resource: T)(
-      implicit ct: ClassTag[T],
+  /** Creates a [[CreateOrReplaceAction]].
+    */
+  def createOrReplace[T <: HasMetadata](resource: T)(implicit
+      ct: ClassTag[T],
       ev: T <:!< CustomResource[T, _],
       lineNumber: sourcecode.Line,
       file: sourcecode.File): CreateOrReplaceAction[T] = {
@@ -111,11 +106,10 @@ object Action {
     CreateOrReplaceAction(defaultResourceAdapter[T], resource)
   }
 
-  /**
-   * Creates a [[DeleteAction]] to delete resource by name and namespace.
-   */
-  def delete[T <: HasMetadata](resourceName: String, namespace: String)(
-      implicit ct: ClassTag[T],
+  /** Creates a [[DeleteAction]] to delete resource by name and namespace.
+    */
+  def delete[T <: HasMetadata](resourceName: String, namespace: String)(implicit
+      ct: ClassTag[T],
       ev: T <:!< CustomResource[T, _],
       lineNumber: sourcecode.Line,
       file: sourcecode.File): DeleteAction[T] = {
@@ -123,11 +117,10 @@ object Action {
     DeleteAction(defaultResourceAdapter[T], resourceName, Some(namespace))
   }
 
-  /**
-   * Creates a [[DeleteAction]] to delete a non-namespaced resource.
-   */
-  def delete[T <: HasMetadata](resourceName: String)(
-      implicit ct: ClassTag[T],
+  /** Creates a [[DeleteAction]] to delete a non-namespaced resource.
+    */
+  def delete[T <: HasMetadata](resourceName: String)(implicit
+      ct: ClassTag[T],
       ev: T <:!< CustomResource[T, _],
       lineNumber: sourcecode.Line,
       file: sourcecode.File): DeleteAction[T] = {
@@ -135,11 +128,10 @@ object Action {
     DeleteAction(defaultResourceAdapter[T], resourceName, None)
   }
 
-  /**
-   * Creates a [[DeleteAction]] to delete the specified resource.
-   */
-  def delete[T <: HasMetadata](resource: T)(
-      implicit ct: ClassTag[T],
+  /** Creates a [[DeleteAction]] to delete the specified resource.
+    */
+  def delete[T <: HasMetadata](resource: T)(implicit
+      ct: ClassTag[T],
       ev: T <:!< CustomResource[T, _],
       lineNumber: sourcecode.Line,
       file: sourcecode.File): DeleteAction[T] = {
@@ -147,14 +139,13 @@ object Action {
     DeleteAction(defaultResourceAdapter[T], resource.getMetadata.getName, Option(resource.getMetadata.getNamespace))
   }
 
-  /**
-   * Creates a [[CompositeAction]]. A single action that encapsulates other actions.
-   */
+  /** Creates a [[CompositeAction]]. A single action that encapsulates other actions.
+    */
   def composite[T <: HasMetadata](actions: immutable.Iterable[Action]): CompositeAction[T] =
     CompositeAction(actions)
 
-  def get[T <: HasMetadata](resourceName: String, namespace: String)(fAction: Option[T] => Action)(
-      implicit ct: ClassTag[T],
+  def get[T <: HasMetadata](resourceName: String, namespace: String)(fAction: Option[T] => Action)(implicit
+      ct: ClassTag[T],
       ev: T <:!< CustomResource[T, _],
       lineNumber: sourcecode.Line,
       file: sourcecode.File): GetAction[T] = {
@@ -162,8 +153,8 @@ object Action {
     GetAction(defaultResourceAdapter[T], resourceName, Some(namespace), fAction)
   }
 
-  def get[T <: HasMetadata](resourceName: String)(fAction: Option[T] => Action)(
-      implicit ct: ClassTag[T],
+  def get[T <: HasMetadata](resourceName: String)(fAction: Option[T] => Action)(implicit
+      ct: ClassTag[T],
       ev: T <:!< CustomResource[T, _],
       lineNumber: sourcecode.Line,
       file: sourcecode.File): GetAction[T] = {
@@ -171,22 +162,17 @@ object Action {
     GetAction(defaultResourceAdapter[T], resourceName, None, fAction)
   }
 
-  /**
-   * Execute any operation, create an action from the result of the operation.
-   */
+  /** Execute any operation, create an action from the result of the operation.
+    */
   def operation[T <: HasMetadata, L <: KubernetesResourceList[T], OpResult](
       getOperation: KubernetesClient => MixedOperation[T, L, Resource[T]],
       executeOperation: MixedOperation[T, L, Resource[T]] => OpResult,
-      createAction: OpResult => Action)(
-      implicit
-      lineNumber: sourcecode.Line,
-      file: sourcecode.File): Action = {
+      createAction: OpResult => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File): Action = {
     OperatorAction(getOperation, executeOperation, createAction)
   }
 
-  /**
-   * list resources, create an action from the result of listing the resource.
-   */
+  /** list resources, create an action from the result of listing the resource.
+    */
   def list[T <: HasMetadata, L <: KubernetesResourceList[T]](
       getListable: KubernetesClient => Listable[L],
       getList: Listable[L] => L,
@@ -194,31 +180,27 @@ object Action {
     ListAction[T, L](getListable, getList, createAction)
   }
 
-  /**
-   * list resources as vector of items, create an action from the result of listing the resource.
-   */
+  /** list resources as vector of items, create an action from the result of listing the resource.
+    */
   def listItems[T <: HasMetadata, L <: KubernetesResourceList[T]](
       getListable: KubernetesClient => Listable[L],
-      getList: Listable[L] => L = (l: Listable[L]) => l.list())(createAction: Vector[T] => Action)(
-      implicit
-      lineNumber: sourcecode.Line,
-      file: sourcecode.File): Action = {
+      getList: Listable[L] => L = (l: Listable[L]) => l.list())(
+      createAction: Vector[T] => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File): Action = {
     ListItemsAction[T, L](getListable, getList, createAction)
   }
 
-  /**
-   * Creates actions for custom resources.
-   */
+  /** Creates actions for custom resources.
+    */
   object Cr {
-    def get[T <: HasMetadata](resourceName: String, namespace: String)(fAction: Option[T] => Action)(
-        implicit ct: ClassTag[T],
+    def get[T <: HasMetadata](resourceName: String, namespace: String)(fAction: Option[T] => Action)(implicit
+        ct: ClassTag[T],
         handler: ResourceAdapter[T],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): GetAction[T] =
       GetAction(handler, resourceName, Some(namespace), fAction)
 
-    def get[T <: HasMetadata](resourceName: String)(fAction: Option[T] => Action)(
-        implicit ct: ClassTag[T],
+    def get[T <: HasMetadata](resourceName: String)(fAction: Option[T] => Action)(implicit
+        ct: ClassTag[T],
         handler: ResourceAdapter[T],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): GetAction[T] =
@@ -226,70 +208,65 @@ object Action {
 
     def listItems[T <: CustomResource[_, _], L <: KubernetesResourceList[T]](
         getListable: MixedOperation[T, L, _] => Listable[L],
-        getList: Listable[L] => L = (l: Listable[L]) => l.list())(createAction: Vector[T] => Action)(
-        implicit handler: CustomResourceAdapter[T, L],
+        getList: Listable[L] => L = (l: Listable[L]) => l.list())(createAction: Vector[T] => Action)(implicit
+        handler: CustomResourceAdapter[T, L],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): Action = {
       Action.listItems[T, L](client => getListable(handler.customResources(client)), getList)(createAction)
     }
 
     def operation[T <: CustomResource[_, _], L <: KubernetesResourceList[T], OpResult](
-        executeOperation: MixedOperation[T, L, Resource[T]] => OpResult)(createAction: OpResult => Action)(
-        implicit handler: CustomResourceAdapter[T, L],
+        executeOperation: MixedOperation[T, L, Resource[T]] => OpResult)(createAction: OpResult => Action)(implicit
+        handler: CustomResourceAdapter[T, L],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): Action = {
       OperatorAction(client => handler.customResources(client), executeOperation, createAction)
     }
 
-    /**
-     * Creates a [[DeleteAction]] for a Namespaced CustomResource.
-     */
-    def delete[T <: CustomResource[_, _]](resourceName: String, namespace: String)(
-        implicit ct: ClassTag[T],
+    /** Creates a [[DeleteAction]] for a Namespaced CustomResource.
+      */
+    def delete[T <: CustomResource[_, _]](resourceName: String, namespace: String)(implicit
+        ct: ClassTag[T],
         handler: ResourceAdapter[T],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): DeleteAction[T] = {
       DeleteAction(handler, resourceName, Some(namespace))
     }
 
-    /**
-     * Creates a [[DeleteAction]] for a CustomResource.
-     */
-    def delete[T <: CustomResource[_, _]](resourceName: String)(
-        implicit ct: ClassTag[T],
+    /** Creates a [[DeleteAction]] for a CustomResource.
+      */
+    def delete[T <: CustomResource[_, _]](resourceName: String)(implicit
+        ct: ClassTag[T],
         handler: ResourceAdapter[T],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): DeleteAction[T] = {
       DeleteAction(handler, resourceName, None)
     }
 
-    /**
-     * Creates a [[DeleteAction]] to delete the specified CustomResource.
-     */
-    def delete[T <: CustomResource[_, _]](resource: T)(
-        implicit ct: ClassTag[T],
+    /** Creates a [[DeleteAction]] to delete the specified CustomResource.
+      */
+    def delete[T <: CustomResource[_, _]](resource: T)(implicit
+        ct: ClassTag[T],
         handler: ResourceAdapter[T],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): DeleteAction[T] = {
       DeleteAction(handler, resource.getMetadata.getName, Option(resource.getMetadata.getNamespace))
     }
 
-    /**
-     * Creates a [[CreateOrReplaceAction]] for a CustomResource.
-     */
-    def createOrReplace[T <: HasMetadata](resource: T)(
-        implicit ct: ClassTag[T],
+    /** Creates a [[CreateOrReplaceAction]] for a CustomResource.
+      */
+    def createOrReplace[T <: HasMetadata](resource: T)(implicit
+        ct: ClassTag[T],
         handler: ResourceAdapter[T],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): CreateOrReplaceAction[T] = {
       CreateOrReplaceAction(handler, resource)
     }
 
-    /**
-     * Updates the status of a custom resource if it is found, otherwise returns the resource unchanged.
-     */
-    def updateStatus[T <: CustomResource[_, _], L <: KubernetesResourceList[T]](resource: T)(
-        implicit ct: ClassTag[T],
+    /** Updates the status of a custom resource if it is found, otherwise returns the resource unchanged.
+      */
+    def updateStatus[T <: CustomResource[_, _], L <: KubernetesResourceList[T]](resource: T)(implicit
+        ct: ClassTag[T],
         w: CustomResourceAdapter[T, L],
         lineNumber: sourcecode.Line,
         file: sourcecode.File): UpdateStatusAction[T, L] = {
@@ -297,44 +274,33 @@ object Action {
     }
   }
 
-  /**
-   * Creates a no-operation action, which effectively does nothing ([[NoopAction]]).
-   */
+  /** Creates a no-operation action, which effectively does nothing ([[NoopAction]]).
+    */
   val noop = NoopAction
 
-  /**
-   * Creates an action that can be used to return a value after the action has executed.
-   */
+  /** Creates an action that can be used to return a value after the action has executed.
+    */
   def result[T](result: T) = Result(result)
 
-  /**
-   * Creates an action that executes `action` and returns a value after the action has executed.
-   */
-  def withResult[T](action: Action, result: T)(
-      implicit
-      lineNumber: sourcecode.Line,
-      file: sourcecode.File) = With(action, result)
+  /** Creates an action that executes `action` and returns a value after the action has executed.
+    */
+  def withResult[T](action: Action, result: T)(implicit lineNumber: sourcecode.Line, file: sourcecode.File) =
+    With(action, result)
 
-  /**
-   * Creates an action from a result of another action.
-   */
-  def fromResult[T](action: Result[T])(nextAction: T => Action)(
-      implicit
-      lineNumber: sourcecode.Line,
-      file: sourcecode.File): Action = FromResult(action, nextAction)
+  /** Creates an action from a result of another action.
+    */
+  def fromResult[T](action: Result[T])(
+      nextAction: T => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File): Action =
+    FromResult(action, nextAction)
 
-  /**
-   * Creates an action from optional results of other actions.
-   */
-  def fromResults[T](actions: Vector[ResultAction[Option[T]]])(nextAction: Vector[Option[T]] => Action)(
-      implicit
-      lineNumber: sourcecode.Line,
-      file: sourcecode.File): Action =
+  /** Creates an action from optional results of other actions.
+    */
+  def fromResults[T](actions: Vector[ResultAction[Option[T]]])(
+      nextAction: Vector[Option[T]] => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File): Action =
     FromResults(actions, nextAction)
 
-  /**
-   * No Operation action.
-   */
+  /** No Operation action.
+    */
   case object NoopAction extends ResourceAction[Nothing] {
     def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[ResourceAction[Nothing]] =
       Future.successful(this)
@@ -349,8 +315,8 @@ object Action {
     def value: T
   }
 
-  final case class GetResult[T <: HasMetadata](getGettable: KubernetesClient => Gettable[T])(
-      implicit lineNumber: sourcecode.Line,
+  final case class GetResult[T <: HasMetadata](getGettable: KubernetesClient => Gettable[T])(implicit
+      lineNumber: sourcecode.Line,
       file: sourcecode.File)
       extends ResultAction[Option[T]] {
     def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Result[Option[T]]] = {
@@ -380,8 +346,8 @@ object Action {
     val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
   }
 
-  final case class FromResult[T](action: Result[T], nextAction: T => Action)(
-      implicit lineNumber: sourcecode.Line,
+  final case class FromResult[T](action: Result[T], nextAction: T => Action)(implicit
+      lineNumber: sourcecode.Line,
       file: sourcecode.File)
       extends Action {
     def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Action] = {
@@ -394,14 +360,15 @@ object Action {
   }
 
   final case class FromResults[T](actions: Vector[ResultAction[Option[T]]], nextAction: Vector[Option[T]] => Action)(
-      implicit lineNumber: sourcecode.Line,
+      implicit
+      lineNumber: sourcecode.Line,
       file: sourcecode.File)
       extends Action {
     def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Action] = {
       actions
         .foldLeft(Future.successful(Vector.empty[ResultAction[Option[T]]])) { (acc, action) =>
           acc.flatMap { v =>
-            action.execute(client).map { res: ResultAction[Option[T]] =>
+            action.execute(client).map { (res: ResultAction[Option[T]]) =>
               v :+ res
             }
           }
@@ -447,16 +414,14 @@ trait GetByNameAction[T <: HasMetadata] {
 
 abstract class SingleResourceAction[T <: HasMetadata] extends ResourceAction[T] {
 
-  /**
-   * The resource that is applied
-   */
+  /** The resource that is applied
+    */
   def resource: T
 
   override def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[SingleResourceAction[T]]
 
-  /**
-   * The name of the resource that this action is applied to
-   */
+  /** The name of the resource that this action is applied to
+    */
   def resourceName: String = resource.getMetadata.getName
   def namespace: Option[String] = Option(resource.getMetadata.getNamespace)
 
@@ -466,20 +431,18 @@ abstract class SingleResourceAction[T <: HasMetadata] extends ResourceAction[T] 
     s"Executed [$actionName] action for ${resource.getKind} [${Action.fullResourceName(namespace, resourceName)}]"
 }
 
-/**
- * Captures create or replace of the resource. This action does not fail if the resource already exists.
- * If the resource already exists, it will be replaced.
- */
-final case class CreateOrReplaceAction[T <: HasMetadata](handler: ResourceAdapter[T], resource: T)(
-    implicit ct: ClassTag[T],
+/** Captures create or replace of the resource. This action does not fail if the resource already exists. If the
+  * resource already exists, it will be replaced.
+  */
+final case class CreateOrReplaceAction[T <: HasMetadata](handler: ResourceAdapter[T], resource: T)(implicit
+    ct: ClassTag[T],
     lineNumber: sourcecode.Line,
     file: sourcecode.File)
     extends SingleResourceAction[T] {
 
-  /**
-   * Creates the resources if it does not exist. If it does exist it updates the resource as required.
-   * Updated for fabric8 6.x: uses handler.createOrReplace() instead of handler.applicable().
-   */
+  /** Creates the resources if it does not exist. If it does exist it updates the resource as required. Updated for
+    * fabric8 6.x: uses handler.createOrReplace() instead of handler.applicable().
+    */
   def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[CreateOrReplaceAction[T]] =
     for {
       result <- Future { handler.createOrReplace(client, resource) }
@@ -488,9 +451,8 @@ final case class CreateOrReplaceAction[T <: HasMetadata](handler: ResourceAdapte
   val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 }
 
-/**
- * Captures deletion of the resource.
- */
+/** Captures deletion of the resource.
+  */
 final case class DeleteAction[T <: HasMetadata](
     handler: ResourceAdapter[T],
     resourceName: String,
@@ -508,13 +470,12 @@ final case class DeleteAction[T <: HasMetadata](
         handler
           .foregroundDeletable(client, res)
           .delete()
-      }.recoverWith {
-        case e =>
-          Failure(
-            ActionException(
-              this,
-              s"Could not delete ${res.getKind} ${Action.fullResourceName(namespace, resourceName)}",
-              e))
+      }.recoverWith { case e =>
+        Failure(
+          ActionException(
+            this,
+            s"Could not delete ${res.getKind} ${Action.fullResourceName(namespace, resourceName)}",
+            e))
       }
       this
     }
@@ -522,8 +483,7 @@ final case class DeleteAction[T <: HasMetadata](
   val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 }
 
-final case class CompositeAction[T <: HasMetadata](actions: immutable.Iterable[Action])(
-    implicit
+final case class CompositeAction[T <: HasMetadata](actions: immutable.Iterable[Action])(implicit
     lineNumber: sourcecode.Line,
     file: sourcecode.File)
     extends Action {
@@ -533,14 +493,13 @@ final case class CompositeAction[T <: HasMetadata](actions: immutable.Iterable[A
   override def executedMessage =
     s"Composite action executed: ${actions.map(_.actionName).mkString(", ")}"
 
-  /**
-   * Executes all actions
-   */
+  /** Executes all actions
+    */
   override def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[CompositeAction[T]] = {
     actions
       .foldLeft(Future.successful(Vector.empty[Action])) { (acc, action) =>
         acc.flatMap { v =>
-          action.execute(client).map { res: Action =>
+          action.execute(client).map { (res: Action) =>
             v :+ res
           }
         }
@@ -551,9 +510,8 @@ final case class CompositeAction[T <: HasMetadata](actions: immutable.Iterable[A
   val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 }
 
-/**
- * Gets a resource and creates an action from it.
- */
+/** Gets a resource and creates an action from it.
+  */
 final case class GetAction[T <: HasMetadata](
     handler: ResourceAdapter[T],
     resourceName: String,
@@ -583,16 +541,12 @@ final case class GetAction[T <: HasMetadata](
   val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 }
 
-/**
- * Lists a resource and creates an action from it.
- */
+/** Lists a resource and creates an action from it.
+  */
 final case class ListAction[T <: HasMetadata, L <: KubernetesResourceList[T]](
     getListable: KubernetesClient => Listable[L],
     getList: Listable[L] => L,
-    createAction: L => Action)(
-    implicit
-    lineNumber: sourcecode.Line,
-    file: sourcecode.File)
+    createAction: L => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File)
     extends Action {
 
   override def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Action] = {
@@ -604,16 +558,12 @@ final case class ListAction[T <: HasMetadata, L <: KubernetesResourceList[T]](
   val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 }
 
-/**
- * Lists a resource as vector of items and creates an action from the result of listing the resource.
- */
+/** Lists a resource as vector of items and creates an action from the result of listing the resource.
+  */
 final case class ListItemsAction[T <: HasMetadata, L <: KubernetesResourceList[T]](
     getListable: KubernetesClient => Listable[L],
     getList: Listable[L] => L = (l: Listable[L]) => l.list(),
-    createAction: Vector[T] => Action)(
-    implicit
-    lineNumber: sourcecode.Line,
-    file: sourcecode.File)
+    createAction: Vector[T] => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File)
     extends Action {
   import akka.kube.ccompat
   def asScala(l: L): Vector[T] = ccompat.asScala(l.getItems)
@@ -626,13 +576,12 @@ final case class ListItemsAction[T <: HasMetadata, L <: KubernetesResourceList[T
   val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 }
 
-/**
- * Updates the status of a custom resource if it is found, otherwise returns the resource unchanged.
- * Updated for fabric8 6.x: uses client.resources(Class<T>) instead of
- * client.customResources(crdContext,...) which was removed in fabric8 6.x.
- */
-final case class UpdateStatusAction[T <: CustomResource[_, _], L <: KubernetesResourceList[T]](resource: T)(
-    implicit ct: ClassTag[T],
+/** Updates the status of a custom resource if it is found, otherwise returns the resource unchanged. Updated for
+  * fabric8 6.x: uses client.resources(Class<T>) instead of client.customResources(crdContext,...) which was removed in
+  * fabric8 6.x.
+  */
+final case class UpdateStatusAction[T <: CustomResource[_, _], L <: KubernetesResourceList[T]](resource: T)(implicit
+    ct: ClassTag[T],
     w: CustomResourceAdapter[T, L],
     lineNumber: sourcecode.Line,
     file: sourcecode.File)
@@ -656,10 +605,7 @@ final case class UpdateStatusAction[T <: CustomResource[_, _], L <: KubernetesRe
 final case class OperatorAction[T <: HasMetadata, L <: KubernetesResourceList[T], R <: Resource[T], OpResult](
     getOperation: KubernetesClient => MixedOperation[T, L, R],
     executeOperation: MixedOperation[T, L, R] => OpResult,
-    createAction: OpResult => Action)(
-    implicit
-    lineNumber: sourcecode.Line,
-    file: sourcecode.File)
+    createAction: OpResult => Action)(implicit lineNumber: sourcecode.Line, file: sourcecode.File)
     extends Action {
 
   def execute(client: KubernetesClient)(implicit ec: ExecutionContext): Future[Action] = {

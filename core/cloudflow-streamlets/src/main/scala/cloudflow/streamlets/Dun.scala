@@ -18,26 +18,22 @@ package cloudflow.streamlets
 
 import java.io.Serializable
 
-/**
- * Typically used together with `Future` to signal completion
- * but there is no actual value completed. More clearly signals intent
- * than `Unit` and is available both from Scala and Java (which `Unit` is not).
- *
- * Adopted from akka to avoid `streamlets` depending on akka.
- */
+/** Typically used together with `Future` to signal completion but there is no actual value completed. More clearly
+  * signals intent than `Unit` and is available both from Scala and Java (which `Unit` is not).
+  *
+  * Adopted from akka to avoid `streamlets` depending on akka.
+  */
 sealed abstract class Dun extends Serializable
 
 case object Dun extends Dun {
 
-  /**
-   * Java API: the singleton instance
-   */
+  /** Java API: the singleton instance
+    */
   def getInstance(): Dun = this
 
-  /**
-   * Java API: the singleton instance
-   *
-   * This is equivalent to [[Dun#getInstance()]], but can be used with static import.
-   */
+  /** Java API: the singleton instance
+    *
+    * This is equivalent to [[Dun#getInstance()]], but can be used with static import.
+    */
   def dun(): Dun = this
 }

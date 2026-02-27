@@ -32,57 +32,54 @@ object CloudflowProjectAggregator {
   }
 
   def getBlueprint(allProjects: Seq[MavenProject], log: Log): Option[File] = {
-    allProjects.foldLeft(Option.empty[File]) {
-      case (acc, project) =>
-        log.info(s"checking blueprint in $project")
+    allProjects.foldLeft(Option.empty[File]) { case (acc, project) =>
+      log.info(s"checking blueprint in $project")
 
-        findBlueprint(project).orElse(acc)
+      findBlueprint(project).orElse(acc)
     }
   }
 
   def getStreamlets(allProjects: Seq[MavenProject], log: Log): Map[String, Map[String, Config]] = {
-    allProjects.foldLeft(Map.empty[String, Map[String, Config]]) {
-      case (acc, project) =>
-        try {
+    allProjects.foldLeft(Map.empty[String, Map[String, Config]]) { case (acc, project) =>
+      try {
 
-          log.info(s"extracting streamlets $project")
+        log.info(s"extracting streamlets $project")
 
-          val rawStreamlets =
-            FileUtil.readLines(new File(project.getBuild.getDirectory, Constants.STREAMLETS_FILE))
+        val rawStreamlets =
+          FileUtil.readLines(new File(project.getBuild.getDirectory, Constants.STREAMLETS_FILE))
 
-          val streamlets: Map[String, Config] = rawStreamlets.map { k =>
-            val file = new File(project.getBuild.getDirectory, URLEncoder.encode(k, "UTF-8"))
-            val config = ConfigFactory
-              .parseFile(file)
-              .resolve()
-            k -> config
-          }.toMap
+        val streamlets: Map[String, Config] = rawStreamlets.map { k =>
+          val file = new File(project.getBuild.getDirectory, URLEncoder.encode(k, "UTF-8"))
+          val config = ConfigFactory
+            .parseFile(file)
+            .resolve()
+          k -> config
+        }.toMap
 
-          (acc + (project.getName -> streamlets))
-        } catch {
-          case ex: Throwable =>
-            log.warn(s"No streamlets found in project $project")
-            (acc)
-        }
+        acc + (project.getName -> streamlets)
+      } catch {
+        case ex: Throwable =>
+          log.warn(s"No streamlets found in project $project")
+          acc
+      }
     }
   }
 
   def getImages(allProjects: Seq[MavenProject], log: Log): Map[String, String] = {
-    allProjects.foldLeft(Map.empty[String, String]) {
-      case (acc, project) =>
-        try {
+    allProjects.foldLeft(Map.empty[String, String]) { case (acc, project) =>
+      try {
 
-          log.info(s"extracting image names $project")
+        log.info(s"extracting image names $project")
 
-          val image =
-            FileUtil.readLines(new File(project.getBuild.getDirectory, Constants.DOCKER_IMAGE_FILE)).mkString.trim
+        val image =
+          FileUtil.readLines(new File(project.getBuild.getDirectory, Constants.DOCKER_IMAGE_FILE)).mkString.trim
 
-          (acc + (project.getName -> image))
-        } catch {
-          case ex: Throwable =>
-            log.warn(s"No images found in project $project")
-            (acc)
-        }
+        acc + (project.getName -> image)
+      } catch {
+        case ex: Throwable =>
+          log.warn(s"No images found in project $project")
+          acc
+      }
     }
   }
 
@@ -134,15 +131,14 @@ object CloudflowProjectAggregator {
     val imagesPerProject = CloudflowProjectAggregator.getImages(allProjects, log)
 
     val streamlets = streamletsPerProject.foldLeft(Map.empty[String, Config]) { case (acc, (_, v)) => acc ++ v }
-    val images = streamletsPerProject.foldLeft(Map.empty[String, String]) {
-      case (acc, (k, v)) => acc ++ v.keys.map { s => s -> imagesPerProject(k) }
+    val images = streamletsPerProject.foldLeft(Map.empty[String, String]) { case (acc, (k, v)) =>
+      acc ++ v.keys.map { s => s -> imagesPerProject(k) }
     }
     val (blueprintStr, blueprint) = readBlueprint(CloudflowProjectAggregator.getBlueprint(allProjects, log))
 
     val finalImages = blueprint
-      .map {
-        case (k, v) =>
-          k -> images.get(v.unwrapped().toString).getOrElse(throw new Exception(s"docker image missing for $k"))
+      .map { case (k, v) =>
+        k -> images.get(v.unwrapped().toString).getOrElse(throw new Exception(s"docker image missing for $k"))
       }
 
     Generator.generate(
@@ -162,12 +158,12 @@ object CloudflowProjectAggregator {
       .toList
 
     val artifacts = project.getArtifacts.asScala.map { a: Artifact =>
-        a.getFile.toURI.toURL
-      }.toList ++ Try {
-        project.getArtifact.getFile.toURI.toURL
-      }.toOption.toList
+      a.getFile.toURI.toURL
+    }.toList ++ Try {
+      project.getArtifact.getFile.toURI.toURL
+    }.toOption.toList
 
-    (deps ++ artifacts)
+    deps ++ artifacts
   }
 
 }

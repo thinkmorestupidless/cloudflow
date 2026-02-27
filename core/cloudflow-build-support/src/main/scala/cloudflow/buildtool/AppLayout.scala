@@ -25,17 +25,16 @@ object AppLayout {
     appDescriptor.deployments.flatMap { deployment =>
       val streamlet = deployment.streamletName
       val inletOutlets = streamletIOResolver(streamlet)
-      val topicsOtherStreamlet = deployment.portMappings.toSeq.map {
-        case (port, topic) =>
-          val formattedTopic = topicFormat(topic.name)
-          val io = inletOutlets(port)
-          if (io == "inlet") {
-            // TODO verify this
-            s"$formattedTopic" -> s"${deployment.streamletName}"
-          } else {
-            // TODO verify this
-            s"${deployment.streamletName}" -> s"$formattedTopic"
-          }
+      val topicsOtherStreamlet = deployment.portMappings.toSeq.map { case (port, topic) =>
+        val formattedTopic = topicFormat(topic.name)
+        val io = inletOutlets(port)
+        if (io == "inlet") {
+          // TODO verify this
+          s"$formattedTopic" -> s"${deployment.streamletName}"
+        } else {
+          // TODO verify this
+          s"${deployment.streamletName}" -> s"$formattedTopic"
+        }
       }
       topicsOtherStreamlet
     }.toList

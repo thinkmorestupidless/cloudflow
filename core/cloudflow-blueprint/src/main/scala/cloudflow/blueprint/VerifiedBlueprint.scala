@@ -116,7 +116,7 @@ final case class VerifiedOutlet(streamlet: VerifiedStreamlet, portName: String, 
     extends VerifiedPort {
   def matches(outletDescriptor: OutletDescriptor) =
     outletDescriptor.name == portName &&
-    outletDescriptor.schema.fingerprint == schemaDescriptor.fingerprint
+      outletDescriptor.schema.fingerprint == schemaDescriptor.fingerprint
   def portPath = VerifiedPortPath(streamlet.name, portName)
   def isOutlet = true
 }

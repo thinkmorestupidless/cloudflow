@@ -121,7 +121,7 @@ final case class StatusResult(status: ApplicationStatus) extends Result {
             Seq(endpointStatus.name, endpointStatus.url.toString)
           }
 
-        ClassicHelper.format((endpointHeaders +: body))
+        ClassicHelper.format(endpointHeaders +: body)
       } else { "" }
     }
 
@@ -347,7 +347,7 @@ object ClassicHelper {
       }
 
     val formattedColumns = for (i <- 0.until(columns.size)) yield {
-      formatColumn(columns(i), (i == columns.size - 1))
+      formatColumn(columns(i), i == columns.size - 1)
     }
 
     val res = for (i <- 0.until(columns.head.size)) yield {

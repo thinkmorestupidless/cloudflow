@@ -18,9 +18,8 @@ package cloudflow.sbt
 import sbt.Keys._
 import sbt._
 
-/**
- * SBT Plugin that centralizes the use of common keys for Cloudflow projects.
- */
+/** SBT Plugin that centralizes the use of common keys for Cloudflow projects.
+  */
 object CommonSettingsAndTasksPlugin extends AutoPlugin {
 
   /** Make public keys available. */
@@ -33,19 +32,19 @@ object CommonSettingsAndTasksPlugin extends AutoPlugin {
     Seq(
       cloudflowVersion := Cloudflow.Version,
       cloudflowDockerImageName := Def.task {
-          Some(DockerImageName((ThisProject / name).value.toLowerCase, (ThisProject / version).value))
-        }.value,
+        Some(DockerImageName((ThisProject / name).value.toLowerCase, (ThisProject / version).value))
+      }.value,
       cloudflowWorkDir := (ThisBuild / baseDirectory).value / "target" / ".cloudflow",
       imageNamesByProject := Def.taskDyn {
-          val buildNumber = (ThisProject / version).value
-          Def.task {
-            buildStructure.value.allProjectRefs
-              .map(_.project)
-              .foldLeft(Map.empty[String, DockerImageName]) { (a, e) =>
-                a + (e.toLowerCase -> DockerImageName(e.toLowerCase, buildNumber))
-              }
-          }
-        }.value,
+        val buildNumber = (ThisProject / version).value
+        Def.task {
+          buildStructure.value.allProjectRefs
+            .map(_.project)
+            .foldLeft(Map.empty[String, DockerImageName]) { (a, e) =>
+              a + (e.toLowerCase -> DockerImageName(e.toLowerCase, buildNumber))
+            }
+        }
+      }.value,
       Compile / packageDoc / publishArtifact := false,
       Compile / packageSrc / publishArtifact := false)
 }

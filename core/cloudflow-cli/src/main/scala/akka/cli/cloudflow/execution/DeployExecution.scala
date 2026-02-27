@@ -38,16 +38,15 @@ final case class DeployExecution(d: Deploy, client: KubeClient, logger: CliLogge
           version <- Try {
             require { !versionStr.contains(' ') }
             Integer.parseInt(versionStr)
-          }.recoverWith {
-            case _ => Failure(CliException("Application file parse error: spec.version is invalid"))
+          }.recoverWith { case _ =>
+            Failure(CliException("Application file parse error: spec.version is invalid"))
           }
           libraryVersion <- Try {
             val libraryVersion = crApp.getSpec.libraryVersion.get
             require { !libraryVersion.contains(' ') }
             libraryVersion
-          }.recoverWith {
-            case _ =>
-              Failure(CliException("Application file parse error: spec.library_version is missing, empty or invalid"))
+          }.recoverWith { case _ =>
+            Failure(CliException("Application file parse error: spec.library_version is missing, empty or invalid"))
           }
         } yield {
           lazy val lvMsg = s"built with sbt-cloudflow version ${libraryVersion},"
@@ -68,12 +67,11 @@ final case class DeployExecution(d: Deploy, client: KubeClient, logger: CliLogge
   private def loadCrFile(f: File) =
     Try {
       Json.mapper.readValue(f, classOf[App.Cr])
-    }.recoverWith {
-      case ex =>
-        Failure(
-          CliException(
-            "Failed to read the file contents for the CR - please check if the file exists or it has a bad formatting",
-            ex))
+    }.recoverWith { case ex =>
+      Failure(
+        CliException(
+          "Failed to read the file contents for the CR - please check if the file exists or it has a bad formatting",
+          ex))
     }
 
   private def referencedKafkaSecretExists(appCr: App.Cr, kafkaClusters: () => Try[List[String]]): Try[Unit] = {
@@ -149,9 +147,12 @@ final case class DeployExecution(d: Deploy, client: KubeClient, logger: CliLogge
         () => client.getKafkaClusters(namespace = d.operatorNamespace).map(_.keys.toList))
 
       // streamlets configurations
-      streamletsConfigs <- streamletsConfigs(applicationCr, cloudflowConfig, () => {
-        client.getKafkaClusters(namespace = d.operatorNamespace).map(parseValues)
-      })
+      streamletsConfigs <- streamletsConfigs(
+        applicationCr,
+        cloudflowConfig,
+        () => {
+          client.getKafkaClusters(namespace = d.operatorNamespace).map(parseValues)
+        })
 
       // Operations on the cluster
       name = applicationCr.getSpec.appId

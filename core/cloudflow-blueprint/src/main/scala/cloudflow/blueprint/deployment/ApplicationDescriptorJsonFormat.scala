@@ -26,19 +26,21 @@ import spray.json._
 import cloudflow.blueprint.StreamletDescriptorFormat
 
 trait ConfigJsonFormat extends DefaultJsonProtocol {
-  implicit val configFormat = new RootJsonFormat[Config] {
+  implicit val configFormat: RootJsonFormat[Config] = new RootJsonFormat[Config] {
     def read(json: JsValue) = ConfigFactory.parseString(json.compactPrint)
     def write(config: Config): JsValue = config.root().render(ConfigRenderOptions.concise()).parseJson
   }
 }
 
 trait ApplicationDescriptorJsonFormat extends StreamletDescriptorFormat with ConfigJsonFormat {
-  implicit val streamletFormat = jsonFormat(StreamletInstance.apply, "name", "descriptor")
+  implicit val streamletFormat: RootJsonFormat[StreamletInstance] =
+    jsonFormat(StreamletInstance.apply, "name", "descriptor")
 
-  implicit val topicFormat = jsonFormat(Topic.apply, "id", "cluster", "config")
-  implicit val endpointFormat = jsonFormat(Endpoint.apply, "app_id", "streamlet", "container_port")
+  implicit val topicFormat: RootJsonFormat[Topic] = jsonFormat(Topic.apply, "id", "cluster", "config")
+  implicit val endpointFormat: RootJsonFormat[Endpoint] =
+    jsonFormat(Endpoint.apply, "app_id", "streamlet", "container_port")
 
-  implicit val streamletDeploymentFormat = jsonFormat(
+  implicit val streamletDeploymentFormat: RootJsonFormat[StreamletDeployment] = jsonFormat(
     StreamletDeployment.apply,
     "name",
     "runtime",
@@ -52,7 +54,7 @@ trait ApplicationDescriptorJsonFormat extends StreamletDescriptorFormat with Con
     "volume_mounts",
     "replicas")
 
-  implicit val applicationDescriptorFormat = jsonFormat(
+  implicit val applicationDescriptorFormat: RootJsonFormat[ApplicationDescriptor] = jsonFormat(
     ApplicationDescriptor.apply,
     "app_id",
     "app_version",

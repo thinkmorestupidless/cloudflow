@@ -31,12 +31,12 @@ import io.fabric8.kubernetes.client.{ Config, KubernetesClient, KubernetesClient
 import scala.io.Source
 
 object KubeClientFabric8 {
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   private final case class DockerConfig(
       @JsonProperty("auths")
       auths: Map[String, DockerConfigEntry])
-  @JsonDeserialize(using = classOf[JsonDeserializer.None])
+  @JsonDeserialize(`using` = classOf[JsonDeserializer.None])
   @JsonCreator
   private final case class DockerConfigEntry(
       @JsonProperty("username")
@@ -67,10 +67,9 @@ class KubeClientFabric8(
     }
 
     clientFactory(getConfig())
-  }.recover {
-    case ex: Throwable =>
-      logger.error("Failed to create the kubernetes client", ex)
-      throw ex
+  }.recover { case ex: Throwable =>
+    logger.error("Failed to create the kubernetes client", ex)
+    throw ex
   }
 
   private def withClient[T](fn: KubernetesClient => Try[T]): Try[T] = {
@@ -90,9 +89,8 @@ class KubeClientFabric8(
           .asInstanceOf[MixedOperation[App.Cr, App.List, Resource[App.Cr]]]
 
       cloudflowClient
-    }.recoverWith {
-      case ex =>
-        Failure(CliException("Cannot find cloudflow", ex))
+    }.recoverWith { case ex =>
+      Failure(CliException("Cannot find cloudflow", ex))
     }
 
   private lazy val cloudflowApplicationsClient: Try[MixedOperation[App.Cr, App.List, Resource[App.Cr]]] = {
@@ -207,17 +205,17 @@ class KubeClientFabric8(
       if (exists.isEmpty) {
         Try {
           val namespace = new NamespaceBuilder()
-            .withNewMetadata()
-            .withName(name)
-            .withLabels(cloudflowLabels(name))
-            .endMetadata()
+            .withMetadata(
+              new ObjectMetaBuilder()
+                .withName(name)
+                .withLabels(cloudflowLabels(name))
+                .build())
             .build()
 
           client.namespaces().create(namespace)
           ()
-        }.recoverWith {
-          case ex: Throwable =>
-            Failure(CliException(s"Failed to create namespace ${name}", ex))
+        }.recoverWith { case ex: Throwable =>
+          Failure(CliException(s"Failed to create namespace ${name}", ex))
         }
       } else {
         Success(())
@@ -238,11 +236,13 @@ class KubeClientFabric8(
         auth = Base64Helper.encode(s"${dockerUsername}:${dockerPassword}"))
 
       def secret(config: String) =
-        new SecretBuilder().withNewMetadata
-          .withName(KubeClient.ImagePullSecretName)
-          .withNamespace(namespace)
-          .withLabels(cloudflowLabels(namespace))
-          .endMetadata
+        new SecretBuilder()
+          .withMetadata(
+            new ObjectMetaBuilder()
+              .withName(KubeClient.ImagePullSecretName)
+              .withNamespace(namespace)
+              .withLabels(cloudflowLabels(namespace))
+              .build())
           .withType("kubernetes.io/dockerconfigjson")
           .addToData(dockerConfigSecret, Base64Helper.encode(config))
           .build()
@@ -319,16 +319,17 @@ class KubeClientFabric8(
     withClient { client =>
       Try {
         lazy val secret =
-          new SecretBuilder().withNewMetadata
-            .withName(appInputSecretName(name))
-            .withNamespace(namespace)
-            .withLabels(
-              (cloudflowLabels(name).asScala ++
-              Map(
-                "com.lightbend.cloudflow/created-at" -> System.currentTimeMillis().toString,
-                "com.lightbend.cloudflow/config-format" -> "input")).asJava)
-            .withOwnerReferences(ownerReference)
-            .endMetadata
+          new SecretBuilder()
+            .withMetadata(
+              new ObjectMetaBuilder()
+                .withName(appInputSecretName(name))
+                .withNamespace(namespace)
+                .withLabels((cloudflowLabels(name).asScala ++
+                  Map(
+                    "com.lightbend.cloudflow/created-at" -> System.currentTimeMillis().toString,
+                    "com.lightbend.cloudflow/config-format" -> "input")).asJava)
+                .withOwnerReferences(ownerReference)
+                .build())
             .addToStringData(appInputSecretConfKey, appConfig)
             .build()
 
@@ -349,16 +350,18 @@ class KubeClientFabric8(
     withClient { client =>
       Try {
         lazy val secret =
-          new SecretBuilder().withNewMetadata
-            .withName(secretName)
-            .withNamespace(namespace)
-            .withLabels((cloudflowLabels(name).asScala ++
-            Map(
-              "com.lightbend.cloudflow/created-at" -> System.currentTimeMillis().toString,
-              "com.lightbend.cloudflow/streamlet-name" -> streamletName,
-              "com.lightbend.cloudflow/config-format" -> "config")).asJava)
-            .withOwnerReferences(ownerReference)
-            .endMetadata
+          new SecretBuilder()
+            .withMetadata(
+              new ObjectMetaBuilder()
+                .withName(secretName)
+                .withNamespace(namespace)
+                .withLabels((cloudflowLabels(name).asScala ++
+                  Map(
+                    "com.lightbend.cloudflow/created-at" -> System.currentTimeMillis().toString,
+                    "com.lightbend.cloudflow/streamlet-name" -> streamletName,
+                    "com.lightbend.cloudflow/config-format" -> "config")).asJava)
+                .withOwnerReferences(ownerReference)
+                .build())
             .addToStringData(configs.asJava)
             .build()
 
@@ -375,19 +378,18 @@ class KubeClientFabric8(
       namespace: String,
       secrets: Map[App.Deployment, Map[String, String]],
       ownerReference: OwnerReference): Try[Unit] = {
-    secrets.foldLeft[Try[Unit]](Success(())) {
-      case (last, (deployment, configs)) =>
-        last match {
-          case fail: Failure[_] => fail // Stop on first failure
-          case _ =>
-            createStreamletSecret(
-              ownerReference = ownerReference,
-              name = name,
-              namespace = namespace,
-              secretName = deployment.secretName,
-              streamletName = deployment.streamletName,
-              configs = configs)
-        }
+    secrets.foldLeft[Try[Unit]](Success(())) { case (last, (deployment, configs)) =>
+      last match {
+        case fail: Failure[_] => fail // Stop on first failure
+        case _ =>
+          createStreamletSecret(
+            ownerReference = ownerReference,
+            name = name,
+            namespace = namespace,
+            secretName = deployment.secretName,
+            streamletName = deployment.streamletName,
+            configs = configs)
+      }
     }
   }
 
@@ -411,16 +413,17 @@ class KubeClientFabric8(
             }
           case Some(v) =>
             lazy val secret =
-              new SecretBuilder().withNewMetadata
-                .withName(LoggingSecretName)
-                .withNamespace(namespace)
-                .withLabels(
-                  (cloudflowLabels(name).asScala ++
-                  Map(
-                    "com.lightbend.cloudflow/created-at" -> System.currentTimeMillis().toString,
-                    "com.lightbend.cloudflow/config-format" -> "input")).asJava)
-                .withOwnerReferences(ownerReference)
-                .endMetadata
+              new SecretBuilder()
+                .withMetadata(
+                  new ObjectMetaBuilder()
+                    .withName(LoggingSecretName)
+                    .withNamespace(namespace)
+                    .withLabels((cloudflowLabels(name).asScala ++
+                      Map(
+                        "com.lightbend.cloudflow/created-at" -> System.currentTimeMillis().toString,
+                        "com.lightbend.cloudflow/config-format" -> "input")).asJava)
+                    .withOwnerReferences(ownerReference)
+                    .build())
                 .addToStringData(loggingSecretConfKey, v)
                 .build()
 
@@ -446,12 +449,13 @@ class KubeClientFabric8(
           .build()
 
         val serviceAccount = new ServiceAccountBuilder()
-          .withNewMetadata()
-          .withName(CloudflowAppServiceAccountName)
-          .withNamespace(namespace)
-          .withLabels(cloudflowLabels(appId))
-          .withOwnerReferences(ownerReference)
-          .endMetadata()
+          .withMetadata(
+            new ObjectMetaBuilder()
+              .withName(CloudflowAppServiceAccountName)
+              .withNamespace(namespace)
+              .withLabels(cloudflowLabels(appId))
+              .withOwnerReferences(ownerReference)
+              .build())
           .withImagePullSecrets(imagePullSecret)
           .withAutomountServiceAccountToken(true)
           .build()
@@ -549,7 +553,7 @@ class KubeClientFabric8(
         .inNamespace(namespace)
         .withName(app.getSpec.appId)
         // NOTE: Patch doesn't work
-        //.patch(app)
+        // .patch(app)
         .replace(app)
     }
   }

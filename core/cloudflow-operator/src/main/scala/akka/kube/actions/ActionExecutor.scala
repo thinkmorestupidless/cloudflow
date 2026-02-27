@@ -22,29 +22,26 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import scala.collection.immutable
 
-/**
- * Executes Kubernetes resource actions.
- * Any non-fatal exception in execute should result in a failure containing an [[ActionException]]
- */
+/** Executes Kubernetes resource actions. Any non-fatal exception in execute should result in a failure containing an
+  * [[ActionException]]
+  */
 trait ActionExecutor {
   def executionContext: ExecutionContext
 
-  /**
-   * Executes the action. Returns the action as executed, containing the object as it was returned by the action.
-   * In the case of deletion, the original resource is returned.
-   */
+  /** Executes the action. Returns the action as executed, containing the object as it was returned by the action. In
+    * the case of deletion, the original resource is returned.
+    */
   def execute(action: Action): Future[Action]
 
-  /**
-   * Executes the actions. Returns the actions as executed, containing the objects as they were returned by the actions.
-   * In the case of deletion, the original resource is returned.
-   */
+  /** Executes the actions. Returns the actions as executed, containing the objects as they were returned by the
+    * actions. In the case of deletion, the original resource is returned.
+    */
   def execute(actions: immutable.Seq[Action]): Future[immutable.Seq[Action]] = {
     implicit val ec: ExecutionContext = executionContext
     actions
       .foldLeft(Future.successful(Vector.empty[Action])) { (acc, action) =>
         acc.flatMap { v =>
-          execute(action).flatMap { res: Action =>
+          execute(action).flatMap { (res: Action) =>
             Future.successful(v :+ res)
           }
         }
@@ -63,7 +60,6 @@ object ActionException {
     new ActionException(action, s"Action [${action.actionName}] failed: ${msg}, ${action.errorMessageExtraInfo}", null)
 }
 
-/**
- * Exception thrown when the action failed to make the appropriate change(s).
- */
+/** Exception thrown when the action failed to make the appropriate change(s).
+  */
 final case class ActionException(action: Action, msg: String, cause: Throwable) extends RuntimeException(msg, cause)

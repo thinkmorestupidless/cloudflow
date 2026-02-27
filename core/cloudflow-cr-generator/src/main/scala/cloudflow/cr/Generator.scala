@@ -50,13 +50,12 @@ object Generator {
       streamlets: Map[String, Config],
       dockerImages: Map[String, String]): String = {
 
-    val streamletDescriptors = streamlets.map {
-      case (_, configDescriptor) =>
-        configDescriptor
-          .root()
-          .render(ConfigRenderOptions.concise())
-          .parseJson
-          .convertTo[cloudflow.blueprint.StreamletDescriptor]
+    val streamletDescriptors = streamlets.map { case (_, configDescriptor) =>
+      configDescriptor
+        .root()
+        .render(ConfigRenderOptions.concise())
+        .parseJson
+        .convertTo[cloudflow.blueprint.StreamletDescriptor]
     }
 
     val blueprintConfig = ConfigFactory.parseString(blueprintStr).resolve()
@@ -71,7 +70,7 @@ object Generator {
         ApplicationDescriptor(
           appId = projectId,
           appVersion = version,
-          (k) => dockerImages(k),
+          k => dockerImages(k),
           blueprint.verified.right.get,
           agentPathsMap,
           cloudflowVersion)
@@ -118,11 +117,10 @@ object Generator {
       opt[Map[String, String]]('i', "images")
         .action((x, c) => c.copy(images = c.images ++ x))
         .text("Docker images of the Cloudflow Application"),
-      checkConfig(
-        c =>
-          if (c.name == null || c.version == null || c.blueprint == null || c.classpath == null)
-            failure("All the options should be filled in")
-          else success))
+      checkConfig(c =>
+        if (c.name == null || c.version == null || c.blueprint == null || c.classpath == null)
+          failure("All the options should be filled in")
+        else success))
   }
 
   def main(args: Array[String]): Unit = {

@@ -42,10 +42,9 @@ import com.typesafe.config._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
- * Local runner for sandbox testing. Because this is executed on Linux, MacOS, and
- * Windows, all path specifications must be compatible with all three platforms!
- */
+/** Local runner for sandbox testing. Because this is executed on Linux, MacOS, and Windows, all path specifications
+  * must be compatible with all three platforms!
+  */
 object LocalRunner extends StreamletLoader {
 
   val consoleOut = System.out // preserve
@@ -64,14 +63,13 @@ object LocalRunner extends StreamletLoader {
 
   val BootstrapServersKey = "bootstrap.servers"
 
-  /**
-   * Starts the local runner using an Application Descriptor JSON file and
-   * the file in the local system where the output is going to be written.
-   *
-   * @param args: args(0) must be the JSON-encoded Application Descriptor
-   *             args(1) must be the file to use for the output
-   *             args(2) must be the kafka instance to use
-   */
+  /** Starts the local runner using an Application Descriptor JSON file and the file in the local system where the
+    * output is going to be written.
+    *
+    * @param args:
+    *   args(0) must be the JSON-encoded Application Descriptor args(1) must be the file to use for the output args(2)
+    *   must be the kafka instance to use
+    */
   def main(args: Array[String]): Unit = {
     val usage = "Usage: localRunner <applicationFileJson> <outputFile> <kafka-host> [localConfigFile]"
     val (appDescriptorFilename, outputFilename, kafkaHost, localConfig) = args.toList match {
@@ -122,10 +120,9 @@ object LocalRunner extends StreamletLoader {
         volumeMounts = deployment.volumeMounts.getOrElse(List.empty).map { vm =>
           cloudflow.runner.config.VolumeMount(name = vm.name, path = vm.path, accessMode = vm.accessMode)
         },
-        portMappings = deployment.portMappings.map {
-          case (name, topic) =>
-            name -> cloudflow.runner.config
-              .Topic(id = topic.id, cluster = topic.cluster, config = toJsonNode(topic.config))
+        portMappings = deployment.portMappings.map { case (name, topic) =>
+          name -> cloudflow.runner.config
+            .Topic(id = topic.id, cluster = topic.cluster, config = toJsonNode(topic.config))
         }))
     cloudflow.runner.config.toJson(streamletConfig)
   }
@@ -184,18 +181,16 @@ object LocalRunner extends StreamletLoader {
       (streamletInstance, patchedRunnerConfig)
     }
 
-    val launchedStreamlets = streamletsWithConf.map {
-      case (streamletDescriptor, config) =>
-        loadStreamletClass(streamletDescriptor.descriptor.className)
-          .map { streamlet =>
-            log.info(s"Preparing to run streamlet: [${streamletDescriptor.name}]")
-            streamlet.run(config)
-          }
-          .recoverWith {
-            case NonFatal(ex) =>
-              log.error("Streamlet execution failed.", ex)
-              Failure(StreamletLaunchFailure(streamletDescriptor.name, ex))
-          }
+    val launchedStreamlets = streamletsWithConf.map { case (streamletDescriptor, config) =>
+      loadStreamletClass(streamletDescriptor.descriptor.className)
+        .map { streamlet =>
+          log.info(s"Preparing to run streamlet: [${streamletDescriptor.name}]")
+          streamlet.run(config)
+        }
+        .recoverWith { case NonFatal(ex) =>
+          log.error("Streamlet execution failed.", ex)
+          Failure(StreamletLaunchFailure(streamletDescriptor.name, ex))
+        }
     }
 
     reportAndExitOnFailure(launchedStreamlets)
@@ -280,9 +275,8 @@ object LocalRunner extends StreamletLoader {
         ConfigFactory
           .parseString {
             streamletParamConfig
-              .collect {
-                case (key, validationType, Some(value)) =>
-                  s"$key : ${quotePolicy(validationType)(value)}"
+              .collect { case (key, validationType, Some(value)) =>
+                s"$key : ${quotePolicy(validationType)(value)}"
               }
               .mkString("\n")
           }
@@ -303,10 +297,9 @@ object LocalRunner extends StreamletLoader {
     Try {
       JsonParser(ParserInput(Files.readAllBytes(Paths.get(appDescriptorFilename))))
         .convertTo[ApplicationDescriptor]
-    }.recoverWith {
-      case NonFatal(ex) =>
-        log.error(s"Failed to load application descriptor file [${appDescriptorFilename}].", ex)
-        Failure(ex)
+    }.recoverWith { case NonFatal(ex) =>
+      log.error(s"Failed to load application descriptor file [${appDescriptorFilename}].", ex)
+      Failure(ex)
     }
 
   def withResourceDo[T <: Closeable](closeable: T)(f: T => Unit): Unit =

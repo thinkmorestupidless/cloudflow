@@ -29,8 +29,7 @@ final case class ProtoOutlet[T <: GeneratedMessage: GeneratedMessageCompanion](
   def schemaAsString = cmp.scalaDescriptor.asProto.toProtoString
   def schemaDefinition = ProtoUtil.createSchemaDefinition(cmp.scalaDescriptor)
 
-  /**
-   * Returns a CodecOutlet with the partitioner set.
-   */
+  /** Returns a CodecOutlet with the partitioner set.
+    */
   def withPartitioner(partitioner: T => String): ProtoOutlet[T] = copy(partitioner = partitioner)
 }

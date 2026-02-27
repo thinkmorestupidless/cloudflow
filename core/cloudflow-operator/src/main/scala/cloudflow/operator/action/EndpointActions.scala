@@ -29,10 +29,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-/**
- * Creates a sequence of resource actions for the endpoint changes
- * between a current application and a new application.
- */
+/** Creates a sequence of resource actions for the endpoint changes between a current application and a new application.
+  */
 object EndpointActions {
 
   final val DefaultContainerPort = 3000
@@ -45,7 +43,7 @@ object EndpointActions {
       currentApp.map(cr => distinctEndpoints(cr.getSpec)).getOrElse(Set.empty[App.Endpoint])
     val newEndpoints: Set[App.Endpoint] = distinctEndpoints(newApp.getSpec)
 
-    val deleteActions = (currentEndpoints -- newEndpoints).flatMap { endpoint: App.Endpoint =>
+    val deleteActions = (currentEndpoints -- newEndpoints).flatMap { (endpoint: App.Endpoint) =>
       Seq(
         Action.delete[Service](
           Name.ofService(StreamletDeployment.name(newApp.getSpec.appId, endpoint.streamlet.getOrElse("no-name"))),
@@ -79,12 +77,13 @@ object EndpointActions {
     }
 
     new ServiceBuilder()
-      .withNewMetadata()
-      .withName(Name.ofService(streamletDeploymentName))
-      .withNamespace(namespace)
-      .withLabels(labels(Name.ofService(streamletDeploymentName)).asJava)
-      .withOwnerReferences(ownerReferences: _*)
-      .endMetadata()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(Name.ofService(streamletDeploymentName))
+          .withNamespace(namespace)
+          .withLabels(labels(Name.ofService(streamletDeploymentName)).asJava)
+          .withOwnerReferences(ownerReferences: _*)
+          .build())
       .withSpec(
         new ServiceSpecBuilder()
           .withType("ClusterIP")
@@ -101,19 +100,18 @@ object EndpointActions {
     CreateServiceAction(serviceResource(endpoint, streamletDeploymentName, app.namespace, labels, ownerReferences))
   }
 
-  /**
-   * Creates an action for creating a service.
-   */
+  /** Creates an action for creating a service.
+    */
   case class CreateServiceAction(service: Service)(implicit val lineNumber: sourcecode.Line, val file: sourcecode.File)
       extends Action {
 
     val errorMessageExtraInfo = s"created on: ${file.value}:${lineNumber.value}"
 
-    val getOperation = { client: KubernetesClient =>
-      (client.services().asInstanceOf[MixedOperation[Service, ServiceList, Resource[Service]]])
+    val getOperation = { (client: KubernetesClient) =>
+      client.services().asInstanceOf[MixedOperation[Service, ServiceList, Resource[Service]]]
     }
 
-    val executeOperation = { services: MixedOperation[Service, ServiceList, Resource[Service]] =>
+    val executeOperation = { (services: MixedOperation[Service, ServiceList, Resource[Service]]) =>
       val thisService =
         services.inNamespace(service.getMetadata.getNamespace).withName(service.getMetadata.getName)
       Option(thisService.fromServer().get()) match {

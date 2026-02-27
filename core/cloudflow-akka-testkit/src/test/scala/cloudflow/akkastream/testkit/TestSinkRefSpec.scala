@@ -31,9 +31,9 @@ import org.scalatest.matchers.must.Matchers
 import scala.concurrent.Future
 
 class TestSinkRefSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
-  private implicit val system = ActorSystem("CloudflowAkkaTestkitErrorReproducerSpec")
+  private implicit val system: ActorSystem = ActorSystem("CloudflowAkkaTestkitErrorReproducerSpec")
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   object TestFixture {
@@ -45,8 +45,8 @@ class TestSinkRefSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
       override val shape: StreamletShape = StreamletShape(in).withOutlets(out)
 
-      override protected def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
-        override def runnableGraph(): RunnableGraph[_] = {
+      override protected def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+        override def runnableGraph: RunnableGraph[_] = {
           val snk = sinkRef(out)
           sourceWithCommittableContext(in)
             .mapAsync(parallelism = 1) { element =>
@@ -67,12 +67,16 @@ class TestSinkRefSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       val in = testkit.inletFromSource(s.in, Source(msgs))
       val out = testkit.outletAsTap(s.out)
 
-      testkit.run(s, List(in), List(out), () => {
-        val results = out.probe.receiveN(msgs.size)
+      testkit.run(
+        s,
+        List(in),
+        List(out),
+        () => {
+          val results = out.probe.receiveN(msgs.size)
 
-        val resultWithoutIndex = results.asInstanceOf[Seq[(_, TestData)]].map(_._2)
-        resultWithoutIndex must contain allElementsOf msgs
-      })
+          val resultWithoutIndex = results.asInstanceOf[Seq[(_, TestData)]].map(_._2)
+          resultWithoutIndex must contain allElementsOf msgs
+        })
     }
 
     (0 until 300).foreach { i =>
@@ -82,14 +86,18 @@ class TestSinkRefSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
         val in = testkit.inletFromSource(s.in, Source(msgs))
         val out = testkit.outletAsTap(s.out)
 
-        testkit.run(s, List(in), List(out), () => {
-          val got = out.probe
-            .receiveN(msgs.size)
-            .map {
-              case (_, m: TestData) => m
-            }
-          got mustEqual msgs
-        })
+        testkit.run(
+          s,
+          List(in),
+          List(out),
+          () => {
+            val got = out.probe
+              .receiveN(msgs.size)
+              .map { case (_, m: TestData) =>
+                m
+              }
+            got mustEqual msgs
+          })
       }
     }
   }

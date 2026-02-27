@@ -30,21 +30,24 @@ import scala.collection.immutable
 @InternalApi
 private[akkastream] object MultiProducer {
 
-  /**
-   * Produce to two outlets and ensure "at-least-once" semantics by committing first after all messages
-   * have been written to the designated outlets.
-   */
-  def flow2[O1, O2](outlet1: CodecOutlet[O1], outlet2: CodecOutlet[O2])(
-      implicit context: AkkaStreamletContext): Flow[(MultiData2[O1, O2], Committable), (Unit, Committable), NotUsed] =
+  /** Produce to two outlets and ensure "at-least-once" semantics by committing first after all messages have been
+    * written to the designated outlets.
+    */
+  def flow2[O1, O2](outlet1: CodecOutlet[O1], outlet2: CodecOutlet[O2])(implicit
+      context: AkkaStreamletContext): Flow[(MultiData2[O1, O2], Committable), (Unit, Committable), NotUsed] =
     Flow
-      .fromGraph(graph2(context.flexiFlow(outlet1), context.flexiFlow(outlet2)))
+      .fromGraph(
+        graph2(
+          context.flexiFlow(outlet1).asInstanceOf[Flow[(immutable.Seq[O1], Committable), (Unit, Committable), NotUsed]],
+          context
+            .flexiFlow(outlet2)
+            .asInstanceOf[Flow[(immutable.Seq[O2], Committable), (Unit, Committable), NotUsed]]))
 
-  /**
-   * Produce to two outlets and ensure "at-least-once" semantics by committing first after all messages
-   * have been written to the designated outlets.
-   */
-  def sink2[O1, O2](outlet1: CodecOutlet[O1], outlet2: CodecOutlet[O2], committerSettings: CommitterSettings)(
-      implicit context: AkkaStreamletContext): Sink[(MultiData2[O1, O2], Committable), NotUsed] =
+  /** Produce to two outlets and ensure "at-least-once" semantics by committing first after all messages have been
+    * written to the designated outlets.
+    */
+  def sink2[O1, O2](outlet1: CodecOutlet[O1], outlet2: CodecOutlet[O2], committerSettings: CommitterSettings)(implicit
+      context: AkkaStreamletContext): Sink[(MultiData2[O1, O2], Committable), NotUsed] =
     flow2(outlet1, outlet2)
       .to(context.committableSink[Unit](committerSettings))
 
@@ -52,21 +55,23 @@ private[akkastream] object MultiProducer {
       outlet1: Flow[(immutable.Seq[O1], Committable), (Unit, Committable), _],
       outlet2: Flow[(immutable.Seq[O2], Committable), (Unit, Committable), _])
       : Graph[akka.stream.FlowShape[(MultiData2[O1, O2], Committable), (Unit, Committable)], NotUsed] =
-    GraphDSL.create(outlet1, outlet2)((_, _) => NotUsed) { implicit builder: GraphDSL.Builder[NotUsed] => (o1, o2) =>
+    GraphDSL.create(outlet1, outlet2)((_, _) => NotUsed) { implicit builder => (o1raw, o2raw) =>
       import GraphDSL.Implicits._
+      // In Akka 2.9+/Scala 3, GraphDSL.create passes shapes as the base Shape type; cast to FlowShape
+      type FlowSh[In, Out] = akka.stream.FlowShape[In, Out]
+      val o1 = o1raw.asInstanceOf[FlowSh[(immutable.Seq[O1], Committable), (Unit, Committable)]]
+      val o2 = o2raw.asInstanceOf[FlowSh[(immutable.Seq[O2], Committable), (Unit, Committable)]]
 
       val spreadOut = builder.add(
         Flow[(MultiData2[_ <: O1, _ <: O2], Committable)]
-          .map {
-            case (multi, committable) =>
-              ((multi.data1, committable), (multi.data2, committable))
+          .map { case (multi, committable) =>
+            ((multi.data1, committable), (multi.data2, committable))
           })
       val split = builder.add(Unzip[(immutable.Seq[O1], Committable), (immutable.Seq[O2], Committable)]())
-      val keepCommittable = builder.add(ZipWith[(_, Committable), (_, Committable), (Unit, Committable)]({
+      val keepCommittable = builder.add(ZipWith[(_, Committable), (_, Committable), (Unit, Committable)] {
         case ((_, committable), (_, _)) =>
           ((), committable)
-
-      }))
+      })
 
       // format: OFF
       spreadOut ~> split.in

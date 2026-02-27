@@ -5,13 +5,14 @@ object Dependencies {
 
   val Scala212 = "2.12.15" // retained for cloudflow-sbt-plugin (SBT 1.x plugin constraint) and its dependencies
   val Scala213 = "2.13.8"
+  val Scala3   = "3.3.5"
 
   object Versions {
-    val akka          = "2.6.20"
-    val akkaHttp      = "10.2.10"
-    val akkaGrpc      = "2.1.6"
-    val alpakkaKafka  = "2.1.1"
-    val akkaMgmt      = "1.1.4"
+    val akka          = "2.10.16"
+    val akkaHttp      = "10.7.3"
+    val akkaGrpc      = "2.5.10"
+    val alpakkaKafka  = "8.0.0"
+    val akkaMgmt      = "1.6.4"
     val spark         = "2.4.5"
     val fabric8       = "6.13.4"
     val jackson       = "2.17.2"
@@ -24,7 +25,8 @@ object Dependencies {
     val fabric8KubernetesClient = "io.fabric8" % "kubernetes-client" % Versions.fabric8
 
     val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
-    val pureConfig     = "com.github.pureconfig" %% "pureconfig" % "0.17.7"
+    val pureConfigCore    = "com.github.pureconfig" %% "pureconfig-core" % "0.17.7"
+    val pureConfigGenericScala3 = "com.github.pureconfig" %% "pureconfig-generic-scala3" % "0.17.7"
     val scopt =
       "com.github.scopt" %% "scopt" % "4.1.0" // FIXME generating docs for CLI fails with concurrent modification with 2.13 and this version.
     val airframeLog = "org.wvlet.airframe" %% "airframe-log" % "24.9.0"
@@ -56,7 +58,7 @@ object Dependencies {
 
     val akkaHttp          = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     val akkaHttpSprayJson = "com.typesafe.akka" %% "akka-http-spray-json" % Versions.akkaHttp
-    val akkaHttp2Support  = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
+    // akka-http2-support was merged into akka-http in 10.4.x; no longer a separate artifact.
 
     val akkaStreamKafka = ("com.typesafe.akka" %% "akka-stream-kafka" % Versions.alpakkaKafka)
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
@@ -72,7 +74,7 @@ object Dependencies {
 
     val akkaGrpcRuntime = "com.lightbend.akka.grpc" %% "akka-grpc-runtime" % Versions.akkaGrpc
 
-    val akkaStreamContrib = "com.typesafe.akka" %% "akka-stream-contrib" % "0.11"
+    // akka-stream-contrib has no Scala 3 artifact; PartitionWith is inlined in SplitterLogic.scala.
     val avro = ("org.apache.avro" % "avro" % "1.12.0")
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
 
@@ -85,14 +87,16 @@ object Dependencies {
     val sprayJson    = "io.spray" %% "spray-json" % "1.3.6"
     val scalaPbRuntime = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion
 
-    val bijection = "com.twitter" %% "bijection-avro" % "0.9.7"
+    // bijection-avro has no Scala 3 artifact; Avro binary codec is inlined in AvroCodec.scala.
 
     val ficus = "com.iheart" %% "ficus" % "1.5.2"
 
     // kube-actions was vendored into cloudflow-operator for fabric8 6.x compatibility.
     val sourcecode = "com.lihaoyi" %% "sourcecode" % "0.3.1"
 
-    val kafkaClient = "org.apache.kafka" % "kafka-clients" % "3.8.0"
+    val kafkaClient    = "org.apache.kafka" % "kafka-clients" % "4.1.0"
+    // kafka-clients 4.x class files can't be parsed by the Scala 2.12 compiler; use 3.x for 2.12-only modules.
+    val kafkaClient212 = "org.apache.kafka" % "kafka-clients" % "3.8.0"
 
     val classgraph = "io.github.classgraph" % "classgraph" % "4.8.176"
 
@@ -117,7 +121,8 @@ object Dependencies {
 
     val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Versions.akkaHttp % Test
 
-    val avro4s = "com.sksamuel.avro4s" %% "avro4s-core" % "4.1.0" % Test
+    val avro4s    = "com.sksamuel.avro4s" %% "avro4s-core" % "5.0.15" % Test
+    val avro4s212 = "com.sksamuel.avro4s" %% "avro4s-core" % "4.1.0" % Test
 
     val scalatestJunit = "org.scalatestplus" %% "junit-4-13" % s"${Versions.scalaTest}.0" % Test
 
@@ -125,7 +130,7 @@ object Dependencies {
   }
 
   val cloudflowAvro =
-    libraryDependencies ++= Seq(Compile.avro, Compile.bijection)
+    libraryDependencies ++= Seq(Compile.avro)
 
   val cloudflowConfig =
     libraryDependencies ++= Seq(
@@ -133,7 +138,8 @@ object Dependencies {
         Compile.jacksonScala,
         Compile.jacksonDatabind,
         Compile.typesafeConfig,
-        Compile.pureConfig,
+        Compile.pureConfigCore,
+        Compile.pureConfigGenericScala3,
         Compile.scalatest % Test)
 
   val cloudflowCli =
@@ -169,9 +175,9 @@ object Dependencies {
         Compile.jacksonDatabind,
         Compile.scalaPbRuntime,
         Compile.logback % Test,
-        Compile.scalatest % Test,
-        Compile.kafkaClient % Test,
-        TestDeps.avro4s)
+        Compile.scalatest % Test)
+  // avro4s and kafka test deps are added conditionally per Scala version in build.sbt
+  // (avro4s 5.0.15 has no 2.12 artifact; kafka-clients 4.x class files can't be parsed by Scala 2.12)
 
   val cloudflowOperator =
     libraryDependencies ++= Seq(
@@ -198,7 +204,7 @@ object Dependencies {
         Compile.scalaPbCompilerPlugin,
         Compile.asciigraphs,
         Compile.testcontainersKafka,
-        Compile.kafkaClient,
+        Compile.kafkaClient212, // Scala 2.12 SBT plugin: kafka 3.x class files required
         Compile.scalatest % Test)
 
   val cloudflowRunnerConfig =
@@ -241,7 +247,6 @@ object Dependencies {
     libraryDependencies ++= Seq(
         Compile.akkaSlf4j,
         Compile.akkaStream,
-        Compile.akkaStreamContrib,
         Compile.ficus,
         Compile.akkaStreamKafkaTestkit,
         Compile.akkaStreamTestkit,
@@ -254,9 +259,7 @@ object Dependencies {
   val cloudflowAkkaUtil =
     libraryDependencies ++= Vector(
         Compile.akkaHttp,
-        Compile.akkaHttp2Support,
         Compile.akkaGrpcRuntime,
-        Compile.akkaStreamContrib,
         Compile.akkaStreamTestkit % Test,
         Compile.scalatest % Test,
         TestDeps.akkaHttpTestkit,
@@ -290,5 +293,5 @@ object Dependencies {
         Compile.typesafeConfig,
         Compile.asciigraphs,
         Compile.testcontainersKafka,
-        Compile.kafkaClient)
+        Compile.kafkaClient212) // Scala 2.12 SBT plugin support: kafka 3.x class files required
 }

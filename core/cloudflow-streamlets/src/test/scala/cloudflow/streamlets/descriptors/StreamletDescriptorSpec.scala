@@ -30,7 +30,7 @@ class StreamletDescriptorSpec extends AnyWordSpec with Matchers {
       val testStreamlet = new CoffeeIngress
       val jsonStr = StreamletDescriptor.jsonDescriptor(testStreamlet)
       val json = JsonParser(jsonStr)
-      json mustBeAStreamletDescriptorFor (testStreamlet)
+      json mustBeAStreamletDescriptorFor testStreamlet
     }
   }
 
@@ -39,7 +39,7 @@ class StreamletDescriptorSpec extends AnyWordSpec with Matchers {
       val testStreamlet = new CoffeeByteArrayIngress
       val jsonStr = StreamletDescriptor.jsonDescriptor(testStreamlet)
       val json = JsonParser(jsonStr)
-      json mustBeAStreamletDescriptorFor (testStreamlet)
+      json mustBeAStreamletDescriptorFor testStreamlet
     }
   }
 

@@ -333,7 +333,9 @@ class AppCrSpec
       Some(CloudflowStatus.PodStatus.Pending),
       containerStatuses = List(
         mkContainerStatus(
-          state = new ContainerStateBuilder().withNewWaiting().withReason(reason).endWaiting().build(),
+          state = new ContainerStateBuilder()
+            .withWaiting(new ContainerStateWaitingBuilder().withReason(reason).build())
+            .build(),
           ready = false)))
 
   def mkTerminatingPod(streamletName: String) =
@@ -345,7 +347,9 @@ class AppCrSpec
       Some(CloudflowStatus.PodStatus.Pending),
       containerStatuses = List(
         mkContainerStatus(
-          state = new ContainerStateBuilder().withNewTerminated().withExitCode(0).endTerminated().build(),
+          state = new ContainerStateBuilder()
+            .withTerminated(new ContainerStateTerminatedBuilder().withExitCode(0).build())
+            .build(),
           ready = false)))
 
   def mkCrashLoopBackOffPod(streamletName: String) =
@@ -355,9 +359,9 @@ class AppCrSpec
       containerStatuses = List(
         mkContainerStatus(
           state = new ContainerStateBuilder()
-            .withNewWaiting()
-            .withReason(CloudflowStatus.PodStatus.CrashLoopBackOff)
-            .endWaiting()
+            .withWaiting(new ContainerStateWaitingBuilder()
+              .withReason(CloudflowStatus.PodStatus.CrashLoopBackOff)
+              .build())
             .build(),
           ready = false,
           restartCount = 3)))
@@ -389,11 +393,14 @@ class AppCrSpec
       .build()
   }
 
-  def mkContainerStatus(state: ContainerState = {
-    new ContainerStateBuilder()
-      .withNewRunning(java.time.ZonedDateTime.now().toString)
-      .build()
-  }, ready: Boolean = true, restartCount: Int = 0) =
+  def mkContainerStatus(
+      state: ContainerState = {
+        new ContainerStateBuilder()
+          .withNewRunning(java.time.ZonedDateTime.now().toString)
+          .build()
+      },
+      ready: Boolean = true,
+      restartCount: Int = 0) =
     new ContainerStatusBuilder()
       .withName("container-status")
       .withReady(ready)

@@ -256,8 +256,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
   it should "succeed a mocked deploy if the cr contains an existent kafka cluster" in {
     // Arrange
     val cli = new TestingCli(
-      testingKubeClientFactory(providedKafkaClusters =
-        defaultProvidedKafkaClusters ++
+      testingKubeClientFactory(providedKafkaClusters = defaultProvidedKafkaClusters ++
         Map("example-kafka-cluster" -> """bootstrap.servers = "localhost:9092"""")))
 
     // Act

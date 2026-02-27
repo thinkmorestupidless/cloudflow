@@ -72,12 +72,11 @@ class ExtractStreamletsMojo extends AbstractMojo {
       .fold(e => throw e, identity)
 
     val res = streamlets
-      .map {
-        case (k, v) =>
-          val content =
-            v.root().render(ConfigRenderOptions.concise().setComments(false).setOriginComments(false).setJson(true))
-          FileUtil.writeFile(new File(mavenProject.getBuild.getDirectory, URLEncoder.encode(k, "UTF-8")), content)
-          k
+      .map { case (k, v) =>
+        val content =
+          v.root().render(ConfigRenderOptions.concise().setComments(false).setOriginComments(false).setJson(true))
+        FileUtil.writeFile(new File(mavenProject.getBuild.getDirectory, URLEncoder.encode(k, "UTF-8")), content)
+        k
       }
       .mkString("\n")
 

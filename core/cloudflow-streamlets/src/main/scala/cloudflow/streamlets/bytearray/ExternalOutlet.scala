@@ -24,8 +24,7 @@ final case class ExternalOutlet(name: String, partitioner: Array[Byte] => String
   def schemaDefinition = ByteArrayUtil.createSchemaDefinition()
   def schemaAsString = ByteArrayUtil.schemaName
 
-  /**
-   * Returns a CodecOutlet with the partitioner set.
-   */
+  /** Returns a CodecOutlet with the partitioner set.
+    */
   def withPartitioner(partitioner: Array[Byte] => String): ExternalOutlet = copy(partitioner = partitioner)
 }

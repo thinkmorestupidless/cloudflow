@@ -22,28 +22,26 @@ import org.apache.maven.plugin.logging.Log
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 import java.util.Locale
 
-/**
- * Represents a command that can be forked.
- *
- * @param commandName The java-like binary to fork.  This is expected to exist in bin/ of the Java home directory.
- * @param runnerClass If Some, this will be prepended to the `arguments` passed to the `apply` or `fork` methods.
- */
+/** Represents a command that can be forked.
+  *
+  * @param commandName
+  *   The java-like binary to fork. This is expected to exist in bin/ of the Java home directory.
+  * @param runnerClass
+  *   If Some, this will be prepended to the `arguments` passed to the `apply` or `fork` methods.
+  */
 final class Fork(val commandName: String, val runnerClass: Option[String]) {
 
-  /**
-   * Forks the configured process, waits for it to complete, and returns the exit code.
-   * The command executed is the `commandName` defined for this Fork instance.
-   * It is configured according to `config`.
-   * If `runnerClass` is defined for this Fork instance, it is prepended to `arguments` to define the arguments passed to the forked command.
-   */
+  /** Forks the configured process, waits for it to complete, and returns the exit code. The command executed is the
+    * `commandName` defined for this Fork instance. It is configured according to `config`. If `runnerClass` is defined
+    * for this Fork instance, it is prepended to `arguments` to define the arguments passed to the forked command.
+    */
   def apply(config: ForkOptions, arguments: Seq[String]): Int = fork(config, arguments).exitValue()
 
-  /**
-   * Forks the configured process and returns a `Process` that can be used to wait for completion or to terminate the forked process.
-   * The command executed is the `commandName` defined for this Fork instance.
-   * It is configured according to `config`.
-   * If `runnerClass` is defined for this Fork instance, it is prepended to `arguments` to define the arguments passed to the forked command.
-   */
+  /** Forks the configured process and returns a `Process` that can be used to wait for completion or to terminate the
+    * forked process. The command executed is the `commandName` defined for this Fork instance. It is configured
+    * according to `config`. If `runnerClass` is defined for this Fork instance, it is prepended to `arguments` to
+    * define the arguments passed to the forked command.
+    */
   def fork(config: ForkOptions, arguments: Seq[String]): Process = {
     import config.{ envVars => env, _ }
     val executable = Fork.javaCommand(javaHome, commandName).getAbsolutePath
@@ -66,7 +64,7 @@ final class Fork(val commandName: String, val runnerClass: Option[String]) {
 
     outputStrategy.getOrElse(StdoutOutput: OutputStrategy) match {
       case StdoutOutput        => process.run(connectInput = false)
-      case out: BufferedOutput => { process.run(ProcessLogger((s) => out.logger.info(s)), connectInput = false) }
+      case out: BufferedOutput => { process.run(ProcessLogger(s => out.logger.info(s)), connectInput = false) }
       case out: LoggedOutput   => process.run(ProcessLogger(out.file), connectInput = false)
       case out: CustomOutput   => (process #> out.output).run(connectInput = false)
     }
@@ -98,7 +96,8 @@ object Fork {
   private[this] def isClasspathOption(s: String) =
     s == ClasspathOptionLong || s == ClasspathOptionShort
 
-  /** Maximum length of classpath string before passing the classpath in an environment variable instead of an option. */
+  /** Maximum length of classpath string before passing the classpath in an environment variable instead of an option.
+    */
   private[this] val MaxConcatenatedOptionLength = 5000
 
   lazy val isWindows: Boolean =
@@ -126,24 +125,29 @@ object Fork {
   }
 }
 
-/**
- * This code is generated using [[https://www.scala-sbt.org/contraband/ sbt-contraband]].
- */
+/** This code is generated using [[https://www.scala-sbt.org/contraband/ sbt-contraband]].
+  */
 // DO NOT EDIT MANUALLY
-/**
- * Configures forking.
- * @param javaHome The Java installation to use.  If not defined, the Java home for the current process is used.
- * @param outputStrategy Configures the forked standard output and error streams.
-                         If not defined, StdoutOutput is used, which maps the forked output to the output of
-                         this process and the forked error to the error stream of the forking process.
- * @param bootJars The Vector of jars to put on the forked boot classpath.  By default, this is empty.
- * @param workingDirectory The directory to use as the working directory for the forked process.
-                           By default, this is the working directory of the forking process.
- * @param runJVMOptions The options to prepend to all user-specified arguments.  By default, this is empty.
- * @param connectInput If true, the standard input of the forked process is connected to the standard input of this process.  Otherwise, it is connected to an empty input stream.
-                       Connecting input streams can be problematic, especially on versions before Java 7.
- * @param envVars The environment variables to provide to the forked process.  By default, none are provided.
- */
+/** Configures forking.
+  * @param javaHome
+  *   The Java installation to use. If not defined, the Java home for the current process is used.
+  * @param outputStrategy
+  *   Configures the forked standard output and error streams. If not defined, StdoutOutput is used, which maps the
+  *   forked output to the output of this process and the forked error to the error stream of the forking process.
+  * @param bootJars
+  *   The Vector of jars to put on the forked boot classpath. By default, this is empty.
+  * @param workingDirectory
+  *   The directory to use as the working directory for the forked process. By default, this is the working directory of
+  *   the forking process.
+  * @param runJVMOptions
+  *   The options to prepend to all user-specified arguments. By default, this is empty.
+  * @param connectInput
+  *   If true, the standard input of the forked process is connected to the standard input of this process. Otherwise,
+  *   it is connected to an empty input stream. Connecting input streams can be problematic, especially on versions
+  *   before Java 7.
+  * @param envVars
+  *   The environment variables to provide to the forked process. By default, none are provided.
+  */
 final class ForkOptions private (
     val javaHome: Option[java.io.File],
     val outputStrategy: Option[OutputStrategy],
@@ -241,25 +245,22 @@ object ForkOptions {
 
 import java.io.OutputStream
 
-/** Configures where the standard output and error streams from a forked process go.*/
+/** Configures where the standard output and error streams from a forked process go. */
 sealed abstract class OutputStrategy
 
 object OutputStrategy {
 
-  /**
-   * Configures the forked standard output to go to standard output of this process and
-   * for the forked standard error to go to the standard error of this process.
-   */
+  /** Configures the forked standard output to go to standard output of this process and for the forked standard error
+    * to go to the standard error of this process.
+    */
   case object StdoutOutput extends OutputStrategy
 
-  /**
-   * Logs the forked standard output at the `info` level and the forked standard error at
-   * the `error` level. The output is buffered until the process completes, at which point
-   * the logger flushes it (to the screen, for example).
-   */
+  /** Logs the forked standard output at the `info` level and the forked standard error at the `error` level. The output
+    * is buffered until the process completes, at which point the logger flushes it (to the screen, for example).
+    */
   final class BufferedOutput private (val logger: Log) extends OutputStrategy with Serializable {
     override def equals(o: Any): Boolean = o match {
-      case x: BufferedOutput => (this.logger == x.logger)
+      case x: BufferedOutput => this.logger == x.logger
       case _                 => false
     }
     override def hashCode: Int = {
@@ -279,13 +280,11 @@ object OutputStrategy {
     def apply(logger: Log): BufferedOutput = new BufferedOutput(logger)
   }
 
-  /**
-   * Logs the forked standard output at the `info` level and the forked standard error at
-   * the `error` level.
-   */
+  /** Logs the forked standard output at the `info` level and the forked standard error at the `error` level.
+    */
   final class LoggedOutput private (val file: File) extends OutputStrategy with Serializable {
     override def equals(o: Any): Boolean = o match {
-      case x: LoggedOutput => (this.file == x.file)
+      case x: LoggedOutput => this.file == x.file
       case _               => false
     }
     override def hashCode: Int = {
@@ -305,13 +304,12 @@ object OutputStrategy {
     def apply(file: File): LoggedOutput = new LoggedOutput(file)
   }
 
-  /**
-   * Configures the forked standard output to be sent to `output` and the forked standard error
-   * to be sent to the standard error of this process.
-   */
+  /** Configures the forked standard output to be sent to `output` and the forked standard error to be sent to the
+    * standard error of this process.
+    */
   final class CustomOutput private (val output: OutputStream) extends OutputStrategy with Serializable {
     override def equals(o: Any): Boolean = o match {
-      case x: CustomOutput => (this.output == x.output)
+      case x: CustomOutput => this.output == x.output
       case _               => false
     }
     override def hashCode: Int = {

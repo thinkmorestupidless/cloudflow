@@ -26,9 +26,8 @@ import org.slf4j._
 
 import scala.collection.immutable.Seq
 
-/**
- * Indicates that the status of the application has changed.
- */
+/** Indicates that the status of the application has changed.
+  */
 case class StatusChangeEvent(appId: String, streamletName: String, watchEvent: WatchEvent[Pod])
     extends AppChangeEvent[Pod] {
   def namespace = watchEvent.obj.getMetadata.getNamespace

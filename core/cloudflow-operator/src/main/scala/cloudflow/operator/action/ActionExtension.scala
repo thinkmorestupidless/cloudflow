@@ -29,15 +29,16 @@ object ActionExtension {
   def providedSecretRetry(name: String, namespace: String)(fAction: Option[Secret] => Action)(
       retry: Int)(implicit lineNumber: sourcecode.Line, file: sourcecode.File): Action = {
     Action.operation[Secret, SecretList, Try[Secret]](
-      { client: KubernetesClient => client.secrets() }, {
-        secrets: MixedOperation[Secret, SecretList, Resource[Secret]] =>
-          Try(
-            secrets
-              .inNamespace(namespace)
-              .withName(name)
-              .fromServer()
-              .get())
-      }, { res =>
+      { (client: KubernetesClient) => client.secrets() },
+      { (secrets: MixedOperation[Secret, SecretList, Resource[Secret]]) =>
+        Try(
+          secrets
+            .inNamespace(namespace)
+            .withName(name)
+            .fromServer()
+            .get())
+      },
+      { res =>
         res match {
           case Success(s) if s != null => fAction(Option(s))
           case _ if retry <= 0 =>

@@ -36,8 +36,8 @@ case class StreamletDefinition(
     config: Config) {
 
   private val portNameToTopicMap: Map[String, Topic] = {
-    portMappings.map {
-      case PortMapping(port, topic) => port -> topic
+    portMappings.map { case PortMapping(port, topic) =>
+      port -> topic
     }.toMap
   }
 
@@ -81,9 +81,8 @@ final case class Topic(id: String, config: Config) {
     kafkaConnectionProperties ++ Topic.pathAsMap(config, "consumer-config")
 }
 
-/**
- * Mapping between the port name and the topic
- */
+/** Mapping between the port name and the topic
+  */
 case class PortMapping(port: String, topic: Topic)
 
 object StreamletDefinition {
@@ -93,9 +92,8 @@ object StreamletDefinition {
 
       StreamletContextDataJsonSupport
         .fromJson(json)
-        .recoverWith {
-          case cause =>
-            Failure(new ConfigException.BadValue("context", s"invalid context: ${cause.getMessage}", cause))
+        .recoverWith { case cause =>
+          Failure(new ConfigException.BadValue("context", s"invalid context: ${cause.getMessage}", cause))
         }
         .get
     }
@@ -133,17 +131,16 @@ case class StreamletContextData(
     volumeMounts: Option[List[VolumeMount]] = None,
     config: Config)
 
-/**
- * Helper object for creating an instance of StreamletContextData from JSON.
- */
+/** Helper object for creating an instance of StreamletContextData from JSON.
+  */
 object StreamletContextDataJsonSupport extends DefaultJsonProtocol {
 
-  protected implicit val configFormat = new JsonFormat[Config] {
+  protected implicit val configFormat: JsonFormat[Config] = new JsonFormat[Config] {
     def write(config: Config): JsValue = config.root().render(ConfigRenderOptions.concise()).parseJson
     def read(json: JsValue): Config = ConfigFactory.parseString(json.toString)
   }
-  implicit val topicFormat = jsonFormat(Topic.apply, "id", "config")
-  protected implicit val accessModeFormat = new JsonFormat[AccessMode] {
+  implicit val topicFormat: RootJsonFormat[Topic] = jsonFormat(Topic.apply, "id", "config")
+  protected implicit val accessModeFormat: JsonFormat[AccessMode] = new JsonFormat[AccessMode] {
     val jsReadWriteMany = JsString("ReadWriteMany")
     val jsReadOnlyMany = JsString("ReadOnlyMany")
     def write(accessMode: AccessMode): JsValue = accessMode match {
@@ -157,23 +154,23 @@ object StreamletContextDataJsonSupport extends DefaultJsonProtocol {
     }
   }
 
-  protected implicit val volumeMountFormat = jsonFormat(VolumeMount.apply _, "name", "path", "access_mode")
-  protected implicit val portMappingsFormat = jsonFormat(PortMapping, "port", "topic")
-  protected implicit val contextDataFormat =
-    jsonFormat(StreamletContextData, "app_id", "app_version", "port_mappings", "volume_mounts", "config")
+  protected implicit val volumeMountFormat: RootJsonFormat[VolumeMount] =
+    jsonFormat(VolumeMount.apply _, "name", "path", "access_mode")
+  protected implicit val portMappingsFormat: RootJsonFormat[PortMapping] =
+    jsonFormat(PortMapping.apply, "port", "topic")
+  protected implicit val contextDataFormat: RootJsonFormat[StreamletContextData] =
+    jsonFormat(StreamletContextData.apply, "app_id", "app_version", "port_mappings", "volume_mounts", "config")
 
-  /**
-   * Converts a json String, that is expected to contain one streamlet
-   * context json object, into a StreamletContext.
-   *
-   * @param json the json to deserialize
-   */
+  /** Converts a json String, that is expected to contain one streamlet context json object, into a StreamletContext.
+    *
+    * @param json
+    *   the json to deserialize
+    */
   def fromJson(json: String): Try[StreamletContextData] =
     Try(json.parseJson.convertTo[StreamletContextData])
 
-  /**
-   * Converts a context into a json string.
-   */
+  /** Converts a context into a json string.
+    */
   def toJson(context: StreamletContextData): String =
     context.toJson.compactPrint
 }

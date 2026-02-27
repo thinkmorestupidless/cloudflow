@@ -32,9 +32,9 @@ import cloudflow.akkastream.testkit.scaladsl._
 import cloudflow.akkastream.testdata._
 
 class SplitterSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
-  private implicit val system = ActorSystem("SplitterSpec")
+  private implicit val system: ActorSystem = ActorSystem("SplitterSpec")
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   object MyPartitioner extends AkkaStreamlet {
@@ -62,10 +62,14 @@ class SplitterSpec extends AnyWordSpec with Matchers with ScalaFutures with Befo
       val left = testkit.outletAsTap(MyPartitioner.left)
       val right = testkit.outletAsTap(MyPartitioner.right)
 
-      testkit.run(MyPartitioner, in, List(left, right), () => {
-        left.probe.expectMsg(("a", BadData("a")))
-        right.probe.expectMsg(("2", Data(2, "b")))
-      })
+      testkit.run(
+        MyPartitioner,
+        in,
+        List(left, right),
+        () => {
+          left.probe.expectMsg(("a", BadData("a")))
+          right.probe.expectMsg(("2", Data(2, "b")))
+        })
 
       left.probe.expectMsg(Completed)
       right.probe.expectMsg(Completed)

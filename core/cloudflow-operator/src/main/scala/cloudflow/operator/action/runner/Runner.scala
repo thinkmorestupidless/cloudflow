@@ -37,21 +37,22 @@ object Runner {
   val DownwardApiVolume =
     new VolumeBuilder()
       .withName("downward-api-volume")
-      .withNewDownwardAPI()
-      .withItems(
-        new DownwardAPIVolumeFileBuilder()
-          .withFieldRef(new ObjectFieldSelectorBuilder().withFieldPath("metadata.uid").build())
-          .withPath("metadata.uid")
-          .build(),
-        new DownwardAPIVolumeFileBuilder()
-          .withFieldRef(new ObjectFieldSelectorBuilder().withFieldPath("metadata.name").build())
-          .withPath("metadata.name")
-          .build(),
-        new DownwardAPIVolumeFileBuilder()
-          .withFieldRef(new ObjectFieldSelectorBuilder().withFieldPath("metadata.namespace").build())
-          .withPath("metadata.namespace")
+      .withDownwardAPI(
+        new DownwardAPIVolumeSourceBuilder()
+          .withItems(
+            new DownwardAPIVolumeFileBuilder()
+              .withFieldRef(new ObjectFieldSelectorBuilder().withFieldPath("metadata.uid").build())
+              .withPath("metadata.uid")
+              .build(),
+            new DownwardAPIVolumeFileBuilder()
+              .withFieldRef(new ObjectFieldSelectorBuilder().withFieldPath("metadata.name").build())
+              .withPath("metadata.name")
+              .build(),
+            new DownwardAPIVolumeFileBuilder()
+              .withFieldRef(new ObjectFieldSelectorBuilder().withFieldPath("metadata.namespace").build())
+              .withPath("metadata.namespace")
+              .build())
           .build())
-      .endDownwardAPI()
       .build()
 
   val DownwardApiVolumeMount = {
@@ -81,9 +82,8 @@ object Runner {
       },
       secretName = deployment.secretName,
       config = JsonConfig(deployment.config),
-      portMappings = deployment.portMappings.map {
-        case (k, v) =>
-          k -> Topic(id = v.id, cluster = v.cluster, config = JsonConfig(v.config))
+      portMappings = deployment.portMappings.map { case (k, v) =>
+        k -> Topic(id = v.id, cluster = v.cluster, config = JsonConfig(v.config))
       },
       volumeMounts = {
         if (deployment.volumeMounts == null || deployment.volumeMounts.isEmpty) None
@@ -100,16 +100,18 @@ object Runner {
   }
 }
 
-/**
- * A Runner translates into a Runner Kubernetes resource, and a ConfigMap that configures the runner.
- */
+/** A Runner translates into a Runner Kubernetes resource, and a ConfigMap that configures the runner.
+  */
 trait Runner[T <: HasMetadata] {
   val log = LoggerFactory.getLogger(this.getClass)
 
+  // Concrete runners provide the ClassTag for their resource type so that actions() can use
+  // createOrReplaceResource / deleteResource without an external implicit ClassTag[T].
+  implicit protected def ct: ClassTag[T]
+
   def runtime: String
 
-  def actions(newApp: App.Cr, currentApp: Option[App.Cr], runners: Map[String, Runner[_]])(
-      implicit ct: ClassTag[T]): Seq[Action] = {
+  def actions(newApp: App.Cr, currentApp: Option[App.Cr], runners: Map[String, Runner[_]]): Seq[Action] = {
 
     val newDeployments = newApp.getSpec.deployments.filter(_.runtime == runtime)
 
@@ -128,7 +130,7 @@ trait Runner[T <: HasMetadata] {
     val createActions = newDeployments
       .filterNot(deployment => currentDeploymentNames.contains(deployment.name))
       .flatMap { deployment =>
-        Seq(ActionExtension.providedSecretRetry(deployment.secretName, newApp.namespace)({
+        Seq(ActionExtension.providedSecretRetry(deployment.secretName, newApp.namespace) {
           case Some(secret) =>
             createOrReplaceResource(resource(deployment, newApp, secret))
           case None =>
@@ -139,7 +141,7 @@ trait Runner[T <: HasMetadata] {
               newApp,
               runners,
               s"Awaiting configuration secret ${deployment.secretName} for streamlet deployment '${deployment.name}'.")
-        })(60))
+        }(60))
       }
 
     // update streamlet deployments by name that are in both the current app and the new app
@@ -157,9 +159,8 @@ trait Runner[T <: HasMetadata] {
 
   def appActions(app: App.Cr, labels: CloudflowLabels, ownerReferences: List[OwnerReference]): Seq[Action]
 
-  def updateActions(newApp: App.Cr, runners: Map[String, Runner[_]], deployment: App.Deployment)(
-      implicit ct: ClassTag[T]): Seq[Action] = {
-    Seq(Action.get[Secret](deployment.secretName, newApp.namespace) { secret: Option[Secret] =>
+  def updateActions(newApp: App.Cr, runners: Map[String, Runner[_]], deployment: App.Deployment): Seq[Action] = {
+    Seq(Action.get[Secret](deployment.secretName, newApp.namespace) { (secret: Option[Secret]) =>
       secret match {
         case Some(sec) =>
           createOrReplaceResource(resource(deployment, newApp, sec))
@@ -195,9 +196,8 @@ trait Runner[T <: HasMetadata] {
 
   def resourceName(deployment: App.Deployment): String
 
-  /**
-   * Creates the runner resource.
-   */
+  /** Creates the runner resource.
+    */
   def resource(
       deployment: App.Deployment,
       app: App.Cr,
@@ -217,25 +217,22 @@ trait Runner[T <: HasMetadata] {
       podConfig <- PodsConfig.fromKubernetes(config)
     } yield {
       podConfig
-    }).recover {
-        case e =>
-          log.error(
-            s"Detected pod configs in secret '${secret.getMetadata().getName()}' that contains invalid configuration data, IGNORING configuration.",
-            e)
-          PodsConfig()
-      }
-      .getOrElse(PodsConfig())
+    }).recover { case e =>
+      log.error(
+        s"Detected pod configs in secret '${secret.getMetadata().getName()}' that contains invalid configuration data, IGNORING configuration.",
+        e)
+      PodsConfig()
+    }.getOrElse(PodsConfig())
   }
 
   def getRuntimeConfig(secret: Secret): Config = {
     val str = getData(secret, ConfigInput.RuntimeConfigDataKey)
     Try(ConfigFactory.parseString(str))
-      .recover {
-        case e =>
-          log.error(
-            s"Detected runtime config in secret '${secret.getMetadata().getName()}' that contains invalid configuration data, IGNORING configuration.",
-            e)
-          ConfigFactory.empty
+      .recover { case e =>
+        log.error(
+          s"Detected runtime config in secret '${secret.getMetadata().getName()}' that contains invalid configuration data, IGNORING configuration.",
+          e)
+        ConfigFactory.empty
       }
       .getOrElse(ConfigFactory.empty)
   }
@@ -388,14 +385,13 @@ object PodsConfig {
       }
     }
 
-    val volumeMounts = container.volumeMounts.map {
-      case (name, vm) =>
-        new VolumeMountBuilder()
-          .withName(name)
-          .withMountPath(vm.mountPath)
-          .withSubPath(vm.subPath)
-          .withReadOnly(vm.readOnly)
-          .build()
+    val volumeMounts = container.volumeMounts.map { case (name, vm) =>
+      new VolumeMountBuilder()
+        .withName(name)
+        .withMountPath(vm.mountPath)
+        .withSubPath(vm.subPath)
+        .withReadOnly(vm.readOnly)
+        .build()
     }.toList
 
     val ports = container.ports
@@ -419,48 +415,47 @@ object PodsConfig {
   }
 
   private def getPodConfig(pod: CloudflowConfig.Pod): PodConfig = {
-    val containers = pod.containers.map { case (k, v)   => k -> getContainerConfig(v) }
-    val labels = pod.labels.map { case (k, v)           => k.key -> v.value }
+    val containers = pod.containers.map { case (k, v) => k -> getContainerConfig(v) }
+    val labels = pod.labels.map { case (k, v) => k.key -> v.value }
     val annotations = pod.annotations.map { case (k, v) => k.key -> v.value }
-    val volumes: List[Volume] = pod.volumes.map {
-      case (name, volume) =>
-        volume match {
-          case secret: CloudflowConfig.SecretVolume =>
-            new VolumeBuilder()
-              .withName(name)
-              .withSecret(
-                new SecretVolumeSourceBuilder()
-                  .withSecretName(secret.name)
-                  .build())
-              .build()
-          case pvc: CloudflowConfig.PvcVolume =>
-            new VolumeBuilder()
-              .withName(name)
-              .withPersistentVolumeClaim(
-                new PersistentVolumeClaimVolumeSourceBuilder()
-                  .withClaimName(pvc.name)
-                  .withReadOnly(pvc.readOnly)
-                  .build())
-              .build()
-          case cm: CloudflowConfig.ConfigMapVolume =>
-            new VolumeBuilder()
-              .withName(name)
-              .withConfigMap(
-                new ConfigMapVolumeSourceBuilder()
-                  .withName(cm.name)
-                  .withOptional(cm.optional)
-                  .withItems(cm.items
-                    .map {
-                      case (k, item) => new KeyToPathBuilder().withKey(k).withPath(item.path).build()
-                    }
-                    .toList
-                    .asJava)
-                  .build())
-              .build()
-          case unknown =>
-            logger.error(s"Found unknown $unknown volume type skipping")
-            throw new Exception(s"Unknown volume $unknown")
-        }
+    val volumes: List[Volume] = pod.volumes.map { case (name, volume) =>
+      volume match {
+        case secret: CloudflowConfig.SecretVolume =>
+          new VolumeBuilder()
+            .withName(name)
+            .withSecret(
+              new SecretVolumeSourceBuilder()
+                .withSecretName(secret.name)
+                .build())
+            .build()
+        case pvc: CloudflowConfig.PvcVolume =>
+          new VolumeBuilder()
+            .withName(name)
+            .withPersistentVolumeClaim(
+              new PersistentVolumeClaimVolumeSourceBuilder()
+                .withClaimName(pvc.name)
+                .withReadOnly(pvc.readOnly)
+                .build())
+            .build()
+        case cm: CloudflowConfig.ConfigMapVolume =>
+          new VolumeBuilder()
+            .withName(name)
+            .withConfigMap(
+              new ConfigMapVolumeSourceBuilder()
+                .withName(cm.name)
+                .withOptional(cm.optional)
+                .withItems(cm.items
+                  .map { case (k, item) =>
+                    new KeyToPathBuilder().withKey(k).withPath(item.path).build()
+                  }
+                  .toList
+                  .asJava)
+                .build())
+            .build()
+        case unknown =>
+          logger.error(s"Found unknown $unknown volume type skipping")
+          throw new Exception(s"Unknown volume $unknown")
+      }
     }.toList
 
     PodConfig(containers = containers, labels = labels, annotations = annotations, volumes = volumes)

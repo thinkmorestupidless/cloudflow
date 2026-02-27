@@ -48,8 +48,8 @@ object Operator {
 
   val DefaultWatchOptions = Map(CloudflowLabels.ManagedBy -> CloudflowLabels.ManagedByCloudflow)
 
-  val decider: Supervision.Decider = {
-    case _ => Supervision.Stop
+  val decider: Supervision.Decider = { case _ =>
+    Supervision.Stop
   }
 
   val StreamAttributes = ActorAttributes.supervisionStrategy(decider)
@@ -58,17 +58,19 @@ object Operator {
 
   def ProtocolVersionSecret(ownerReferences: List[OwnerReference]) = {
     new SecretBuilder()
-      .withNewMetadata()
-      .withName(App.CloudflowProtocolVersion)
-      .withLabels((Map(App.CloudflowProtocolVersion -> App.CloudflowProtocolVersion)).asJava)
-      .withOwnerReferences(ownerReferences: _*)
-      .endMetadata()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(App.CloudflowProtocolVersion)
+          .withLabels(Map(App.CloudflowProtocolVersion -> App.CloudflowProtocolVersion).asJava)
+          .withOwnerReferences(ownerReferences: _*)
+          .build())
       .withStringData(Map(App.ProtocolVersionKey -> App.ProtocolVersion).asJava)
       .build()
   }
 
   def handleEvents(client: KubernetesClient, runners: Map[String, Runner[_]], podName: String, podNamespace: String)(
-      implicit system: ActorSystem,
+      implicit
+      system: ActorSystem,
       mat: Materializer,
       ec: ExecutionContext) = {
 
@@ -131,13 +133,12 @@ object Operator {
       .mapAsync(1)(action => actionExecutor.execute(action))
       .withAttributes(logAttributes)
 
-  /**
-   * TODO rewrite using `ProvidedAction`, ensuring all K8s effects are executed in executeActions.
-   * Finds the associated [[CloudflowApplication.CR]]s for [[AppChangeEvent]]s.
-   * The resulting flow outputs tuples of the app and the streamlet change event.
-   */
-  def mapToAppInSameNamespace[E <: AppChangeEvent[_]](client: KubernetesClient)(
-      implicit ec: ExecutionContext): Flow[E, (Option[App.Cr], E), NotUsed] =
+  /** TODO rewrite using `ProvidedAction`, ensuring all K8s effects are executed in executeActions. Finds the associated
+    * [[CloudflowApplication.CR]]s for [[AppChangeEvent]]s. The resulting flow outputs tuples of the app and the
+    * streamlet change event.
+    */
+  def mapToAppInSameNamespace[E <: AppChangeEvent[_]](client: KubernetesClient)(implicit
+      ec: ExecutionContext): Flow[E, (Option[App.Cr], E), NotUsed] =
     Flow[E].mapAsync(1) { changeEvent =>
       val ns = changeEvent.namespace
 
@@ -186,8 +187,8 @@ object Operator {
     sourceMat.offer(event)
   }
 
-  private def watchCr(client: KubernetesClient, options: Map[String, String])(
-      implicit system: ActorSystem): Source[WatchEvent[App.Cr], NotUsed] = {
+  private def watchCr(client: KubernetesClient, options: Map[String, String])(implicit
+      system: ActorSystem): Source[WatchEvent[App.Cr], NotUsed] = {
 
     val informer =
       setOnceAndGet(crInformer, () => client.resources(classOf[App.Cr]).withLabels(options.asJava).inform())
@@ -205,8 +206,8 @@ object Operator {
 
   private val secretInformer = new AtomicReference[SharedIndexInformer[Secret]]()
 
-  private def watchSecret(client: KubernetesClient, options: Map[String, String])(
-      implicit system: ActorSystem): Source[WatchEvent[Secret], NotUsed] = {
+  private def watchSecret(client: KubernetesClient, options: Map[String, String])(implicit
+      system: ActorSystem): Source[WatchEvent[Secret], NotUsed] = {
 
     val informer =
       setOnceAndGet(secretInformer, () => client.resources(classOf[Secret]).withLabels(options.asJava).inform())
@@ -224,8 +225,8 @@ object Operator {
 
   private val podInformer = new AtomicReference[SharedIndexInformer[Pod]]()
 
-  private def watchPod(client: KubernetesClient, options: Map[String, String])(
-      implicit system: ActorSystem): Source[WatchEvent[Pod], NotUsed] = {
+  private def watchPod(client: KubernetesClient, options: Map[String, String])(implicit
+      system: ActorSystem): Source[WatchEvent[Pod], NotUsed] = {
 
     val informer = setOnceAndGet(podInformer, () => client.resources(classOf[Pod]).withLabels(options.asJava).inform())
 
@@ -240,8 +241,8 @@ object Operator {
     source
   }
 
-  private def runStream(graph: RunnableGraph[Future[_]], unexpectedCompletionMsg: String, errorMsg: String)(
-      implicit system: ActorSystem,
+  private def runStream(graph: RunnableGraph[Future[_]], unexpectedCompletionMsg: String, errorMsg: String)(implicit
+      system: ActorSystem,
       mat: Materializer,
       ec: ExecutionContext) =
     graph.withAttributes(StreamAttributes).run().onComplete {

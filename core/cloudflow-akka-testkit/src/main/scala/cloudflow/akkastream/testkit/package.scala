@@ -46,9 +46,8 @@ package testkit {
       PartitionedValue(outlet.partitioner(element), element, promise)
   }
 
-  /**
-   * A representation of a key-value pair that is not bound to the Scala or Java DSLs
-   */
+  /** A representation of a key-value pair that is not bound to the Scala or Java DSLs
+    */
   private[testkit] case class PartitionedValue[T](key: String, value: T, promise: Promise[T]) {
     def getKey(): String = key
     def getValue(): T = value

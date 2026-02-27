@@ -30,10 +30,8 @@ import cloudflow.buildtool._
 import cloudflow.sbt.CloudflowKeys._
 import cloudflow.extractor.ExtractResult
 
-/**
- * SBT Plugin for running Cloudflow applications locally
- *
- */
+/** SBT Plugin for running Cloudflow applications locally
+  */
 object CloudflowLocalRunnerPlugin extends AutoPlugin {
   override def requires: Plugins = BlueprintVerificationPlugin
   override def trigger = allRequirements
@@ -46,130 +44,128 @@ object CloudflowLocalRunnerPlugin extends AutoPlugin {
     Seq(
       libraryDependencies ++= Vector(Slf4jLog4jBridge % Test, Log4J % Test),
       allApplicationClasspathByProject := Def
-          .taskDyn {
-            val filter = ScopeFilter(inProjects(allProjectsWithStreamletScannerPlugin.value: _*))
-            Def.task {
-              val allValues = cloudflowApplicationClasspathByProject.all(filter).value
-              allValues
-
-            }
-          }
-          .value
-          .toMap,
-      allStreamletDescriptorsByProject := Def
-          .taskDyn {
-            val filter = ScopeFilter(inProjects(allProjectsWithStreamletScannerPlugin.value: _*))
-            Def.task {
-              val allValues = streamletDescriptorsByProject.all(filter).value
-              allValues
-            }
-          }
-          .value
-          .toMap,
-      (Test / runLocal) := Def.taskDyn {
+        .taskDyn {
+          val filter = ScopeFilter(inProjects(allProjectsWithStreamletScannerPlugin.value: _*))
           Def.task {
-            implicit val logger = streams.value.log
-            val _ = verifyBlueprint.value // force evaluation of the blueprint with side-effect feedback
-            val cpByProject = allApplicationClasspathByProject.value
-            val configFile = runLocalConfigFile.value
-            val streamletDescriptorsByProject: Map[String, Map[String, Config]] =
-              allStreamletDescriptorsByProject.value.collect {
-                case (str, ExtractResult(streamletMap, problems)) if streamletMap.nonEmpty && problems.isEmpty =>
-                  str -> streamletMap
-              }
-            val _appDescriptor = applicationDescriptor.value
-            val appDescriptor = _appDescriptor.getOrElse {
-              logger.error("LocalRunner: ApplicationDescriptor is not present. This is a bug. Please report it.")
-              throw new IllegalStateException("ApplicationDescriptor is not present")
-            }
+            val allValues = cloudflowApplicationClasspathByProject.all(filter).value
+            allValues
 
-            val logDependencies = findLogLibsInPluginClasspath((Test / fullClasspath).value)
-
-            val projects = streamletDescriptorsByProject.keys
-
-            // load local config
-            val localConfig = cloudflow.buildtool.LocalConfig.load(configFile)
-            val baseDebugPort = initialDebugPort.value
-
-            val (tempDir, configDir) = Scaffold.createDirs("cloudflow-local-run")
-            val descriptorByProject = projects.map { pid =>
-              val streamletClasses = streamletDescriptorsByProject(pid).keys.toSet
-              pid -> Scaffold.streamletFilterByClass(appDescriptor, streamletClasses)
-            }
-
-            val runtimeDescriptorByProject = Scaffold.getDescriptorsOrFail {
-              descriptorByProject.map {
-                case (pid, projectDescriptor) =>
-                  pid -> Scaffold.scaffoldRuntime(
-                    pid,
-                    projectDescriptor,
-                    localConfig,
-                    tempDir,
-                    configDir,
-                    prepareLog4JFile(configDir, runLocalLog4jConfigFile.value),
-                    (f, c) => IO.write(f, c))
-              }
-            }(logger.error(_))
-
-            val topics = appDescriptor.deployments
-              .flatMap { deployment =>
-                deployment.portMappings.values.map(_.name)
-              }
-              .distinct
-              .sorted
-            val kafkaHost = {
-              val host = (ThisBuild / runLocalKafka).value.getOrElse(KafkaSupport.setupKafka(s => logger.debug(s)))
-              KafkaSupport.createTopics(host, topics)(s => logger.debug(s))
-              host
-            }
-
-            println(AppLayout.getAppLayout(AppLayout.resolveConnections(appDescriptor)))
-            PrintUtils.printInfo(runtimeDescriptorByProject, tempDir.toFile, topics, localConfig.message)
-
-            val processes = runtimeDescriptorByProject.zipWithIndex.map {
-              case ((pid, rd), debugPortOffset) =>
-                val classpath = cpByProject(pid)
-                val loggingPatchedClasspath = prepareLoggingInClasspath(classpath, logDependencies)
-                runPipelineJVM(
-                  pid,
-                  rd.appDescriptorFile,
-                  loggingPatchedClasspath,
-                  rd.outputFile,
-                  rd.logConfig,
-                  rd.localConfPath,
-                  kafkaHost,
-                  remoteDebugRunLocal.value,
-                  baseDebugPort + debugPortOffset,
-                  runLocalJavaOptions.value)
-            }
-
-            println(s"Running ${appDescriptor.appId}  \nTo terminate, press [ENTER]\n")
-
-            try {
-              sbt.internal.util.SimpleReader.readLine("")
-              logger.info("Attempting to terminate local application")
-              processes.foreach(_.destroy())
-            } catch {
-              case ex: Throwable =>
-                logger.warn("Stopping process failed.")
-                ex.printStackTrace()
-            } finally {
-              KafkaSupport.stopKafka()
-            }
           }
-        }.value,
+        }
+        .value
+        .toMap,
+      allStreamletDescriptorsByProject := Def
+        .taskDyn {
+          val filter = ScopeFilter(inProjects(allProjectsWithStreamletScannerPlugin.value: _*))
+          Def.task {
+            val allValues = streamletDescriptorsByProject.all(filter).value
+            allValues
+          }
+        }
+        .value
+        .toMap,
+      (Test / runLocal) := Def.taskDyn {
+        Def.task {
+          implicit val logger = streams.value.log
+          val _ = verifyBlueprint.value // force evaluation of the blueprint with side-effect feedback
+          val cpByProject = allApplicationClasspathByProject.value
+          val configFile = runLocalConfigFile.value
+          val streamletDescriptorsByProject: Map[String, Map[String, Config]] =
+            allStreamletDescriptorsByProject.value.collect {
+              case (str, ExtractResult(streamletMap, problems)) if streamletMap.nonEmpty && problems.isEmpty =>
+                str -> streamletMap
+            }
+          val _appDescriptor = applicationDescriptor.value
+          val appDescriptor = _appDescriptor.getOrElse {
+            logger.error("LocalRunner: ApplicationDescriptor is not present. This is a bug. Please report it.")
+            throw new IllegalStateException("ApplicationDescriptor is not present")
+          }
+
+          val logDependencies = findLogLibsInPluginClasspath((Test / fullClasspath).value)
+
+          val projects = streamletDescriptorsByProject.keys
+
+          // load local config
+          val localConfig = cloudflow.buildtool.LocalConfig.load(configFile)
+          val baseDebugPort = initialDebugPort.value
+
+          val (tempDir, configDir) = Scaffold.createDirs("cloudflow-local-run")
+          val descriptorByProject = projects.map { pid =>
+            val streamletClasses = streamletDescriptorsByProject(pid).keys.toSet
+            pid -> Scaffold.streamletFilterByClass(appDescriptor, streamletClasses)
+          }
+
+          val runtimeDescriptorByProject = Scaffold.getDescriptorsOrFail {
+            descriptorByProject.map { case (pid, projectDescriptor) =>
+              pid -> Scaffold.scaffoldRuntime(
+                pid,
+                projectDescriptor,
+                localConfig,
+                tempDir,
+                configDir,
+                prepareLog4JFile(configDir, runLocalLog4jConfigFile.value),
+                (f, c) => IO.write(f, c))
+            }
+          }(logger.error(_))
+
+          val topics = appDescriptor.deployments
+            .flatMap { deployment =>
+              deployment.portMappings.values.map(_.name)
+            }
+            .distinct
+            .sorted
+          val kafkaHost = {
+            val host = (ThisBuild / runLocalKafka).value.getOrElse(KafkaSupport.setupKafka(s => logger.debug(s)))
+            KafkaSupport.createTopics(host, topics)(s => logger.debug(s))
+            host
+          }
+
+          println(AppLayout.getAppLayout(AppLayout.resolveConnections(appDescriptor)))
+          PrintUtils.printInfo(runtimeDescriptorByProject, tempDir.toFile, topics, localConfig.message)
+
+          val processes = runtimeDescriptorByProject.zipWithIndex.map { case ((pid, rd), debugPortOffset) =>
+            val classpath = cpByProject(pid)
+            val loggingPatchedClasspath = prepareLoggingInClasspath(classpath, logDependencies)
+            runPipelineJVM(
+              pid,
+              rd.appDescriptorFile,
+              loggingPatchedClasspath,
+              rd.outputFile,
+              rd.logConfig,
+              rd.localConfPath,
+              kafkaHost,
+              remoteDebugRunLocal.value,
+              baseDebugPort + debugPortOffset,
+              runLocalJavaOptions.value)
+          }
+
+          println(s"Running ${appDescriptor.appId}  \nTo terminate, press [ENTER]\n")
+
+          try {
+            sbt.internal.util.SimpleReader.readLine("")
+            logger.info("Attempting to terminate local application")
+            processes.foreach(_.destroy())
+          } catch {
+            case ex: Throwable =>
+              logger.warn("Stopping process failed.")
+              ex.printStackTrace()
+          } finally {
+            KafkaSupport.stopKafka()
+          }
+        }
+      }.value,
       printAppGraph := printApplicationGraph.value,
       saveAppGraph := saveApplicationGraph.value)
 
   def prepareLoggingInClasspath(classpath: Array[URL], logDependencies: Seq[(String, URL)]): Array[URL] = {
-    val filteredClasspath = classpath.filter(
-      cp => !cp.toString.contains("logback") && !cp.toString.contains("log4j-over-slf4j")
-    ) // remove logback from the classpath
-    logDependencies.foldLeft(filteredClasspath) {
-      case (agg, (libName, url)) =>
-        if (agg.find(u => u.toString.contains(libName)).isEmpty) { // add slf/log4j if not there
-          agg :+ url
-        } else agg
+    val filteredClasspath = classpath.filter(cp =>
+      !cp.toString.contains("logback") && !cp.toString.contains(
+        "log4j-over-slf4j"
+      )) // remove logback from the classpath
+    logDependencies.foldLeft(filteredClasspath) { case (agg, (libName, url)) =>
+      if (agg.find(u => u.toString.contains(libName)).isEmpty) { // add slf/log4j if not there
+        agg :+ url
+      } else agg
     }
   }
 
@@ -237,11 +233,11 @@ object CloudflowLocalRunnerPlugin extends AutoPlugin {
       } finally {
         log4JSrc.close
       }
-    }.recoverWith {
-      case ex: Throwable => Failure(new Exception("Failed to prepare the log4j file.", ex))
+    }.recoverWith { case ex: Throwable =>
+      Failure(new Exception("Failed to prepare the log4j file.", ex))
     }
 
-  //side-effects
+  // side-effects
   def runPipelineJVM(
       pid: String,
       applicationDescriptorFile: Path,

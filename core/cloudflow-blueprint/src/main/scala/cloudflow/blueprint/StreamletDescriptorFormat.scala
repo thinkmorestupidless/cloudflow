@@ -21,11 +21,12 @@ import spray.json._
 object StreamletDescriptorFormat extends StreamletDescriptorFormat
 
 trait StreamletDescriptorFormat extends DefaultJsonProtocol {
-  implicit val attributeFormat = jsonFormat(StreamletAttributeDescriptor.apply, "attribute_name", "config_path")
-  implicit val schemaFormat = jsonFormat4(SchemaDescriptor.apply)
-  implicit val inletFormat = jsonFormat2(InletDescriptor.apply)
-  implicit val outletFormat = jsonFormat2(OutletDescriptor.apply)
-  implicit val configParameterDescriptorFormat =
+  implicit val attributeFormat: RootJsonFormat[StreamletAttributeDescriptor] =
+    jsonFormat(StreamletAttributeDescriptor.apply, "attribute_name", "config_path")
+  implicit val schemaFormat: RootJsonFormat[SchemaDescriptor] = jsonFormat4(SchemaDescriptor.apply)
+  implicit val inletFormat: RootJsonFormat[InletDescriptor] = jsonFormat2(InletDescriptor.apply)
+  implicit val outletFormat: RootJsonFormat[OutletDescriptor] = jsonFormat2(OutletDescriptor.apply)
+  implicit val configParameterDescriptorFormat: RootJsonFormat[ConfigParameterDescriptor] =
     jsonFormat(
       ConfigParameterDescriptor.apply,
       "key",
@@ -33,19 +34,20 @@ trait StreamletDescriptorFormat extends DefaultJsonProtocol {
       "validation_type",
       "validation_pattern",
       "default_value")
-  implicit val volumeMountDescriptorFormat =
+  implicit val volumeMountDescriptorFormat: RootJsonFormat[VolumeMountDescriptor] =
     jsonFormat(VolumeMountDescriptor.apply, "name", "path", "access_mode", "pvc_name")
 
-  implicit val streamletRuntimeFormat = new JsonFormat[StreamletRuntimeDescriptor] {
-    def write(runtime: StreamletRuntimeDescriptor) = JsString(runtime.name)
-    def read(json: JsValue) =
-      json match {
-        case JsString(name) => StreamletRuntimeDescriptor(name)
-        case str            => deserializationError("Expected StreamletRuntimeDescriptor as JsString, but got " + str)
-      }
-  }
+  implicit val streamletRuntimeFormat: JsonFormat[StreamletRuntimeDescriptor] =
+    new JsonFormat[StreamletRuntimeDescriptor] {
+      def write(runtime: StreamletRuntimeDescriptor) = JsString(runtime.name)
+      def read(json: JsValue) =
+        json match {
+          case JsString(name) => StreamletRuntimeDescriptor(name)
+          case str            => deserializationError("Expected StreamletRuntimeDescriptor as JsString, but got " + str)
+        }
+    }
 
-  implicit val streamletDescriptorFormat = jsonFormat(
+  implicit val streamletDescriptorFormat: RootJsonFormat[StreamletDescriptor] = jsonFormat(
     StreamletDescriptor.apply,
     "class_name",
     "runtime",

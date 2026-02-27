@@ -36,9 +36,9 @@ class StreamletShapeSpec extends AnyWordSpec with Matchers {
         override def createLogic = null
       }
       import Validation._
-      shape.inlets.size mustEqual (1)
-      shape.inlets.head.name mustEqual ("in")
-      shape.outlets.size mustEqual (2)
+      shape.inlets.size mustEqual 1
+      shape.inlets.head.name mustEqual "in"
+      shape.outlets.size mustEqual 2
       shape.outlets.map(_.name).toSet mustEqual (Set("valid", "invalid"))
     }
 
@@ -52,10 +52,10 @@ class StreamletShapeSpec extends AnyWordSpec with Matchers {
         override def createLogic = null
       }
       import Validation._
-      shape.inlets.size mustEqual (2)
+      shape.inlets.size mustEqual 2
       shape.inlets.map(_.name).toSet mustEqual (Set("in-0", "in-1"))
-      shape.outlets.size mustEqual (1)
-      shape.outlets.head.name mustEqual ("valid")
+      shape.outlets.size mustEqual 1
+      shape.outlets.head.name mustEqual "valid"
     }
 
     "produce a valid shape for multiple inlets and multiple outlets" in {
@@ -69,9 +69,9 @@ class StreamletShapeSpec extends AnyWordSpec with Matchers {
         override def createLogic = null
       }
       import Validation._
-      shape.inlets.size mustEqual (2)
+      shape.inlets.size mustEqual 2
       shape.inlets.map(_.name).toSet mustEqual (Set("in-0", "in-1"))
-      shape.outlets.size mustEqual (2)
+      shape.outlets.size mustEqual 2
       shape.outlets.map(_.name).toSet mustEqual (Set("valid", "invalid"))
     }
   }
