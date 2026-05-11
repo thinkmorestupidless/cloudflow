@@ -49,9 +49,16 @@ object Common extends AutoPlugin {
     excludeDependencies ++= (if (scalaVersion.value.startsWith("3"))
                                Seq(ExclusionRule("com.typesafe.genjavadoc"))
                              else Nil),
-    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
-                         Seq(s"-P:genjavadoc:out=${target.value.getPath}/java")
-                       else Nil),
+    // genjavadoc is a Scala 2 compiler plugin. On Scala 3 modules, GenJavadocPlugin
+    // still injects `-P:genjavadoc:out=...` into `Compile / scalacOptions`; Scala 3's
+    // compiler rejects it with `bad option`. Filter it out at the Compile and Test
+    // scopes (not the global scalacOptions, which the plugin doesn't touch).
+    Compile / scalacOptions := (if (scalaVersion.value.startsWith("3"))
+                                  (Compile / scalacOptions).value.filterNot(_.startsWith("-P:genjavadoc:"))
+                                else (Compile / scalacOptions).value),
+    Test / scalacOptions := (if (scalaVersion.value.startsWith("3"))
+                               (Test / scalacOptions).value.filterNot(_.startsWith("-P:genjavadoc:"))
+                             else (Test / scalacOptions).value),
     // show full stack traces and test case durations
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     // -a Show stack traces and exception class name for AssertionErrors.

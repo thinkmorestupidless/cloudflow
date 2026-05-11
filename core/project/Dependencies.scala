@@ -3,8 +3,8 @@ import sbt._
 
 object Dependencies {
 
-  val Scala212 = "2.12.15" // retained for cloudflow-sbt-plugin (SBT 1.x plugin constraint) and its dependencies
-  val Scala213 = "2.13.8"
+  val Scala212 = "2.12.20" // retained for cloudflow-sbt-plugin (SBT 1.x plugin constraint); 2.12.20 has JDK 21 classfile-parser support
+  val Scala213 = "2.13.16" // 2.13.14+ has JDK 21 support; bumped from 2.13.8 alongside 2.12 to keep cross-build consistent
   val Scala3   = "3.3.5"
 
   object Versions {
