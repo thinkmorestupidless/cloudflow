@@ -101,7 +101,7 @@ object Dependencies {
     val classgraph = "io.github.classgraph" % "classgraph" % "4.8.176"
 
     val scalaPbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
-    val testcontainersKafka   = "org.testcontainers" % "kafka" % "1.20.1"
+    val testcontainersKafka   = "org.testcontainers" % "kafka" % "1.21.4" // 1.20.x hardcodes Docker API v1.41 in daemon-probe; Docker Engine 29 (min 1.44) rejects with 400. 1.21+ negotiates correctly.
     val asciigraphs           = "com.github.mutcianm" %% "ascii-graphs" % "0.0.6"
 
     val mavenPluginApi         = "org.apache.maven" % "maven-plugin-api" % Versions.maven
