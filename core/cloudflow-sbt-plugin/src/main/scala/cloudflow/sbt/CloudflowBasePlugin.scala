@@ -54,8 +54,8 @@ object CloudflowBasePlugin extends AutoPlugin {
     Seq(
       cloudflowDockerBaseImage := "adoptopenjdk/openjdk8:alpine",
       libraryDependencies ++= Vector(
-        "com.lightbend.cloudflow" % s"cloudflow-runner_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
-        "com.lightbend.cloudflow" % s"cloudflow-localrunner_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value),
+        "com.lightbend.cloudflow" % "cloudflow-runner_3" % (ThisProject / cloudflowVersion).value,
+        "com.lightbend.cloudflow" % "cloudflow-localrunner_3" % (ThisProject / cloudflowVersion).value),
       docker / buildOptions := BuildOptions(
         cache = true,
         removeIntermediateContainers = BuildOptions.Remove.OnSuccess,
