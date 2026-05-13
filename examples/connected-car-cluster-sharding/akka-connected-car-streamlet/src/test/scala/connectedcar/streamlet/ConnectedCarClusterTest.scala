@@ -39,7 +39,7 @@ class ConnectedCarClusterTest extends AnyWordSpec with Matchers with BeforeAndAf
       val in           = testkit.inletFromSource(proc.in, source)
       val out          = testkit.outletAsTap(proc.out)
 
-      testkit.run(proc, in, out, () ⇒ out.probe.receiveN(1) mustBe expectedData.map(d ⇒ proc.out.partitioner(d) -> d))
+      testkit.run(proc, in, out, () => out.probe.receiveN(1) mustBe expectedData.map(d => proc.out.partitioner(d) -> d))
 
       out.probe.expectMsg(Completed)
     }

@@ -1,0 +1,119 @@
+[
+  {
+    "namespace": "modelserving.wine.avro",
+    "type": "record",
+    "name": "WineRecord",
+    "doc": "'lot_id' is added to the original records, simulating the id of the 'lot' where this wine originated. Mostly we use it as a potential partition key.",
+    "fields":[
+      {
+        "name": "datatype",
+        "type": "string",
+        "default": "wine"
+      },
+      {
+        "name": "fixed_acidity",
+        "type": "double"
+      },
+      {
+        "name": "volatile_acidity",
+        "type": "double"
+      },
+      {
+        "name": "citric_acid",
+        "type": "double"
+      },
+      {
+        "name": "residual_sugar",
+        "type": "double"
+      },
+      {
+        "name": "chlorides",
+        "type": "double"
+      },
+      {
+        "name": "free_sulfur_dioxide",
+        "type": "double"
+      },
+      {
+        "name": "total_sulfur_dioxide",
+        "type": "double"
+      },
+      {
+        "name": "density",
+        "type": "double"
+      },
+      {
+        "name": "pH",
+        "type": "double"
+      },
+      {
+        "name": "sulphates",
+        "type": "double"
+      },
+      {
+        "name": "alcohol",
+        "type": "double"
+      }
+    ]
+  },
+  {
+    "namespace": "modelserving.wine.avro",
+    "name": "WineServingResult",
+    "type": "record",
+    "doc": "Use this type when the model output 'value' is a double.",
+    "fields": [
+      {
+        "name": "value",
+        "type": "double",
+        "default": 0.0
+      }
+    ]
+  },
+  {
+    "namespace": "modelserving.wine.avro",
+    "name": "ModelResultMetadata",
+    "type": "record",
+    "doc": "Extra output, besides the 'score' itself, from the process of scoring with a model.",
+    "fields": [
+      {
+        "name": "errors",
+        "type": "string",
+        "default": ""
+      },
+      {
+        "name": "modelName",
+        "type": "string",
+        "default": ""
+      },
+      {
+        "name": "startTime",
+        "type": "long",
+        "default": 0
+      },
+      {
+        "name": "duration",
+        "type": "long",
+        "default": 0
+      }
+    ]
+  },
+  {
+    "namespace": "modelserving.wine.avro",
+    "type": "record",
+    "name": "WineResult",
+    "fields":[
+      {
+        "name": "inputRecord",
+        "type": "WineRecord"
+      },
+      {
+        "name": "modelResult",
+        "type": "WineServingResult"
+      },
+      {
+        "name": "modelResultMetadata",
+        "type": "ModelResultMetadata"
+      }
+    ]
+  }
+]

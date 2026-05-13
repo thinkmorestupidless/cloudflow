@@ -15,7 +15,7 @@ import connectedcar.data.{ ConnectedCarAgg, ConnectedCarERecord }
 
 class ConnectedCarCluster extends AkkaStreamlet with Clustering {
   val in    = AvroInlet[ConnectedCarERecord]("in")
-  val out   = AvroOutlet[ConnectedCarAgg]("out", m ⇒ m.driver.toString)
+  val out   = AvroOutlet[ConnectedCarAgg]("out", m => m.driver.toString)
   val shape = StreamletShape(in).withOutlets(out)
 
   override def createLogic = new RunnableGraphStreamletLogic() {
@@ -31,8 +31,8 @@ class ConnectedCarCluster extends AkkaStreamlet with Clustering {
 
     implicit val timeout: Timeout = 3.seconds
     def flow =
-      FlowWithCommittableContext[ConnectedCarERecord]
-        .mapAsync(5) { msg ⇒
+      FlowWithCommittableContext[ConnectedCarERecord]()
+        .mapAsync(5) { msg =>
           val carActor = sharding.entityRefFor(typeKey, msg.carId.toString)
           carActor.ask[ConnectedCarAgg](ref => ConnectedCarERecordWrapper(msg, ref))
         }

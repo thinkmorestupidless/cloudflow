@@ -13,7 +13,6 @@ akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala)
 
 libraryDependencies ++= Seq(
   Cloudflow.library.CloudflowProto,
-  "com.typesafe.akka" %% "akka-http" % "10.7.3",
 )
 
 ThisBuild / dynverSeparator := "-"
