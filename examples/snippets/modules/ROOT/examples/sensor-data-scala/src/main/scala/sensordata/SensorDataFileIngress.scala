@@ -20,7 +20,6 @@ import java.nio.file._
 
 import akka.NotUsed
 import akka.stream.IOResult
-import akka.stream.alpakka.file.scaladsl.Directory
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import cloudflow.akkastream._
@@ -31,6 +30,7 @@ import spray.json.JsonParser
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 class SensorDataFileIngress extends AkkaStreamlet {
 
@@ -55,7 +55,8 @@ class SensorDataFileIngress extends AkkaStreamlet {
   override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
     //tag::volume-mount2[]
     val listFiles: NotUsed => Source[Path, NotUsed] = { _ =>
-      Directory.ls(getMountedPath(sourceData))
+      val dir = getMountedPath(sourceData)
+      Source.fromIterator(() => Files.list(dir).iterator().asScala)
     }
     //end::volume-mount2[]
     val readFile: Path => Source[ByteString, Future[IOResult]] = { path: Path =>
@@ -76,7 +77,7 @@ class SensorDataFileIngress extends AkkaStreamlet {
   // example of what not to do
   def doNot(): Unit = {
     //tag::volume-mount-bad[]
-    val files = Directory.ls(FileSystems.getDefault().getPath("/mnt/data"))
+    val files = Source.fromIterator(() => Files.list(FileSystems.getDefault().getPath("/mnt/data")).iterator().asScala)
     //end::volume-mount-bad[]
     files.toString
   }

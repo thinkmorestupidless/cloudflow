@@ -19,9 +19,6 @@ package cloudflow.akkastreamsdoc;
 import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.japi.Pair;
-import akka.stream.ActorMaterializer;
-import akka.stream.alpakka.file.DirectoryChange;
-import akka.stream.alpakka.file.javadsl.DirectoryChangesSource;
 import akka.stream.javadsl.*;
 import akka.util.ByteString;
 import com.typesafe.config.Config;
@@ -96,14 +93,8 @@ public class FilterStreamlet extends AkkaStreamlet {
             final Duration pollingInterval = java.time.Duration.ofSeconds(filterPollingInterval.getValue(getContext()));
 
             final Source<ArrayList<String>, NotUsed> filterFileContent =
-                DirectoryChangesSource
-                .create(referenceFilesPath, pollingInterval, Integer.MAX_VALUE)
-                .filter(changedFile ->
-                    changedFile.second() != DirectoryChange.Deletion
-                    &&
-                    changedFile.first().equals(filterFilenamePath)
-                )
-                .map(Pair::first)
+                Source.tick(pollingInterval, pollingInterval, filterFilenamePath)
+                .filter(path -> path.toFile().exists())
                 .mapAsync(1, path ->
                     FileIO.fromPath(path)
                         .via(Framing.delimiter(ByteString.fromString("\n"), Integer.MAX_VALUE))

@@ -13,8 +13,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <scala.version>2.12.15</scala.version>
-    <scala.binary.version>2.12</scala.binary.version>
+    <scala.version>3.3.5</scala.version>
+    <scala.binary.version>3</scala.binary.version>
     <docker.maven.plugin.version>0.36.0</docker.maven.plugin.version>
     <cloudflow.version>${env.CLOUDFLOW_VERSION}</cloudflow.version>
     <cloudflow.plugin.version>${env.CLOUDFLOW_VERSION}</cloudflow.plugin.version>
@@ -36,6 +36,14 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <repositories>
+    <repository>
+      <id>lightbend-commercial</id>
+      <name>Lightbend Commercial</name>
+      <url>https://repo.akka.io/${env.LIGHTBEND_COMMERCIAL_TOKEN}/secure</url>
+    </repository>
+  </repositories>
 
   <modules>
     <module>hello-world</module>
