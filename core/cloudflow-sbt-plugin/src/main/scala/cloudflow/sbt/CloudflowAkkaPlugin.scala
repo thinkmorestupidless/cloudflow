@@ -34,9 +34,9 @@ object CloudflowAkkaPlugin extends AutoPlugin {
   override def projectSettings =
     Seq(
       libraryDependencies ++= Vector(
-        "com.lightbend.cloudflow" % s"cloudflow-akka-util_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
-        "com.lightbend.cloudflow" % s"cloudflow-akka_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value,
-        "com.lightbend.cloudflow" % s"cloudflow-akka-testkit_${(ThisProject / scalaBinaryVersion).value}" % (ThisProject / cloudflowVersion).value % "test"),
+        "com.lightbend.cloudflow" % "cloudflow-akka-util_3" % (ThisProject / cloudflowVersion).value,
+        "com.lightbend.cloudflow" % "cloudflow-akka_3" % (ThisProject / cloudflowVersion).value,
+        "com.lightbend.cloudflow" % "cloudflow-akka-testkit_3" % (ThisProject / cloudflowVersion).value % "test"),
       cloudflowStageAppJars := Def.taskDyn {
         Def.task {
           val stagingDir = stage.value

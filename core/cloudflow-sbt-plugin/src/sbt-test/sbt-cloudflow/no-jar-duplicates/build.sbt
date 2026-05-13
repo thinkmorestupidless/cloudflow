@@ -1,7 +1,7 @@
 lazy val helloWorld =  (project in file("."))
     .enablePlugins(CloudflowApplicationPlugin, CloudflowAkkaPlugin)
     .settings(
-      scalaVersion := "2.12.20",
+      scalaVersion := "3.3.5",
       name := "hello-world",
       version := "0.0.1",
 
@@ -16,5 +16,5 @@ checkDuplicates := {
 
   val res = (Seq("docker", "run", "--rm", "--entrypoint=sh", "hello-world:0.0.2", "-c", "ls /opt/cloudflow") #| Seq("grep", "hello-world")).!!
 
-  assert { res.trim == "hello-world_2.12-0.0.2.jar" }
+  assert { res.trim == "hello-world_3-0.0.2.jar" }
 }
