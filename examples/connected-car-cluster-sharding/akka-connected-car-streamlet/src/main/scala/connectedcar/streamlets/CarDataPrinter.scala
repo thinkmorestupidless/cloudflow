@@ -11,8 +11,8 @@ object CarDataPrinter extends AkkaStreamlet {
   val shape = StreamletShape(in)
 
   override def createLogic() = new RunnableGraphStreamletLogic() {
-    val flow = FlowWithCommittableContext[ConnectedCarAgg]
-      .map { record ⇒
+    val flow = FlowWithCommittableContext[ConnectedCarAgg]()
+      .map { record =>
         log.info("CarId: " + record.carId)
       }
 
