@@ -21,6 +21,8 @@ jobs:
       uses: coursier/cache-action@v6
 
     - name: Run scripted tests
+      env:
+        LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
       run: |
         git config --global user.email "cloudflow@lightbend.com"
         git config --global user.name "Cloudflow CI"
