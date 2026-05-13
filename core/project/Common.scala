@@ -25,10 +25,10 @@ object Common extends AutoPlugin {
       licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
       publishMavenStyle := true,
       developers += Developer(
-          "contributors",
-          "Contributors",
-          "https://cloudflow.zulipchat.com/",
-          url("https://github.com/lightbend/cloudflow/graphs/contributors")),
+        "contributors",
+        "Contributors",
+        "https://cloudflow.zulipchat.com/",
+        url("https://github.com/lightbend/cloudflow/graphs/contributors")),
       excludeLintKeys ++= Set(unidocGenjavadocVersion, useGpgAgent, publishMavenStyle, crossSbtVersions, javacOptions))
 
   override lazy val projectSettings = Seq(
