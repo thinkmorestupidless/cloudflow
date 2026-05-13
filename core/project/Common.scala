@@ -40,10 +40,10 @@ object Common extends AutoPlugin {
     // TODO: disabled since there are problems in cross JVMs compilation re-enable me possibly
     javafmtOnCompile := false,
     run / fork := false,
-    // Pass the Akka license key to any forked JVM (run or test).
+    // Pass the Akka license key to any forked JVM (run or test) if available.
     // Non-forked processes receive it via the AKKA_LICENSE_KEY env var or application.conf.
-    run / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
-    Test / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
+    run / javaOptions ++= LightbendCredentials.akkaLicenseKey.map(k => s"-Dakka.license-key=$k").toSeq,
+    Test / javaOptions ++= LightbendCredentials.akkaLicenseKey.map(k => s"-Dakka.license-key=$k").toSeq,
     unidocGenjavadocVersion := "0.18_2.13.8",
     // genjavadoc-plugin does not exist for Scala 3; exclude the dependency and the compiler flag.
     excludeDependencies ++= (if (scalaVersion.value.startsWith("3"))
