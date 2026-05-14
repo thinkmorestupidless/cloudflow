@@ -18,6 +18,7 @@ package cloudflow.akkastreamsdoc;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
+import akka.actor.Cancellable;
 import akka.japi.Pair;
 import akka.stream.javadsl.*;
 import akka.util.ByteString;
@@ -92,7 +93,7 @@ public class FilterStreamlet extends AkkaStreamlet {
 
             final Duration pollingInterval = java.time.Duration.ofSeconds(filterPollingInterval.getValue(getContext()));
 
-            final Source<ArrayList<String>, NotUsed> filterFileContent =
+            final Source<ArrayList<String>, Cancellable> filterFileContent =
                 Source.tick(pollingInterval, pollingInterval, filterFilenamePath)
                 .filter(path -> path.toFile().exists())
                 .mapAsync(1, path ->
