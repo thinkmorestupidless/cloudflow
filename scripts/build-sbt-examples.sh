@@ -40,7 +40,7 @@ for prj in $PROJECTS; do
   # Only run `scalafmtCheckAll` task if there is a scalafmt config file in the project
   scalafmtTask=""
   if [[ -n $(find . -name ".scalafmt.conf") ]]; then
-    scalafmtTask="; scalafmt ; scalafmtCheckAll"
+    scalafmtTask="; scalafmtAll ; scalafmtCheckAll"
   fi
 
   # Only run `verifyBlueprint` task if there are blueprint files in the project
