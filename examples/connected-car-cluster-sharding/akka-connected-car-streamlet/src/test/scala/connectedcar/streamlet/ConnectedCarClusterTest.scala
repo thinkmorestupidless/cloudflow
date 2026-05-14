@@ -15,7 +15,7 @@ import akka.actor.typed.scaladsl.adapter._
 
 class ConnectedCarClusterTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
-  private implicit val system = ActorSystem("AkkaStreamletSpec")
+  private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
   private val cluster         = Cluster(system.toTyped)
 
   override def beforeAll: Unit =
