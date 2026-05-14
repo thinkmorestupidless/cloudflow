@@ -16,3 +16,6 @@ libraryDependencies ++= Seq(
 )
 
 ThisBuild / dynverSeparator := "-"
+
+// sbt-akka-grpc 2.5.x (via twirl-api) and sbt-native-packager pull in incompatible scala-xml versions
+ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
