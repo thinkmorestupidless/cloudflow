@@ -1,0 +1,38 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    branches: [fix-example-tests]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install sbt
+        uses: sbt/setup-sbt@v1
+      - name: Cache SBT
+        uses: coursier/cache-action@v6
+      - name: Set version
+        working-directory: core
+        run: sbt setVersionFromTag
+        env:
+          VERSION: "0.1.0"
+          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
+      - name: Publish
+        working-directory: core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
+        run: sbt publish
