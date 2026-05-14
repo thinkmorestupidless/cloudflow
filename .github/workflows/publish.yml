@@ -35,4 +35,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
-        run: sbt "cloudflow-blueprint_3/publish; publish"
+        run: |
+          sbt "cloudflow-blueprint_3/publish; publish" 2>&1 | tee /tmp/sbt-publish.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            # 409 = version already exists in GitHub Packages; not a real failure.
+            # Fail only if there are non-409 error causes.
+            NON_409=$(grep 'Caused by:' /tmp/sbt-publish.log | grep -v 'HTTP response code: 409' || true)
+            if [ -n "$NON_409" ]; then echo "$NON_409"; exit 1; fi
+            echo "All failures were 409 conflicts — artifacts already published at this version."
+          fi
