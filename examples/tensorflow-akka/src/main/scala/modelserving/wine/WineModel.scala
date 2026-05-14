@@ -74,7 +74,7 @@ final case class WineModel(val loadedModel: LoadedModel) extends TensorFlowModel
       result.copyTo(rMatrix)
       Right(WineServingResult(rMatrix(0).indices.maxBy(rMatrix(0)).toDouble))
     } catch {
-      case NonFatal(e) ⇒ Left(e.getMessage)
+      case NonFatal(e) => Left(e.getMessage)
     }
 
   /**

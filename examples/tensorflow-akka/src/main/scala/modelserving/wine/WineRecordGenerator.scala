@@ -55,7 +55,7 @@ object WineRecordGeneratorUtils {
   def makeSource(frequency: FiniteDuration = dataFrequencyMilliseconds): Source[WineRecord, NotUsed] =
     Source
       .repeat(WineRecordGenerator)
-      .map(gen ⇒ gen.getRecord())
+      .map(gen => gen.getRecord())
       .throttle(1, frequency)
 }
 
@@ -65,7 +65,7 @@ private object WineRecordGenerator {
   val recordList     = new ListBuffer[WineRecord]
   val stream         = getClass.getResourceAsStream("/wine/data/winequality_red.csv")
   val bufferedSource = scala.io.Source.fromInputStream(stream)
-  for (line ← bufferedSource.getLines) {
+  for (line <- bufferedSource.getLines) {
     val cols = line.split(";").map(_.trim)
     recordList += WineRecord(
       fixed_acidity = cols(0).toDouble,
@@ -82,11 +82,11 @@ private object WineRecordGenerator {
     )
   }
   bufferedSource.close
-  var iterator = recordList.toIterator
+  var iterator = recordList.iterator
 
   def getRecord(): WineRecord = {
     if (!iterator.hasNext)
-      iterator = recordList.toIterator
+      iterator = recordList.iterator
     iterator.next()
   }
 }

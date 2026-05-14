@@ -56,15 +56,15 @@ final class WineModelServer extends AkkaStreamlet {
     val modelScoringFlow = WineModelBundle
       .load(savedModelBundlePath, modelName)
       .fold(
-        e ⇒ {
+        e => {
           log.error(s"Could not load model from $savedModelBundlePath.", e)
-          FlowWithCommittableContext[WineRecord]
-            .map(record ⇒ WineResult(record, WineModel.EmptyServingResult, ModelResultMetadata(s"Could not load model: ${e.getMessage}")))
+          FlowWithCommittableContext[WineRecord]()
+            .map(record => WineResult(record, WineModel.EmptyServingResult, ModelResultMetadata(s"Could not load model: ${e.getMessage}")))
         },
-        model ⇒ {
+        model => {
           log.info(s"Loaded model from $savedModelBundlePath.")
-          FlowWithCommittableContext[WineRecord]
-            .map(record ⇒ model.scoreWine(record))
+          FlowWithCommittableContext[WineRecord]()
+            .map(record => model.scoreWine(record))
         }
       )
 
