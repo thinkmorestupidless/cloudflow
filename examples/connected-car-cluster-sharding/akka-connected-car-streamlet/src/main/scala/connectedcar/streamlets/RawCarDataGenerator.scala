@@ -17,7 +17,7 @@ object RawCarDataGenerator extends AkkaStreamlet {
 
   override def createLogic = new RunnableGraphStreamletLogic() {
 
-    override def runnableGraph() =
+    override def runnableGraph =
       Source
         .repeat(NotUsed)
         .map(_ => generateCarERecord()) // Only keep the record part of the tuple

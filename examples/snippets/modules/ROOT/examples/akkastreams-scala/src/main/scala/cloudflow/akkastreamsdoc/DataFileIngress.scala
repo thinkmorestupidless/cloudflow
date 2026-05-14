@@ -57,9 +57,8 @@ class DataFileIngress extends AkkaStreamlet {
       val dir = getMountedPath(sourceData)
       Source.fromIterator(() => Files.list(dir).iterator().asScala)
     }
-    val readFile: Path => Source[ByteString, Future[IOResult]] = { path: Path =>
+    val readFile: Path => Source[ByteString, Future[IOResult]] = path =>
       FileIO.fromPath(path).via(JsonFraming.objectScanner(Int.MaxValue))
-    }
     val parseFile: ByteString => Data = { jsonByteString =>
       JsonParser(jsonByteString.utf8String).convertTo[Data]
     }

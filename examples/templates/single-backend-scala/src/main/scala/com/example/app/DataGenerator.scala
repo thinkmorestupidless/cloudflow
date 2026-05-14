@@ -45,7 +45,7 @@ class DataInput extends AkkaStreamlet {
   override def configParameters = Vector(RateConf)
 
   // in `createLogic` we implement the business logic of this Streamlet
-  override def createLogic() = new RunnableGraphStreamletLogic() {
+  override def createLogic = new RunnableGraphStreamletLogic() {
     val rate = RateConf.value
     println(s"Producing elements at $rate/s")
     def runnableGraph = {

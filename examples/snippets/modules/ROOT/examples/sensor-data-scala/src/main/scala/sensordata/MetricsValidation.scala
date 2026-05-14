@@ -29,8 +29,8 @@ class MetricsValidation extends AkkaStreamlet {
   val valid: CodecOutlet[Metric]          = AvroOutlet[Metric]("valid").withPartitioner(RoundRobinPartitioner)
   override val shape: StreamletShape      = StreamletShape(in).withOutlets(invalid, valid)
 
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
-    override def runnableGraph(): RunnableGraph[_] = sourceWithCommittableContext(in).to(Splitter.sink(flow, invalid, valid))
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+    override def runnableGraph: RunnableGraph[_] = sourceWithCommittableContext(in).to(Splitter.sink(flow, invalid, valid))
     def flow =
       FlowWithCommittableContext[Metric]()
         .map { metric =>

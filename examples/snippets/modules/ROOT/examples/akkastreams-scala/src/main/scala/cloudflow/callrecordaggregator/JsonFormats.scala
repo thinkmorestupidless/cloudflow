@@ -19,5 +19,5 @@ package cloudflow.callrecordaggregator
 import spray.json._
 
 case object JsonCallRecord extends DefaultJsonProtocol {
-  implicit val crFormat = jsonFormat(CallRecord.apply, "user", "other", "direction", "duration", "timestamp")
+  implicit val crFormat: RootJsonFormat[CallRecord] = jsonFormat(CallRecord.apply, "user", "other", "direction", "duration", "timestamp")
 }

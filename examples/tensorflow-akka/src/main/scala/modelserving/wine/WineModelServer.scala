@@ -68,7 +68,7 @@ final class WineModelServer extends AkkaStreamlet {
         }
       )
 
-    def runnableGraph() =
+    def runnableGraph =
       sourceWithCommittableContext(in)
         .via(modelScoringFlow)
         .to(committableSink(out))

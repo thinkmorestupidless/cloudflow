@@ -37,7 +37,7 @@ class SensorDataFileIngress extends AkkaStreamlet {
   import SensorDataJsonSupport._
 
   val out: CodecOutlet[SensorData]     = AvroOutlet[SensorData]("out").withPartitioner(RoundRobinPartitioner)
-  override def shape(): StreamletShape = StreamletShape.withOutlets(out)
+  override def shape: StreamletShape = StreamletShape.withOutlets(out)
 
   //tag::volume-mount1[]
   private val sourceData    = VolumeMount("source-data-mount", "/mnt/data", ReadWriteMany)
@@ -52,16 +52,15 @@ class SensorDataFileIngress extends AkkaStreamlet {
 
   // *) Note that reading and deserializing the file content is done in separate steps for readability only, in production they should be merged into one step for performance reasons.
 
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
     //tag::volume-mount2[]
     val listFiles: NotUsed => Source[Path, NotUsed] = { _ =>
       val dir = getMountedPath(sourceData)
       Source.fromIterator(() => Files.list(dir).iterator().asScala)
     }
     //end::volume-mount2[]
-    val readFile: Path => Source[ByteString, Future[IOResult]] = { path: Path =>
+    val readFile: Path => Source[ByteString, Future[IOResult]] = path =>
       FileIO.fromPath(path).via(JsonFraming.objectScanner(Int.MaxValue))
-    }
     val parseFile: ByteString => SensorData = { jsonByteString =>
       JsonParser(jsonByteString.utf8String).convertTo[SensorData]
     }
@@ -71,7 +70,7 @@ class SensorDataFileIngress extends AkkaStreamlet {
       .flatMapConcat(listFiles)
       .flatMapConcat(readFile)
       .map(parseFile)
-    override def runnableGraph(): RunnableGraph[_] = emitFromFilesContinuously.to(plainSink(out))
+    override def runnableGraph: RunnableGraph[_] = emitFromFilesContinuously.to(plainSink(out))
   }
 
   // example of what not to do

@@ -35,8 +35,8 @@ class SensorDataToMetrics extends AkkaStreamlet {
           Metric(data.deviceId, data.timestamp, "windSpeed", data.measurements.windSpeed)
         )
       }
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
-    override def runnableGraph(): RunnableGraph[_] = sourceWithCommittableContext(in).via(flow).to(committableSink(out))
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+    override def runnableGraph: RunnableGraph[_] = sourceWithCommittableContext(in).via(flow).to(committableSink(out))
   }
 }
 //end::code[]
