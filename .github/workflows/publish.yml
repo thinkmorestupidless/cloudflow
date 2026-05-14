@@ -35,4 +35,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
-        run: sbt "cloudflowBlueprint212/publish; cloudflowBlueprint213/publish; cloudflowBlueprint3/publish; publish"
+        run: sbt "cloudflow-blueprint_3/publish; publish"
