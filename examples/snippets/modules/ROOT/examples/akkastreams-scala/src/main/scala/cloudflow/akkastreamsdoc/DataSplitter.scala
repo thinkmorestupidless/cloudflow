@@ -17,7 +17,7 @@ class DataSplitter extends AkkaStreamlet {
   override def createLogic = new RunnableGraphStreamletLogic() {
     def runnableGraph = sourceWithCommittableContext(in).to(Splitter.sink(flow, invalid, valid))
     def flow =
-      FlowWithCommittableContext[Data]
+      FlowWithCommittableContext[Data]()
         .map { data =>
           if (data.value < 0) Left(DataInvalid(data.key, data.value, "All data must be positive numbers!"))
           else Right(data)

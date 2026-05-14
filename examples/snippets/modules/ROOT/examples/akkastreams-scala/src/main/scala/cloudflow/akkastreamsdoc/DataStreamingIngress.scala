@@ -15,7 +15,7 @@ class DataStreamingIngress extends AkkaServerStreamlet {
   val out   = AvroOutlet[Data]("out", RoundRobinPartitioner)
   def shape = StreamletShape.withOutlets(out)
 
-  implicit val entityStreamingSupport = EntityStreamingSupport.json()
+  implicit val entityStreamingSupport: EntityStreamingSupport = EntityStreamingSupport.json()
   override def createLogic            = HttpServerLogic.defaultStreaming(this, out)
 }
 // end::httpStreamingIngress[]

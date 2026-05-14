@@ -12,8 +12,8 @@ object MetricsValidation extends AkkaStreamlet {
   val out: CodecOutlet[Data]         = AvroOutlet[Data]("out-0")
   override val shape: StreamletShape = StreamletShape.withInlets(in).withOutlets(out)
 
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic {
-    override final def runnableGraph(): RunnableGraph[_] =
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic {
+    override final def runnableGraph: RunnableGraph[_] =
       sourceWithCommittableContext(in)
         .map(i => i)
         .to(committableSink(out))

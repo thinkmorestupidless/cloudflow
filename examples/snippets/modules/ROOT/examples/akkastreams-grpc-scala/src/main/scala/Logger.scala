@@ -12,7 +12,7 @@ class Logger extends AkkaStreamlet {
   val shape = StreamletShape.withInlets(inlet)
 
   override def createLogic = new RunnableGraphStreamletLogic() {
-    override def runnableGraph(): RunnableGraph[_] =
+    override def runnableGraph: RunnableGraph[_] =
       sourceWithCommittableContext(inlet)
         .map { data =>
           println(s"Saw ${data.payload}")

@@ -25,8 +25,8 @@ import cloudflow.streamlets.avro._
 class RotorspeedWindowLogger extends AkkaStreamlet {
   val in: CodecInlet[Metric]         = AvroInlet[Metric]("in")
   override val shape: StreamletShape = StreamletShape(in)
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
-    override def runnableGraph(): RunnableGraph[_] = sourceWithCommittableContext(in).via(flow).to(committableSink)
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+    override def runnableGraph: RunnableGraph[_] = sourceWithCommittableContext(in).via(flow).to(committableSink)
     def flow =
       FlowWithCommittableContext[Metric]()
         .grouped(5)
