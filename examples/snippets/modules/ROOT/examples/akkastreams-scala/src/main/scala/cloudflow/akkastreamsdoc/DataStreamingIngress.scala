@@ -1,15 +1,13 @@
 package cloudflow.akkastreamsdoc
 
 // tag::httpStreamingIngress[]
+import JsonSupport._
+import akka.http.scaladsl.common.EntityStreamingSupport
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import cloudflow.akkastream._
 import cloudflow.akkastream.util.scaladsl._
-
-import cloudflow.streamlets.avro._
 import cloudflow.streamlets._
-
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.common.EntityStreamingSupport
-import JsonSupport._
+import cloudflow.streamlets.avro._
 
 class DataStreamingIngress extends AkkaServerStreamlet {
   val out   = AvroOutlet[Data]("out", RoundRobinPartitioner)
