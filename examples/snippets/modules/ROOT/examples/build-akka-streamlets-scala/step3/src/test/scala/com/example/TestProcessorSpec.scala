@@ -15,7 +15,7 @@ import cloudflow.akkastream.testkit.scaladsl._
 //tag::test[]
 class TestProcessorSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
-  private implicit val system = ActorSystem("AkkaStreamletSpec")
+  private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
 
   //tag::afterAll[]
   override def afterAll: Unit =
@@ -34,7 +34,7 @@ class TestProcessorSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll
       val in           = testkit.inletFromSource(proc.in, source)
       val out          = testkit.outletAsTap(proc.out)
 
-      testkit.run(proc, in, out, () ⇒ out.probe.receiveN(1) mustBe expectedData.map(d ⇒ proc.out.partitioner(d) -> d))
+      testkit.run(proc, in, out, () => out.probe.receiveN(1) mustBe expectedData.map(d => proc.out.partitioner(d) -> d))
 
       out.probe.expectMsg(Completed)
     }
