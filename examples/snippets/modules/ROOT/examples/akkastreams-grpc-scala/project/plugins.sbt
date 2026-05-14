@@ -12,3 +12,5 @@ resolvers ++= sys.env
   }
 
 addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "2.5.10")
+
+libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"
