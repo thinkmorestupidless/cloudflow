@@ -35,8 +35,8 @@ class ConsoleOutput extends AkkaStreamlet {
       sourceWithCommittableContext(inlet).via(flow).to(committableSink)
 
     // flow is a help function to make the structure more readable
-    val flow = FlowWithCommittableContext[Data]
-      .map { data ⇒
+    val flow = FlowWithCommittableContext[Data]()
+      .map { data =>
         println(data)
         data
       }
