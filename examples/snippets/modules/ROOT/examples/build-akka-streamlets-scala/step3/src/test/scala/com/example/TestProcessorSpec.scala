@@ -18,7 +18,7 @@ class TestProcessorSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll
   private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
 
   //tag::afterAll[]
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
   //end::afterAll[]
 
