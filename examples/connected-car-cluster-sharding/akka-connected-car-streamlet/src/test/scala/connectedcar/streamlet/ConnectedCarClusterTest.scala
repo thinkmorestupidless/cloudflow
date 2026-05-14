@@ -18,10 +18,10 @@ class ConnectedCarClusterTest extends AnyWordSpec with Matchers with BeforeAndAf
   private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
   private val cluster         = Cluster(system.toTyped)
 
-  override def beforeAll: Unit =
+  override def beforeAll(): Unit =
     cluster.manager ! Join(cluster.selfMember.address)
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   "A ConnectedCarCluster streamlet" should {
