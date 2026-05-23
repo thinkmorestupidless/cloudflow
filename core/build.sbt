@@ -6,8 +6,7 @@ ThisBuild / credentials += Credentials(
   "GitHub Package Registry",
   "maven.pkg.github.com",
   "x-access-token",
-  sys.env.getOrElse("GITHUB_TOKEN", "")
-)
+  sys.env.getOrElse("GITHUB_TOKEN", ""))
 
 lazy val tooling =
   Project(id = "tooling", base = file("tooling"))
@@ -272,9 +271,8 @@ lazy val cloudflowOperator =
       dockerUsername := sys.props.get("docker.username"),
       dockerRepository := sys.props.get("docker.registry"),
       dockerBaseImage := "eclipse-temurin:11-jre-focal")
-    .settings(dependencyOverrides ++= Seq(
-      "org.yaml" % "snakeyaml" % "2.0",
-      "com.typesafe.akka" %% "akka-pki" % "2.10.16"))
+    .settings(
+      dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0", "com.typesafe.akka" %% "akka-pki" % "2.10.16"))
     .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat)
 
 // cloudflow-extractor, cloudflow-build-support, cloudflow-cr-generator, and
