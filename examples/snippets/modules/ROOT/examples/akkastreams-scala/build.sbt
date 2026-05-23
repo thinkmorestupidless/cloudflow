@@ -8,11 +8,10 @@ lazy val sensorData =  (project in file("."))
 // end::docs-projectSetup-example[]
       libraryDependencies ++= Seq(
         Cloudflow.library.CloudflowAvro,
-        "com.lightbend.akka"     %% "akka-stream-alpakka-file"  % "1.1.2",
-        "com.typesafe.akka"      %% "akka-http-spray-json"      % "10.1.12",
+        "com.typesafe.akka"      %% "akka-http-spray-json"      % "10.7.3",
         "ch.qos.logback"         %  "logback-classic"           % "1.2.11",
-        "com.typesafe.akka"      %% "akka-http-testkit"         % "10.1.12" % "test",
-        "org.scalatest"          %% "scalatest"                 % "3.0.8"  % "test"
+        "com.typesafe.akka"      %% "akka-http-testkit"         % "10.7.3" % "test",
+        "org.scalatest"          %% "scalatest"                 % "3.2.19" % "test"
 // tag::docs-projectName-example[]
       ),
       name := "akkastreams-doc",
@@ -20,15 +19,9 @@ lazy val sensorData =  (project in file("."))
       organization := "com.lightbend.cloudflow",
       headerLicense := Some(HeaderLicense.ALv2("(C) 2016-2020", "Lightbend Inc. <https://www.lightbend.com>")),
 
-      scalaVersion := "2.12.15",
-      crossScalaVersions := Vector(scalaVersion.value),
+      scalaVersion := "3.3.5",
       scalacOptions ++= Seq(
         "-encoding", "UTF-8",
-        "-target:jvm-1.8",
-        "-Xlog-reflective-calls",
-        "-Xlint",
-        "-Ywarn-unused",
-        "-Ywarn-unused-import",
         "-deprecation",
         "-feature",
         "-language:_",
@@ -36,7 +29,6 @@ lazy val sensorData =  (project in file("."))
       ),
       runLocalConfigFile := Some("src/main/resources/local.conf"),
       Compile / sourceGenerators += (Compile / avroScalaGenerateSpecific).taskValue,
-      Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused-import"),
       Test / console / scalacOptions := (Compile / console / scalacOptions).value
     )
 

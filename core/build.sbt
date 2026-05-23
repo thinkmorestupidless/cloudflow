@@ -2,6 +2,12 @@ Global / cancelable := true
 
 ThisBuild / resolvers ++= LightbendCredentials.lightbendResolvers
 
+ThisBuild / credentials += Credentials(
+  "GitHub Package Registry",
+  "maven.pkg.github.com",
+  "x-access-token",
+  sys.env.getOrElse("GITHUB_TOKEN", ""))
+
 lazy val tooling =
   Project(id = "tooling", base = file("tooling"))
     .dependsOn(cloudflowCli)

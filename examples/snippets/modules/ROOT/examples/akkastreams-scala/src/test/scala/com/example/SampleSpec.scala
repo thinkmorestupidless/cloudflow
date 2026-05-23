@@ -11,9 +11,9 @@ import cloudflow.akkastreamsdoc.RecordSumFlow
 
 class SampleSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
-  private implicit val system = ActorSystem("AkkaStreamletSpec")
+  private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   "An TestProcessor" should {

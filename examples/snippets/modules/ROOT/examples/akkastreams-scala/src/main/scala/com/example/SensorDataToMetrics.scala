@@ -12,7 +12,7 @@ object SensorDataToMetrics extends AkkaStreamlet {
   val out: CodecOutlet[Data]         = AvroOutlet[Data]("out")
   override val shape: StreamletShape = StreamletShape.withInlets(in).withOutlets(out)
 
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic {
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic {
     override final def runnableGraph: RunnableGraph[_] =
       sourceWithCommittableContext(in)
         .map(i => i)

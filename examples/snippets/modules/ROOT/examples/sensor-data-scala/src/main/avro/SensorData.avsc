@@ -1,25 +1,42 @@
-{
-    "namespace": "sensordata",
-    "type": "record",
-    "name": "SensorData",
-    "fields":[
-         {
-            "name": "deviceId", 
-            "type": {
-                "type": "string",
-                "logicalType": "uuid"
-            }
-         },
-         {
-            "name": "timestamp",
-            "type": {
-                "type": "long",
-                "logicalType": "timestamp-millis"
-            }
-         },
-         {
-            "name": "measurements", "type": "sensordata.Measurements"
-         }
-    ]
-}
-
+[
+    {
+        "namespace": "sensordata",
+        "type": "record",
+        "name": "Measurements",
+        "fields":[
+             {
+                "name": "power", "type": "double"
+             },
+             {
+                "name": "rotorSpeed", "type": "double"
+             },
+             {
+                "name": "windSpeed", "type": "double"
+             }
+        ]
+    },
+    {
+        "namespace": "sensordata",
+        "type": "record",
+        "name": "SensorData",
+        "fields":[
+             {
+                "name": "deviceId",
+                "type": {
+                    "type": "string",
+                    "logicalType": "uuid"
+                }
+             },
+             {
+                "name": "timestamp",
+                "type": {
+                    "type": "long",
+                    "logicalType": "timestamp-millis"
+                }
+             },
+             {
+                "name": "measurements", "type": "sensordata.Measurements"
+             }
+        ]
+    }
+]

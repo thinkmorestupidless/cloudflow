@@ -19,8 +19,8 @@ package modelserving
 import java.io.File
 import java.nio.file._
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable.{ Map ⇒ MMap }
+import scala.jdk.CollectionConverters._
+import scala.collection.mutable.{ Map => MMap }
 import scala.util.Try
 
 import com.google.protobuf.Descriptors
@@ -48,8 +48,8 @@ trait TensorFlowModel[Record, ServingResult] {
   def score(record: Record): (ServingResult, ModelResultMetadata) = {
     val start = System.currentTimeMillis()
     val (errors, modelOutput) = invokeModel(record) match {
-      case Left(errors)  ⇒ (errors, emptyServingResult)
-      case Right(output) ⇒ ("", output)
+      case Left(errors)  => (errors, emptyServingResult)
+      case Right(output) => ("", output)
     }
     val duration       = (System.currentTimeMillis() - start)
     val resultMetadata = ModelResultMetadata(errors, loadedModel.modelName, startTime, duration)
@@ -90,8 +90,8 @@ object TensorFlowModelBundle {
   def load[Record, ServingResult, Model](
       savedModelBundlePath: Path,
       modelName: String,
-      createModel: LoadedModel ⇒ Model,
-      tags: Path ⇒ Seq[String] = firstTag
+      createModel: LoadedModel => Model,
+      tags: Path => Seq[String] = firstTag
   ): Try[Model] =
     Try {
       val bundle = SavedModelBundle.load(savedModelBundlePath.toAbsolutePath.toString, tags(savedModelBundlePath): _*)
@@ -113,7 +113,7 @@ object TensorFlowModelBundle {
    */
   private def parseSignatures(signatures: MMap[String, SignatureDef]): Map[String, Signature] =
     signatures
-      .map(signature ⇒
+      .map(signature =>
         signature._1 -> Signature(parseInputOutput(signature._2.getInputsMap.asScala), parseInputOutput(signature._2.getOutputsMap.asScala))
       )
       .toMap
@@ -128,7 +128,7 @@ object TensorFlowModelBundle {
     val directoryFile = directory.toFile
     val pbfiles =
       if (directoryFile.exists && directoryFile.isDirectory)
-        directoryFile.listFiles.filter(_.isFile).filter(name ⇒ (name.getName.endsWith("pb") || name.getName.endsWith("pbtxt"))).toList
+        directoryFile.listFiles.filter(_.isFile).filter(name => (name.getName.endsWith("pb") || name.getName.endsWith("pbtxt"))).toList
       else
         List[File]()
     if (pbfiles.length > 0) {
@@ -137,7 +137,8 @@ object TensorFlowModelBundle {
         .parseFrom(byteArray)
         .getMetaGraphsList
         .asScala
-        .flatMap(graph ⇒ graph.getMetaInfoDef.getTagsList.asByteStringList.asScala.map(_.toStringUtf8))
+        .flatMap(graph => graph.getMetaInfoDef.getTagsList.asByteStringList.asScala.map(_.toStringUtf8))
+        .toSeq
     } else {
       Seq.empty
     }
@@ -151,20 +152,20 @@ object TensorFlowModelBundle {
    */
   private def parseInputOutput(inputOutputs: MMap[String, TensorInfo]): Map[String, Field] =
     inputOutputs.map {
-      case (key, info) ⇒
+      case (key, info) =>
         var name                                   = ""
         var dtype: Descriptors.EnumValueDescriptor = null
         var shape                                  = Seq.empty[Int]
-        info.getAllFields.asScala.foreach { descriptor ⇒
+        info.getAllFields.asScala.foreach { descriptor =>
           val fieldName = descriptor._1.getName
           if (fieldName.contains("shape")) {
             descriptor._2
               .asInstanceOf[TensorShapeProto]
               .getDimList
               .toArray
-              .map(d ⇒ d.asInstanceOf[TensorShapeProto.Dim].getSize)
+              .map(d => d.asInstanceOf[TensorShapeProto.Dim].getSize)
               .toSeq
-              .foreach(v ⇒ shape = shape :+ v.toInt)
+              .foreach(v => shape = shape :+ v.toInt)
           }
           if (fieldName.contains("name")) {
             name = descriptor._2.toString.split(":")(0)

@@ -15,13 +15,13 @@ import akka.actor.typed.scaladsl.adapter._
 
 class ConnectedCarClusterTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
-  private implicit val system = ActorSystem("AkkaStreamletSpec")
+  private implicit val system: ActorSystem = ActorSystem("AkkaStreamletSpec")
   private val cluster         = Cluster(system.toTyped)
 
-  override def beforeAll: Unit =
+  override def beforeAll(): Unit =
     cluster.manager ! Join(cluster.selfMember.address)
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   "A ConnectedCarCluster streamlet" should {
@@ -39,7 +39,7 @@ class ConnectedCarClusterTest extends AnyWordSpec with Matchers with BeforeAndAf
       val in           = testkit.inletFromSource(proc.in, source)
       val out          = testkit.outletAsTap(proc.out)
 
-      testkit.run(proc, in, out, () ⇒ out.probe.receiveN(1) mustBe expectedData.map(d ⇒ proc.out.partitioner(d) -> d))
+      testkit.run(proc, in, out, () => out.probe.receiveN(1) mustBe expectedData.map(d => proc.out.partitioner(d) -> d))
 
       out.probe.expectMsg(Completed)
     }

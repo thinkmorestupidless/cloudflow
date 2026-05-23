@@ -34,7 +34,12 @@ object Common extends AutoPlugin {
   override lazy val projectSettings = Seq(
     crossVersion := CrossVersion.binary,
     scalacOptions ++= List("-feature", "-deprecation"),
-    publishTo := sonatypePublishToBundle.value,
+    publishTo := {
+      if (sys.env.get("GITHUB_TOKEN").exists(_.nonEmpty))
+        Some("GitHub Packages".at("https://maven.pkg.github.com/thinkmorestupidless/cloudflow"))
+      else
+        sonatypePublishToBundle.value
+    },
     useGpgAgent := false,
     scalafmtOnCompile := true,
     // TODO: disabled since there are problems in cross JVMs compilation re-enable me possibly

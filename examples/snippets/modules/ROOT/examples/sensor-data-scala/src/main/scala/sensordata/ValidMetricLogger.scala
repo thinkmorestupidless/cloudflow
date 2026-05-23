@@ -42,7 +42,7 @@ class ValidMetricLogger extends AkkaStreamlet {
 
   override def configParameters = Vector(LogLevel, MsgPrefix)
 
-  override def createLogic(): AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
     val logF: String => Unit = LogLevel.value.toLowerCase match {
       case "debug"   => system.log.debug _
       case "info"    => system.log.info _
@@ -62,7 +62,7 @@ class ValidMetricLogger extends AkkaStreamlet {
           validMetric
         }
 
-    override def runnableGraph(): RunnableGraph[_] =
+    override def runnableGraph: RunnableGraph[_] =
       sourceWithCommittableContext(inlet).via(flow).to(committableSink)
   }
 }

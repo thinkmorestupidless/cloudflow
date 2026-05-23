@@ -17,6 +17,6 @@ object SensorDataIngress extends AkkaStreamlet {
 
   final override def createLogic = new RunnableGraphStreamletLogic {
     override final def runnableGraph =
-      Source.tick(0 seconds, 10 millisecond, Data("test", 2)).to(plainSink(out))
+      Source.tick(0.seconds, 10.milliseconds, Data("test", 2)).to(plainSink(out))
   }
 }

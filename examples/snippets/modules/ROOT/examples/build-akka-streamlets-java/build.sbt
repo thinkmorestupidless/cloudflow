@@ -66,6 +66,7 @@ lazy val app = appModule("app")
 // not used. Only to show avro configuration
 //tag::avro-config[]
 lazy val datamodel = (project in file("./my-cloudflow-library"))
+  .settings(commonSettings)
   .settings(
     libraryDependencies += Cloudflow.library.CloudflowAvro
   )
@@ -74,26 +75,20 @@ lazy val datamodel = (project in file("./my-cloudflow-library"))
 lazy val commonSettings = Seq(
   organization := "com.lightbend.cloudflow",
   headerLicense := Some(HeaderLicense.ALv2("(C) 2016-2020", "Lightbend Inc. <https://www.lightbend.com>")),
-  scalaVersion := "2.12.15",
+  scalaVersion := "3.3.5",
   javacOptions += "-Xlint:deprecation",
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
-    "-target:jvm-1.8",
-    "-Xlog-reflective-calls",
-    "-Xlint",
-    "-Ywarn-unused",
-    "-Ywarn-unused-import",
     "-deprecation",
     "-feature",
     "-language:_",
     "-unchecked"
   ),
-  Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused-import"),
   Test / console / scalacOptions := (Compile / console / scalacOptions).value,
-  avroStringType := "String", 
+  avroStringType := "String",
 
   libraryDependencies ++= Seq(
-        "org.scalatest"          %% "scalatest"                 % "3.0.8"    % "test",
+        "org.scalatest"          %% "scalatest"                 % "3.2.19"   % "test",
         "junit"                  %  "junit"                     % "4.12"     % "test"
   ),
 

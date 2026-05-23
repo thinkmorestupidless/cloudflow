@@ -17,7 +17,6 @@ import cloudflow.akkastream.javadsl.*;
 import cloudflow.akkastream.testkit.javadsl.*;
 
 import scala.concurrent.duration.Duration;
-import scala.compat.java8.FutureConverters; 
 //end::imports[]
 
 //tag::init[]

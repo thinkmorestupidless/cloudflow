@@ -1,0 +1,47 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    branches: [fix-example-tests]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install sbt
+        uses: sbt/setup-sbt@v1
+      - name: Cache SBT
+        uses: coursier/cache-action@v6
+      - name: Set version
+        working-directory: core
+        run: sbt setVersionFromTag
+        env:
+          VERSION: "0.1.0"
+          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
+      - name: Publish
+        working-directory: core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
+        run: |
+          sbt "cloudflow-blueprint_3/publish; publish" 2>&1 | tee /tmp/sbt-publish.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            # 409 = version already exists in GitHub Packages; not a real failure.
+            # Fail only if there are non-409 error causes.
+            NON_409=$(grep 'Caused by:' /tmp/sbt-publish.log | grep -v 'HTTP response code: 409' || true)
+            if [ -n "$NON_409" ]; then echo "$NON_409"; exit 1; fi
+            echo "All failures were 409 conflicts — artifacts already published at this version."
+          fi

@@ -23,11 +23,11 @@ object RecordSumFlow extends AkkaStreamlet {
   val shape  = StreamletShape.withInlets(inlet).withOutlets(outlet)
 
   def createLogic = new RunnableGraphStreamletLogic() {
-    def runnableGraph() = {
+    def runnableGraph = {
       //tag::usage[]
       val recordsInWindow = streamletConfig.getInt(recordsInWindowParameter.key)
       //end::usage[]
-      val flow = FlowWithCommittableContext[Metric].grouped(recordsInWindow).map(sumRecords).mapContext(_.last)
+      val flow = FlowWithCommittableContext[Metric]().grouped(recordsInWindow).map(sumRecords).mapContext(_.last)
 
       sourceWithCommittableContext(inlet)
         .via(flow)

@@ -12,15 +12,15 @@ import scala.util.Random
 import scala.concurrent.duration._
 
 object RawCarDataGenerator extends AkkaStreamlet {
-  val out   = AvroOutlet[ConnectedCarERecord]("out", m ⇒ m.carId.toString)
+  val out   = AvroOutlet[ConnectedCarERecord]("out", m => m.carId.toString)
   val shape = StreamletShape.withOutlets(out)
 
   override def createLogic = new RunnableGraphStreamletLogic() {
 
-    override def runnableGraph() =
+    override def runnableGraph =
       Source
         .repeat(NotUsed)
-        .map(_ ⇒ generateCarERecord()) // Only keep the record part of the tuple
+        .map(_ => generateCarERecord()) // Only keep the record part of the tuple
         .throttle(1, 1.second)
         .to(plainSink(out))
   }
@@ -62,15 +62,15 @@ object RawCarDataGenerator extends AkkaStreamlet {
     status(Random.nextInt(3))
 
   def generateCarERecord(): ConnectedCarERecord = {
-    val driver = randomDriver;
+    val driver = randomDriver()
     ConnectedCarERecord(System.currentTimeMillis,
                         driver.carId,
                         driver.driver,
-                        randomBattery,
-                        randomTemp,
-                        randomPowerConsumption,
-                        randomSpeed,
-                        randomStatus)
+                        randomBattery(),
+                        randomTemp(),
+                        randomPowerConsumption(),
+                        randomSpeed(),
+                        randomStatus())
   }
 
 }

@@ -21,7 +21,6 @@ import java.nio.file._
 
 import akka.NotUsed
 import akka.stream.IOResult
-import akka.stream.alpakka.file.scaladsl.Directory
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import cloudflow.akkastream._
@@ -32,6 +31,7 @@ import spray.json.JsonParser
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 class DataFileIngress extends AkkaStreamlet {
 
@@ -54,11 +54,11 @@ class DataFileIngress extends AkkaStreamlet {
 
   override def createLogic = new RunnableGraphStreamletLogic() {
     val listFiles: NotUsed => Source[file.Path, NotUsed] = { _ =>
-      Directory.ls(getMountedPath(sourceData))
+      val dir = getMountedPath(sourceData)
+      Source.fromIterator(() => Files.list(dir).iterator().asScala)
     }
-    val readFile: Path => Source[ByteString, Future[IOResult]] = { path: Path =>
+    val readFile: Path => Source[ByteString, Future[IOResult]] = path =>
       FileIO.fromPath(path).via(JsonFraming.objectScanner(Int.MaxValue))
-    }
     val parseFile: ByteString => Data = { jsonByteString =>
       JsonParser(jsonByteString.utf8String).convertTo[Data]
     }

@@ -55,26 +55,20 @@ lazy val app = appModule("app")
 lazy val commonSettings = Seq(
   organization := "com.lightbend.cloudflow",
   headerLicense := Some(HeaderLicense.ALv2("(C) 2016-2020", "Lightbend Inc. <https://www.lightbend.com>")),
-  scalaVersion := "2.12.15",
+  scalaVersion := "3.3.5",
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
-    "-target:jvm-1.8",
-    "-Xlog-reflective-calls",
-    "-Xlint",
-    "-Ywarn-unused",
-    "-Ywarn-unused-import",
     "-deprecation",
     "-feature",
     "-language:_",
     "-unchecked"
   ),
-  
+
   libraryDependencies ++= Seq(
     Cloudflow.library.CloudflowAvro,
-    "org.scalatest"  %% "scalatest" % "3.0.8"   % "test"
-  ), 
+    "org.scalatest"  %% "scalatest" % "3.2.19"  % "test"
+  ),
 
-  Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused-import"),
   Compile / sourceGenerators += (Compile / avroScalaGenerateSpecific).taskValue,
   Test / console / scalacOptions := (Compile / console / scalacOptions).value
 )
