@@ -27,12 +27,12 @@ object ProtoUtil {
   def createSchemaDefinition(descriptor: Descriptor) =
     SchemaDefinition(
       name = descriptor.fullName,
-      schema = descriptor.asProto.toProtoString,
+      schema = Base64.getEncoder().encodeToString(descriptor.asProto.toByteArray),
       fingerprint = fingerprintSha256(descriptor),
       format = Format)
 
   private def fingerprintSha256(descriptor: Descriptor): String =
     Base64
       .getEncoder()
-      .encodeToString(MessageDigest.getInstance("SHA-256").digest(descriptor.asProto.toProtoString.getBytes("UTF-8")))
+      .encodeToString(MessageDigest.getInstance("SHA-256").digest(descriptor.asProto.toByteArray))
 }

@@ -7,9 +7,8 @@ import sbt.plugins.JvmPlugin
 import scala.util.Try
 import scala.xml.{ Elem, PrettyPrinter, XML }
 
-/**
- * Inspired by https://github.com/lagom/lagom/blob/master/project/SbtMavenPlugin.scala
- */
+/** Inspired by https://github.com/lagom/lagom/blob/master/project/SbtMavenPlugin.scala
+  */
 object SbtMavenPlugin extends AutoPlugin {
   override def trigger = noTrigger
 
@@ -78,8 +77,8 @@ object SbtMavenPlugin extends AutoPlugin {
       "description" -> moduleInfo.description,
       "groupId" -> moduleID.organization,
       "artifactId" -> moduleID.name,
-      "version" -> moduleID.revision).foldRight(xml) {
-      case ((label, value), elem) => prependIfAbsent(elem, createElement(label, value))
+      "version" -> moduleID.revision).foldRight(xml) { case ((label, value), elem) =>
+      prependIfAbsent(elem, createElement(label, value))
     }
 
     withProjectInfo

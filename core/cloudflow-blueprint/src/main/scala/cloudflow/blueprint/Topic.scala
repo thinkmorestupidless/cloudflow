@@ -176,10 +176,9 @@ final case class Topic(
     * are identical, nested types names are based on surrounding messages.
     */
   private def checkProtoCompatibility(port: VerifiedPort, otherPort: VerifiedPort): Option[IncompatibleSchema] = {
-    val descriptorProtoString = port.schemaDescriptor.schema
-    val otherDescriptorProtoString = otherPort.schemaDescriptor.schema
-    val descriptor = DescriptorProto.parseFrom(descriptorProtoString.getBytes("UTF8"))
-    val otherDescriptor = DescriptorProto.parseFrom(otherDescriptorProtoString.getBytes("UTF8"))
+    val descriptor = DescriptorProto.parseFrom(java.util.Base64.getDecoder().decode(port.schemaDescriptor.schema))
+    val otherDescriptor =
+      DescriptorProto.parseFrom(java.util.Base64.getDecoder().decode(otherPort.schemaDescriptor.schema))
 
     if (compatibleProtobufDescriptor(descriptor, otherDescriptor)) None
     else Some(IncompatibleSchema(port.portPath, otherPort.portPath))

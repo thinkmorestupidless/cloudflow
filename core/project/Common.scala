@@ -25,10 +25,10 @@ object Common extends AutoPlugin {
       licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
       publishMavenStyle := true,
       developers += Developer(
-          "contributors",
-          "Contributors",
-          "https://cloudflow.zulipchat.com/",
-          url("https://github.com/lightbend/cloudflow/graphs/contributors")),
+        "contributors",
+        "Contributors",
+        "https://cloudflow.zulipchat.com/",
+        url("https://github.com/lightbend/cloudflow/graphs/contributors")),
       excludeLintKeys ++= Set(unidocGenjavadocVersion, useGpgAgent, publishMavenStyle, crossSbtVersions, javacOptions))
 
   override lazy val projectSettings = Seq(
@@ -40,18 +40,25 @@ object Common extends AutoPlugin {
     // TODO: disabled since there are problems in cross JVMs compilation re-enable me possibly
     javafmtOnCompile := false,
     run / fork := false,
-    // Pass the Akka license key to any forked JVM (run or test).
+    // Pass the Akka license key to any forked JVM (run or test) if available.
     // Non-forked processes receive it via the AKKA_LICENSE_KEY env var or application.conf.
-    run / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
-    Test / javaOptions += s"-Dakka.license-key=${LightbendCredentials.akkaLicenseKey}",
+    run / javaOptions ++= LightbendCredentials.akkaLicenseKey.map(k => s"-Dakka.license-key=$k").toSeq,
+    Test / javaOptions ++= LightbendCredentials.akkaLicenseKey.map(k => s"-Dakka.license-key=$k").toSeq,
     unidocGenjavadocVersion := "0.18_2.13.8",
     // genjavadoc-plugin does not exist for Scala 3; exclude the dependency and the compiler flag.
     excludeDependencies ++= (if (scalaVersion.value.startsWith("3"))
                                Seq(ExclusionRule("com.typesafe.genjavadoc"))
                              else Nil),
-    scalacOptions --= (if (scalaVersion.value.startsWith("3"))
-                         Seq(s"-P:genjavadoc:out=${target.value.getPath}/java")
-                       else Nil),
+    // genjavadoc is a Scala 2 compiler plugin. On Scala 3 modules, GenJavadocPlugin
+    // still injects `-P:genjavadoc:out=...` into `Compile / scalacOptions`; Scala 3's
+    // compiler rejects it with `bad option`. Filter it out at the Compile and Test
+    // scopes (not the global scalacOptions, which the plugin doesn't touch).
+    Compile / scalacOptions := (if (scalaVersion.value.startsWith("3"))
+                                  (Compile / scalacOptions).value.filterNot(_.startsWith("-P:genjavadoc:"))
+                                else (Compile / scalacOptions).value),
+    Test / scalacOptions := (if (scalaVersion.value.startsWith("3"))
+                               (Test / scalacOptions).value.filterNot(_.startsWith("-P:genjavadoc:"))
+                             else (Test / scalacOptions).value),
     // show full stack traces and test case durations
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     // -a Show stack traces and exception class name for AssertionErrors.

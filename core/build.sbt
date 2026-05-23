@@ -56,28 +56,28 @@ lazy val cloudflowCli =
         }
       },
       graalVMNativeImageOptions := Seq(
-          "--verbose",
-          "--no-server",
-          "--enable-http",
-          "--enable-https",
-          "--enable-url-protocols=http,https,file,jar",
-          "--enable-all-security-services",
-          "-H:+JNI",
-          "-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages",
-          "-H:+ReportExceptionStackTraces",
-          "--no-fallback",
-          "--initialize-at-build-time",
-          "--report-unsupported-elements-at-runtime",
-          // TODO: possibly to be removed
-          "--allow-incomplete-classpath",
-          "--initialize-at-run-time" + Seq(
-            "akka.cloudflow.config.CloudflowConfig$",
-            "akka.cloudflow.config.UnsafeCloudflowConfigLoader$",
-            "com.typesafe.config.impl.ConfigImpl",
-            "com.typesafe.config.impl.ConfigImpl$EnvVariablesHolder",
-            "com.typesafe.config.impl.ConfigImpl$SystemPropertiesHolder",
-            "com.typesafe.config.impl.ConfigImpl$LoaderCacheHolder",
-            "io.fabric8.kubernetes.client.internal.CertUtils$1").mkString("=", ",", "")),
+        "--verbose",
+        "--no-server",
+        "--enable-http",
+        "--enable-https",
+        "--enable-url-protocols=http,https,file,jar",
+        "--enable-all-security-services",
+        "-H:+JNI",
+        "-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages",
+        "-H:+ReportExceptionStackTraces",
+        "--no-fallback",
+        "--initialize-at-build-time",
+        "--report-unsupported-elements-at-runtime",
+        // TODO: possibly to be removed
+        "--allow-incomplete-classpath",
+        "--initialize-at-run-time" + Seq(
+          "akka.cloudflow.config.CloudflowConfig$",
+          "akka.cloudflow.config.UnsafeCloudflowConfigLoader$",
+          "com.typesafe.config.impl.ConfigImpl",
+          "com.typesafe.config.impl.ConfigImpl$EnvVariablesHolder",
+          "com.typesafe.config.impl.ConfigImpl$SystemPropertiesHolder",
+          "com.typesafe.config.impl.ConfigImpl$LoaderCacheHolder",
+          "io.fabric8.kubernetes.client.internal.CertUtils$1").mkString("=", ",", "")),
       GraalVMNativeImage / winPackageBin := {
         val targetDirectory = target.value
         val binaryName = name.value
@@ -92,20 +92,21 @@ lazy val cloudflowCli =
         val temp = IO.createTemporaryDirectory
 
         try {
-          classpathJars.foreach {
-            case (f, _) =>
-              IO.copyFile(f, (temp / f.getName))
+          classpathJars.foreach { case (f, _) =>
+            IO.copyFile(f, temp / f.getName)
           }
 
           val command = {
             val nativeImageArguments = {
-              Seq("--class-path", s""""${(temp / "*").getAbsolutePath}"""", s"-H:Name=$binaryName") ++ extraOptions ++ Seq(
-                className)
+              Seq(
+                "--class-path",
+                s""""${(temp / "*").getAbsolutePath}"""",
+                s"-H:Name=$binaryName") ++ extraOptions ++ Seq(className)
             }
             Seq(nativeImageCommand) ++ nativeImageArguments
           }
 
-          (sys.process.Process(command, targetDirectory).!) match {
+          sys.process.Process(command, targetDirectory).! match {
             case 0 => targetDirectory / binaryName
             case x => sys.error(s"Failed to run $command, exit status: " + x)
           }
@@ -173,18 +174,20 @@ lazy val cloudflowNewIt =
 lazy val setVersionFromTag = taskKey[Unit]("Set a stable version from env variable")
 
 setVersionFromTag := {
-  IO.write(file("version.sbt"), s"""ThisBuild / version := "${sys.env
-    .get("VERSION")
-    .getOrElse("0.0.0-SNAPSHOT")}"""")
+  IO.write(
+    file("version.sbt"),
+    s"""ThisBuild / version := "${sys.env
+        .get("VERSION")
+        .getOrElse("0.0.0-SNAPSHOT")}"""")
 }
 
 // makePom fails, often with: java.lang.StringIndexOutOfBoundsException: String index out of range: 0
 addCommandAlias(
   "winGraalBuild",
   s"""project cloudflow-cli; set makePom / publishArtifact := false; set graalVMNativeImageCommand := "${sys.env
-    .get("JAVA_HOME")
-    .getOrElse("")
-    .replace("""\""", """\\\\""")}\\\\bin\\\\native-image.cmd"; graalvm-native-image:winPackageBin""")
+      .get("JAVA_HOME")
+      .getOrElse("")
+      .replace("""\""", """\\\\""")}\\\\bin\\\\native-image.cmd"; graalvm-native-image:winPackageBin""")
 
 addCommandAlias(
   "linuxStaticBuild",
@@ -193,7 +196,7 @@ addCommandAlias(
 addCommandAlias(
   "regenerateGraalVMConfig",
   s""";project tooling ; set run / fork := true; set run / javaOptions += "-agentlib:native-image-agent=config-output-dir=${file(
-    ".").getAbsolutePath}/cloudflow-cli/src/main/resources/META-INF/native-image"; runMain cli.CodepathCoverageMain""")
+      ".").getAbsolutePath}/cloudflow-cli/src/main/resources/META-INF/native-image"; runMain cli.CodepathCoverageMain""")
 
 // cloudflowBlueprint cross-compiles for Scala 2.12 (consumed by cloudflow-sbt-plugin),
 // Scala 2.13 (legacy cross-build retained), and Scala 3 (consumed by operator/localrunner).
@@ -201,16 +204,14 @@ addCommandAlias(
 lazy val cloudflowBlueprintCross = cloudflowBlueprint.cross
 lazy val cloudflowBlueprint213 = cloudflowBlueprintCross(Dependencies.Scala213)
 lazy val cloudflowBlueprint212 = cloudflowBlueprintCross(Dependencies.Scala212)
-lazy val cloudflowBlueprint3   = cloudflowBlueprintCross(Dependencies.Scala3)
+lazy val cloudflowBlueprint3 = cloudflowBlueprintCross(Dependencies.Scala3)
 
 lazy val cloudflowAvro =
   Project(id = "cloudflow-avro", base = file("cloudflow-avro"))
     .dependsOn(cloudflowStreamlets)
     .enablePlugins(GenJavadocPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowAvro)
-    .settings(
-      scalaVersion := Dependencies.Scala3,
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
 lazy val cloudflowBlueprint =
   Project(id = "cloudflow-blueprint", base = file("cloudflow-blueprint"))
@@ -222,9 +223,9 @@ lazy val cloudflowBlueprint =
       scalafmtOnCompile := true,
       buildInfoKeys := Seq[BuildInfoKey](name, version),
       buildInfoPackage := "cloudflow.blueprint",
-      // avro4s 5.x has no Scala 2.12 artifact; kafka-clients 4.x can't be parsed by Scala 2.12 compiler.
+      // avro4s 5.x is Scala 3 only; kafka-clients 4.x class files can't be parsed by Scala 2.12 compiler.
       libraryDependencies += (
-        if (scalaVersion.value == Dependencies.Scala212)
+        if (scalaVersion.value.startsWith("2."))
           Dependencies.TestDeps.avro4s212
         else
           Dependencies.TestDeps.avro4s
@@ -247,16 +248,16 @@ lazy val cloudflowOperator =
       run / fork := true,
       Global / cancelable := true,
       buildInfoKeys := Seq[BuildInfoKey](
-          name,
-          version,
-          scalaVersion,
-          sbtVersion,
-          BuildInfoKey.action("buildTime") {
-            java.time.Instant.now().toString
-          },
-          BuildInfoKey.action("buildUser") {
-            sys.props.getOrElse("user.name", "unknown")
-          }),
+        name,
+        version,
+        scalaVersion,
+        sbtVersion,
+        BuildInfoKey.action("buildTime") {
+          java.time.Instant.now().toString
+        },
+        BuildInfoKey.action("buildUser") {
+          sys.props.getOrElse("user.name", "unknown")
+        }),
       buildInfoPackage := "cloudflow.operator")
     .settings(
       Docker / packageName := "cloudflow-operator",
@@ -285,9 +286,7 @@ lazy val cloudflowProto =
     .dependsOn(cloudflowStreamlets)
     .enablePlugins(GenJavadocPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowProto)
-    .settings(
-      scalaVersion := Dependencies.Scala3,
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
 lazy val cloudflowSbtPlugin =
   Project(id = "cloudflow-sbt-plugin", base = file("cloudflow-sbt-plugin"))
@@ -315,27 +314,20 @@ lazy val cloudflowRunnerConfig =
   Project(id = "cloudflow-runner-config", base = file("cloudflow-runner-config"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowRunnerConfig)
-    .settings(
-      scalaVersion := Dependencies.Scala3,
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
 lazy val cloudflowStreamlets =
   Project(id = "cloudflow-streamlets", base = file("cloudflow-streamlets"))
     .enablePlugins(GenJavadocPlugin, ScalafmtPlugin)
     .settings(Dependencies.cloudflowStreamlet)
-    .settings(
-      scalaVersion := Dependencies.Scala3,
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
 lazy val cloudflowAkka =
   Project(id = "cloudflow-akka", base = file("cloudflow-akka"))
     .enablePlugins(GenJavadocPlugin, JavaFormatterPlugin, ScalafmtPlugin)
     .dependsOn(cloudflowStreamlets)
     .settings(Dependencies.cloudflowAkka)
-    .settings(
-      scalaVersion := Dependencies.Scala3,
-      javacOptions += "-Xlint:deprecation",
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala3, javacOptions += "-Xlint:deprecation", scalafmtOnCompile := true)
 
 lazy val cloudflowAkkaTestkit =
   Project(id = "cloudflow-akka-testkit", base = file("cloudflow-akka-testkit"))
@@ -384,46 +376,45 @@ lazy val cloudflowRunner =
         "runner" + "." + artifact.extension
       },
       buildInfoKeys := Seq[BuildInfoKey](
-          name,
-          version,
-          scalaVersion,
-          sbtVersion,
-          BuildInfoKey.action("buildTime") {
-            java.time.Instant.now().toString
-          },
-          BuildInfoKey.action("buildUser") {
-            sys.props.getOrElse("user.name", "unknown")
-          }),
+        name,
+        version,
+        scalaVersion,
+        sbtVersion,
+        BuildInfoKey.action("buildTime") {
+          java.time.Instant.now().toString
+        },
+        BuildInfoKey.action("buildUser") {
+          sys.props.getOrElse("user.name", "unknown")
+        }),
       buildInfoPackage := "cloudflow.runner")
 
 lazy val cloudflowLocalRunner =
   Project(id = "cloudflow-localrunner", base = file("cloudflow-localrunner"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
     .dependsOn(cloudflowStreamlets, cloudflowBlueprint3, cloudflowRunnerConfig)
-    .settings(
-      scalaVersion := Dependencies.Scala3,
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
 lazy val cloudflowCrGenerator =
   Project(id = "cloudflow-cr-generator", base = file("cloudflow-cr-generator"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
     .dependsOn(cloudflowExtractor, cloudflowBlueprint)
     .settings(Dependencies.cloudflowCrGenerator)
-    .settings(scalaVersion := Dependencies.Scala212, scalafmtOnCompile := true, assembly / assemblyMergeStrategy := {
-      case PathList("buildinfo", xs @ _*) => MergeStrategy.first
-      case x =>
-        val oldStrategy = (assembly / assemblyMergeStrategy).value
-        oldStrategy(x)
-    })
+    .settings(
+      scalaVersion := Dependencies.Scala212,
+      scalafmtOnCompile := true,
+      assembly / assemblyMergeStrategy := {
+        case PathList("buildinfo", xs @ _*) => MergeStrategy.first
+        case x =>
+          val oldStrategy = (assembly / assemblyMergeStrategy).value
+          oldStrategy(x)
+      })
 
 lazy val cloudflowBuildSupport =
   Project(id = "cloudflow-build-support", base = file("cloudflow-build-support"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
     .dependsOn(cloudflowBlueprint)
     .settings(Dependencies.cloudflowBuildSupport)
-    .settings(
-      scalaVersion := Dependencies.Scala212,
-      scalafmtOnCompile := true)
+    .settings(scalaVersion := Dependencies.Scala212, scalafmtOnCompile := true)
 
 lazy val cloudflowMavenPlugin =
   Project(id = "cloudflow-maven-plugin", base = file("cloudflow-maven-plugin"))
@@ -453,10 +444,10 @@ lazy val root = Project(id = "root", base = file("."))
       v.map(_.filterNot(f => Common.javadocDisabledFor.exists(f.getAbsolutePath.endsWith(_))))
     },
     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
-        cloudflowStreamlets,
-        cloudflowAkka,
-        cloudflowAkkaUtil,
-        cloudflowAkkaTestkit),
+      cloudflowStreamlets,
+      cloudflowAkka,
+      cloudflowAkkaUtil,
+      cloudflowAkkaTestkit),
     JavaUnidoc / unidoc / unidocProjectFilter := (ScalaUnidoc / unidoc / unidocProjectFilter).value)
   .aggregate(
     cloudflowAvro,
