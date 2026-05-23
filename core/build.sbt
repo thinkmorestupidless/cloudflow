@@ -268,11 +268,13 @@ lazy val cloudflowOperator =
       buildInfoPackage := "cloudflow.operator")
     .settings(
       Docker / packageName := "cloudflow-operator",
-      dockerUpdateLatest := false,
+      dockerUpdateLatest := true,
       dockerUsername := sys.props.get("docker.username"),
       dockerRepository := sys.props.get("docker.registry"),
-      dockerBaseImage := "adoptopenjdk/openjdk11:alpine-jre")
-    .settings(dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0"))
+      dockerBaseImage := "eclipse-temurin:11-jre-focal")
+    .settings(dependencyOverrides ++= Seq(
+      "org.yaml" % "snakeyaml" % "2.0",
+      "com.typesafe.akka" %% "akka-pki" % "2.10.16"))
     .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat)
 
 // cloudflow-extractor, cloudflow-build-support, cloudflow-cr-generator, and

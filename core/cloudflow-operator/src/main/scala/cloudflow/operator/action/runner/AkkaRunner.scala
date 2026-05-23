@@ -34,7 +34,7 @@ object AkkaRunner {
   val JavaOptsEnvVar = "JAVA_OPTS"
   val PrometheusExporterPortEnvVar = "PROMETHEUS_JMX_AGENT_PORT"
   val DefaultReplicas = 1
-  val ImagePullPolicy = "Always"
+  val ImagePullPolicy = "IfNotPresent"
 
   val ProbeInitialDelaySeconds = 10
   val ProbeTimeoutSeconds = 1
@@ -64,10 +64,25 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
       case _ =>
         val roleAkka = akkaRole(app.namespace, labels, ownerReferences)
         Seq(
+          Action.createOrReplace(akkaServiceAccount(app.namespace, labels, ownerReferences)),
           Action.createOrReplace(roleAkka),
           Action.createOrReplace(akkaRoleBinding(app.namespace, roleAkka, labels, ownerReferences)))
     }
   }
+
+  private def akkaServiceAccount(
+      namespace: String,
+      labels: CloudflowLabels,
+      ownerReferences: List[OwnerReference]): ServiceAccount =
+    new ServiceAccountBuilder()
+      .withMetadata(
+        new ObjectMetaBuilder()
+          .withName(Name.ofServiceAccount)
+          .withNamespace(namespace)
+          .withLabels(labels(Name.ofServiceAccount).asJava)
+          .withOwnerReferences(ownerReferences: _*)
+          .build())
+      .build()
 
   case class PatchDeploymentAction(deployment: Deployment)(implicit
       val lineNumber: sourcecode.Line,
