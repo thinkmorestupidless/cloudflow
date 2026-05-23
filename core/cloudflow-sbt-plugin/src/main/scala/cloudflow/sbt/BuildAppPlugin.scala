@@ -45,11 +45,13 @@ object BuildAppPlugin extends AutoPlugin {
 
   override def projectSettings =
     Seq(
-      allProjectsWithCloudflowBasePlugin := Def.taskDyn {
-        Def.task {
-          projectWithCloudflowBasePlugin.all(ScopeFilter(inAnyProject)).value.flatten
-        }
-      }.value,
+      // Default: only this project. The original `inAnyProject` scan caused
+      // cross-contamination when multiple CloudflowApplicationPlugin projects share a
+      // streamlet library — the last project's image silently overwrites all earlier
+      // entries for every shared class name. A single project per pipeline is the
+      // correct design; override this task to restore multi-project aggregation only
+      // if you have genuinely disjoint streamlet classes across sub-projects.
+      allProjectsWithCloudflowBasePlugin := Seq(thisProjectRef.value),
       cloudflowApplicationCR := buildApp.dependsOn(verifyBlueprint).value,
       allBuildAndPublish := Def
         .taskDyn {

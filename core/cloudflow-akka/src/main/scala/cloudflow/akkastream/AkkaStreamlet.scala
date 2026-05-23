@@ -45,9 +45,26 @@ abstract class AkkaStreamlet extends Streamlet[AkkaStreamletContext] {
     } yield {
 
       val localMode = config.as[Option[Boolean]]("cloudflow.local").getOrElse(false)
+
+      // Inject configParameter defaults so streamletConfig.get*() works when parameters
+      // have not been explicitly set at deploy time. Defaults are lower-priority than
+      // any value in the mounted secret's context.config.
+      val paramDefaults: Config = configParameters
+        .flatMap { p => p.toDescriptor.defaultValue.map(p.key -> _) }
+        .foldLeft(ConfigFactory.empty()) { case (acc, (k, v)) =>
+          acc.withValue(k, ConfigValueFactory.fromAnyRef(v))
+        }
+      val streamletDefaults =
+        if (paramDefaults.isEmpty) ConfigFactory.empty()
+        else
+          ConfigFactory
+            .empty()
+            .withValue(s"cloudflow.streamlets.${streamletDefinition.streamletRef}", paramDefaults.root())
+
       val updatedStreamletDefinition = streamletDefinition.copy(config = streamletDefinition.config
         .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
-        .withFallback(config))
+        .withFallback(config)
+        .withFallback(streamletDefaults))
 
       if (activateCluster && localMode) {
         val clusterConfig = ConfigFactory.parseResourcesAnySyntax("akka-cluster-local.conf")

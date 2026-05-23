@@ -20,10 +20,17 @@ import akka.actor._
 import akka.datap.crd.App
 import cloudflow.operator.action._
 import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.fabric8.kubernetes.api.model.OwnerReference
-import io.fabric8.kubernetes.client.utils.Serialization
-import io.fabric8.kubernetes.client.{ Config, DefaultKubernetesClient, KubernetesClient }
+import io.fabric8.kubernetes.client.utils.{ KubernetesSerialization, Serialization }
+import io.fabric8.kubernetes.client.{
+  Config,
+  DefaultKubernetesClient,
+  KubernetesClient,
+  KubernetesClientBuilder,
+  NamespacedKubernetesClient
+}
 
 import java.lang.management.ManagementFactory
 import scala.jdk.CollectionConverters._
@@ -43,14 +50,19 @@ object Main {
 
       HealthChecks.serve(settings)
 
-      // TODO: share with the CLI!
-      // This should run before any fabric8 command
-      Serialization.jsonMapper().registerModule(DefaultScalaModule)
+      // fabric8 6.x uses KubernetesSerialization internally (not Serialization.jsonMapper()).
+      // Build a mapper with DefaultScalaModule so Scala collection types (Map, Seq) in
+      // App.Spec deserialise correctly when the operator lists CloudflowApplication CRs.
+      val scalaObjectMapper = new ObjectMapper()
+        .registerModule(DefaultScalaModule)
+        .setSerializationInclusion(Include.NON_ABSENT)
+      val kubernetesSerialization = new KubernetesSerialization(scalaObjectMapper, true)
 
-      // TODO: Needed for Spark?
+      // Keep the old Serialization global mapper in sync for any legacy fabric8 utils.
+      Serialization.jsonMapper().registerModule(DefaultScalaModule)
       Serialization.jsonMapper().setSerializationInclusion(Include.NON_ABSENT)
 
-      val client = connectToKubernetes(settings)
+      val client = connectToKubernetes(settings, kubernetesSerialization)
 
       checkCRD(settings, client)
 
@@ -102,17 +114,21 @@ object Main {
       .getOrElse(List())
   }
 
-  private def connectToKubernetes(settings: Settings)(implicit system: ActorSystem): KubernetesClient = {
+  private def connectToKubernetes(settings: Settings, kubernetesSerialization: KubernetesSerialization)(implicit
+      system: ActorSystem): KubernetesClient = {
     val conf = Config.autoConfigure(null)
-    val client = {
-      settings.controlledNamespace match {
-        case Some(ns) =>
-          system.log.info(s"Connecting to namespace $ns")
-          new DefaultKubernetesClient(conf).inNamespace(ns)
-        case _ =>
-          system.log.info(s"Connecting to all namespaces")
-          new DefaultKubernetesClient(conf).inAnyNamespace()
-      }
+    val base = new KubernetesClientBuilder()
+      .withConfig(conf)
+      .withKubernetesSerialization(kubernetesSerialization)
+      .build()
+      .asInstanceOf[NamespacedKubernetesClient]
+    val client = settings.controlledNamespace match {
+      case Some(ns) =>
+        system.log.info(s"Connecting to namespace $ns")
+        base.inNamespace(ns)
+      case _ =>
+        system.log.info(s"Connecting to all namespaces")
+        base.inAnyNamespace()
     }
     val cluster = Try { s": ${conf.getCurrentContext.getContext.getCluster}" }.getOrElse("")
     system.log.info(s"Connected to Kubernetes cluster $cluster")
