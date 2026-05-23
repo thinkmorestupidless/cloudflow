@@ -36,7 +36,7 @@ object Common extends AutoPlugin {
     scalacOptions ++= List("-feature", "-deprecation"),
     publishTo := {
       if (sys.env.get("GITHUB_TOKEN").exists(_.nonEmpty))
-        Some("GitHub Packages" at "https://maven.pkg.github.com/thinkmorestupidless/cloudflow")
+        Some("GitHub Packages".at("https://maven.pkg.github.com/thinkmorestupidless/cloudflow"))
       else
         sonatypePublishToBundle.value
     },
