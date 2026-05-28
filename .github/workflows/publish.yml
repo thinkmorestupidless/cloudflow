@@ -45,3 +45,44 @@ jobs:
             if [ -n "$NON_409" ]; then echo "$NON_409"; exit 1; fi
             echo "All failures were 409 conflicts — artifacts already published at this version."
           fi
+
+  publish-operator-image:
+    runs-on: ubuntu-22.04
+    needs: publish
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install sbt
+        uses: sbt/setup-sbt@v1
+      - name: Cache SBT
+        uses: coursier/cache-action@v6
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set version
+        working-directory: core
+        run: sbt setVersionFromTag
+        env:
+          VERSION: "0.1.0"
+          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
+      - name: Build and push cloudflow-operator image
+        working-directory: core
+        env:
+          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
+        run: |
+          sbt \
+            -Ddocker.registry=ghcr.io \
+            -Ddocker.username=thinkmorestupidless \
+            cloudflow-operator/docker:publish
