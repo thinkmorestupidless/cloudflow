@@ -1,13 +1,20 @@
-## Deprecated - The Cloudflow project is deprecated 
+## This Fork: Out of Deprecation
 
-```
-If you are an existing customer of Lightbend and we have not contacted, please reach out to support.
-All existing contracts will be honored and assistance with migration to new tools is available.
-```
+Upstream Cloudflow ([lightbend/cloudflow](https://github.com/lightbend/cloudflow)) is deprecated. This fork brings it back to a fully working, current, and actively-used state:
+
+- **Migrated to Scala 3.3.5** across the entire platform (core modules and examples), up from a mixed Scala 2.12/2.13 cross-build.
+- **Dependencies brought current**: fabric8 Kubernetes client 5.0.3 → 6.13.4 (with `kube-actions` vendored into `cloudflow-operator` and ported to the new API, since no fabric8-6.x-compatible release of it exists), plus Jackson, logback, pureConfig, scalaTest, sbt, and sbt plugins all bumped.
+- **JDK 21 and Docker Engine 29 compatible** - sbt, Scala patch versions, and testcontainers upgraded so the build and its container-based tests work on current toolchains.
+- **Real bugs fixed**, not just version bumps - e.g. a text/binary Protobuf schema mismatch that made blueprint verification crash with a raw exception instead of reporting a proper compatibility error.
+- **CI modernised**: GitHub Actions updated to current actions, a JDK 21-only matrix, and per-job timeouts (the previous setup action was hanging jobs indefinitely).
+- **Publishes to GitHub Packages and GHCR** (Maven artifacts and the `cloudflow-operator` Docker image), replacing the unmaintained Sonatype/Docker Hub path.
+- **Verified in a real deployment**, not just its own test suite - run end-to-end (operator and runtime) against a Kubernetes cluster (KinD) and a Docker Compose stack as part of the [eitheror](https://github.com/eitheror) platform, with the full suite (23 streamlets, 89 blueprint, 301 Akka - 413 tests) passing alongside a live smoke test.
+
+See the commit history for full detail on each change, and [`CLAUDE.md`](CLAUDE.md) for build and architecture notes.
+
+---
 
 [![Join the chat at https://cloudflow.zulipchat.com/](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://cloudflow.zulipchat.com/)
-&nbsp;
-![Build status](https://github.com/lightbend/cloudflow/workflows/Build%20and%20Test/badge.svg?branch=main)
 
 <p>
 <img src="logo.svg" width="300">
