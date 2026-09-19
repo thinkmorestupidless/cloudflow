@@ -163,12 +163,19 @@ only in class names.
 
 ## Things that behave differently from what you would assume
 
-- **Streamlet sources decode `record.value` only.** Keys and headers are dropped
-  (`PekkoStreamletContextImpl`), so a streamlet cannot see CloudEvents attributes carried in Kafka
-  headers.
+- **The value sources and sinks drop keys and headers; the record ones keep them.**
+  `sourceWithCommittableContext`, `plainSource`, `committableSink`, `plainSink` carry only the
+  decoded value, and a value sink keys by the outlet's partitioner. `recordSourceWithCommittableContext`,
+  `plainRecordSource`, `committableRecordSink`, `plainRecordSink` carry a `Record[T]` (value, key,
+  headers); a record sink writes the record's own key, falling back to the partitioner only when it
+  has none. A stage that must keep per-key order — or see a CloudEvent's subject and attributes —
+  uses the record API end to end. The value path is unchanged underneath; both share one source
+  implementation per shape (`committableSource`, `plainSourceOf`).
 - **The default outlet partitioner is `RoundRobinPartitioner`**, and a partitioner is `T => String`
-  — it cannot see the inbound key. A round-robin hop destroys per-key ordering at the first stage.
+  — it cannot see the inbound key. A value-only stage between two keyed ones destroys per-key
+  ordering; that is what the record API is for.
 - **`managed = false` on a blueprint topic** stops the operator creating it (`TopicActions`), which
   is how a blueprint consumes a topic Cloudflow does not own.
-
-These three are the gaps `ROADMAP.md` Phase 2 closes.
+- **Only real Kafka proves the wire.** The testkit never serialises headers or chooses partitions;
+  `RecordKafkaSpec` checks keys, header bytes and partition placement with a plain Kafka consumer.
+  New wire behaviour needs a test like it, not only a testkit one.

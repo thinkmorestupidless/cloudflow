@@ -35,13 +35,16 @@ import org.apache.pekko.kafka.scaladsl._
 import org.apache.pekko.stream.scaladsl._
 import cloudflow.pekkostream.internal.{ HealthCheckFiles, StreamletExecutionImpl }
 import com.typesafe.config._
-import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.{ ConsumerConfig, ConsumerRecord }
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.header.{ Header => KafkaHeader }
+import org.apache.kafka.common.header.internals.RecordHeader
 import org.apache.kafka.common.serialization._
 import cloudflow.streamlets._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.{ DurationInt, FiniteDuration }
+import scala.jdk.CollectionConverters._
 
 /** Implementation of the StreamletContext trait.
   */
@@ -111,7 +114,18 @@ final class PekkoStreamletContextImpl(
   }
 
   // internal implementation that uses the CommittableOffset implementation to provide access to the underlying offsets
-  private[pekkostream] def sourceWithContext[T](inlet: CodecInlet[T]): SourceWithContext[T, CommittableOffset, _] = {
+  private[pekkostream] def sourceWithContext[T](inlet: CodecInlet[T]): SourceWithContext[T, CommittableOffset, _] =
+    committableSource(inlet)((_, value) => value)
+
+  override def recordSourceWithCommittableContext[T](
+      inlet: CodecInlet[T]): cloudflow.pekkostream.scaladsl.SourceWithCommittableContext[Record[T]] =
+    committableSource(inlet)(toRecord)
+
+  /** The committable source behind both element shapes: `wrap` turns a Kafka record and its decoded value into the
+    * element the stream carries, so the value-only API pays nothing for keys and headers it never reads.
+    */
+  private def committableSource[T, R](inlet: CodecInlet[T])(
+      wrap: (ConsumerRecord[Array[Byte], Array[Byte]], T) => R): SourceWithContext[R, CommittableOffset, _] = {
     val topic = findTopicForPort(inlet)
     val gId = topic.groupId(streamletDefinition.appId, streamletRef, inlet)
 
@@ -129,14 +143,23 @@ final class PekkoStreamletContextImpl(
         KafkaControls.add(c)
         NotUsed
       }
-      .map(record =>
-        inlet.codec.decode(record.value) match {
-          case Success(value) => Some(value)
-          case Failure(t)     => inlet.errorHandler(record.value, t)
-        })
+      .map(record => decode(inlet, record).map(wrap(record, _)))
       .collect { case Some(v) => v }
       .via(handleTermination)
   }
+
+  private def decode[T](inlet: CodecInlet[T], record: ConsumerRecord[Array[Byte], Array[Byte]]): Option[T] =
+    inlet.codec.decode(record.value) match {
+      case Success(value) => Some(value)
+      case Failure(t)     => inlet.errorHandler(record.value, t)
+    }
+
+  private def toRecord[T](record: ConsumerRecord[Array[Byte], Array[Byte]], value: T): Record[T] =
+    Record(
+      value,
+      Option(record.key).map(new String(_, StandardCharsets.UTF_8)),
+      // Kafka permits a null header value; the Record model has bytes, so null reads as empty.
+      record.headers.toArray.iterator.map(h => Header(h.key, Option(h.value).getOrElse(Array.emptyByteArray))).toList)
 
   override def sourceWithCommittableContext[T](
       inlet: CodecInlet[T]): cloudflow.pekkostream.scaladsl.SourceWithCommittableContext[T] =
@@ -279,7 +302,16 @@ final class PekkoStreamletContextImpl(
       committerSettings: CommitterSettings): Sink[(T, CommittableOffset), NotUsed] =
     Flow[(T, CommittableOffset)].toMat(Committer.sinkWithOffsetContext(committerSettings))(Keep.left)
 
-  def plainSource[T](inlet: CodecInlet[T], resetPosition: ResetPosition = Latest): Source[T, NotUsed] = {
+  def plainSource[T](inlet: CodecInlet[T], resetPosition: ResetPosition = Latest): Source[T, NotUsed] =
+    plainSourceOf(inlet, resetPosition)((_, value) => value)
+
+  override def plainRecordSource[T](
+      inlet: CodecInlet[T],
+      resetPosition: ResetPosition = Latest): Source[Record[T], NotUsed] =
+    plainSourceOf(inlet, resetPosition)(toRecord)
+
+  private def plainSourceOf[T, R](inlet: CodecInlet[T], resetPosition: ResetPosition)(
+      wrap: (ConsumerRecord[Array[Byte], Array[Byte]], T) => R): Source[R, NotUsed] = {
     // TODO clean this up, lot of copying code, refactor.
     val topic = findTopicForPort(inlet)
     val gId = topic.groupId(streamletDefinition.appId, streamletRef, inlet)
@@ -296,11 +328,7 @@ final class PekkoStreamletContextImpl(
         NotUsed
       }
       .via(handleTermination)
-      .map(record =>
-        inlet.codec.decode(record.value) match {
-          case Success(value) => Some(value)
-          case Failure(t)     => inlet.errorHandler(record.value, t)
-        })
+      .map(record => decode(inlet, record).map(wrap(record, _)))
       .collect { case Some(v) => v }
   }
 
@@ -375,6 +403,48 @@ final class PekkoStreamletContextImpl(
       .via(handleTermination)
       .to(Producer.plainSink(producerSettings))
       .mapMaterializedValue(_ => NotUsed)
+  }
+
+  override def committableRecordSink[T](
+      outlet: CodecOutlet[T],
+      committerSettings: CommitterSettings): Sink[(Record[T], Committable), NotUsed] = {
+    val topic = findTopicForPort(outlet)
+    Flow[(Record[T], Committable)]
+      .map { case (record, committable) =>
+        ProducerMessage.Message(recordProducerRecord(outlet, topic, record), committable)
+      }
+      .via(handleTermination)
+      .toMat(Producer.committableSink(producerSettings(topic), committerSettings))(Keep.left)
+  }
+
+  override def plainRecordSink[T](outlet: CodecOutlet[T]): Sink[Record[T], NotUsed] = {
+    val topic = findTopicForPort(outlet)
+    Flow[Record[T]]
+      .map(record => recordProducerRecord(outlet, topic, record))
+      .via(handleTermination)
+      .to(Producer.plainSink(producerSettings(topic)))
+      .mapMaterializedValue(_ => NotUsed)
+  }
+
+  private def producerSettings(topic: Topic): ProducerSettings[Array[Byte], Array[Byte]] =
+    ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
+      .withBootstrapServers(runtimeBootstrapServers(topic))
+      .withProperties(topic.kafkaProducerProperties)
+
+  /** The record's own key, or the outlet's partitioner when it has none, and its headers in order. */
+  private def recordProducerRecord[T](
+      outlet: CodecOutlet[T],
+      topic: Topic,
+      record: Record[T]): ProducerRecord[Array[Byte], Array[Byte]] = {
+    val key = record.key.getOrElse(outlet.partitioner(record.value))
+    val headers: java.lang.Iterable[KafkaHeader] =
+      record.headers.map(h => new RecordHeader(h.key, h.value): KafkaHeader).asJava
+    new ProducerRecord[Array[Byte], Array[Byte]](
+      topic.name,
+      null, // partition: let the producer choose it from the key
+      keyBytes(key),
+      outlet.codec.encode(record.value),
+      headers)
   }
 
   def sinkRef[T](outlet: CodecOutlet[T]): WritableSinkRef[T] = {

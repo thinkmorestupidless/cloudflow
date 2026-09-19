@@ -136,16 +136,21 @@ These come straight from the design: nakka publishes CloudEvents to Kafka with t
 **headers** and `ce-subject` as the **record key**; the graph sink must be idempotent, keep
 per-entity order, and be rebuildable.
 
-- [ ] **Record metadata on inlets.** Today every source decodes `record.value` alone
-      (`PekkoStreamletContextImpl`); keys and headers are dropped, so a streamlet cannot see
-      `ce-type` or `ce-subject`. Add a metadata-carrying source — e.g.
-      `sourceWithCommittableContext` yielding `Record[T](key, headers, value, partition, offset)` —
-      and the same in the testkit.
-- [ ] **Key-preserving outlets and header propagation.** The default partitioner is
-      `RoundRobinPartitioner` (`StreamletPort.scala`, `ExternalOutlet.scala`), and a partitioner is
-      `T => String` — it cannot see the inbound key. A round-robin hop destroys per-entity order on
-      the first stage. Make it possible (ideally the default for `Record`-based flows) to emit with
-      the upstream key and headers intact.
+- [x] **Record metadata on inlets, and key-preserving outlets** (branch `phase-2-record-metadata`).
+      `Record[T](value, key: Option[String], headers)` and `Header` in `cloudflow-streamlets`; four
+      logic methods with Java variants — `recordSourceWithCommittableContext`, `plainRecordSource`,
+      `committableRecordSink`, `plainRecordSink`. A record sink writes the record's own key and its
+      headers in order, falling back to the outlet's partitioner only for a record with no key, so a
+      stage that reads records and writes them on keeps every entity on one partition without anyone
+      writing a partitioner. The value API is untouched. Testkit: `inletAsRecordTap`,
+      `inletFromRecordSource`, `outletAsRecordTap`.
+      Verified against real Kafka (`RecordKafkaSpec`): 50 records over 10 keys, CloudEvents-style and
+      binary headers, through a relay streamlet; a plain Kafka consumer finds every key and header
+      byte intact, header order kept, each key on one partition in order. Replacing the relay's record
+      API with the value API fails the test.
+- [ ] **Record variants still missing**: the sharded sources (`shardedSourceWithCommittableContext`,
+      `shardedPlainSource`), `flexiFlow`, `sinkRef`, and record taps in the *Java* testkit. None is
+      needed by the graph pipelines as planned; add each when something is.
 - [ ] **A JSON codec** (`cloudflow-json`, jsoniter-scala, to match nakka) next to the Avro and
       Protobuf ones, including whatever schema definition blueprint verification needs to check
       inlet/outlet compatibility.
