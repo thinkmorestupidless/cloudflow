@@ -43,6 +43,13 @@ sbt +publishLocal cloudflow-sbt-plugin/scripted   # the sbt plugin's end-to-end 
 ./scripts/build-sbt-examples.sh test  # publishLocal, then build every sbt example against it
 ```
 
+The scripted tests and the examples are separate, nested sbt builds: they read the token only from
+the **exported** `LIGHTBEND_COMMERCIAL_TOKEN`, not from `core/.lightbend-token`, and without it they
+fail to resolve Akka — which reads like a broken build and is not. The examples script also runs
+`scalafmtAll` before checking, rewriting example sources in place; revert them afterwards. On
+Apple silicon most scripted tests fail building an image, because the default streamlet base
+image (`adoptopenjdk/openjdk8:alpine`) has no arm64 build (see `ROADMAP.md`).
+
 `scalafmtOnCompile` is on in most modules, so compiling reformats. Copyright headers are enforced by
 `sbt-header` (`project/CopyrightHeader.scala`); a missing or malformed header fails the build.
 
