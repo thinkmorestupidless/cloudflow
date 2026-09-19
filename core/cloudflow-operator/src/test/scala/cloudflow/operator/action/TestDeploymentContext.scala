@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters._
 trait TestDeploymentContext {
   implicit val ctx: DeploymentContext =
     DeploymentContext(
-      akkaRunnerDefaults = AkkaRunnerDefaults(
+      pekkoRunnerDefaults = PekkoRunnerDefaults(
         resourceConstraints = ResourceConstraints(
           cpuRequests = Quantity.parse("100m"),
           memoryRequests = Quantity.parse("128m"),
@@ -33,7 +33,7 @@ trait TestDeploymentContext {
         javaOptions = "-Xmx1024"),
       podName = "cloudflow-operator",
       podNamespace = "cloudflow")
-  val runners = Map(AkkaRunner.Runtime -> new AkkaRunner(ctx.akkaRunnerDefaults))
+  val runners = Map(PekkoRunner.Runtime -> new PekkoRunner(ctx.pekkoRunnerDefaults))
 
   def getSecret(content: String) = {
     new SecretBuilder()

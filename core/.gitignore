@@ -28,4 +28,4 @@ cloudflow-it/generated-spark-values.yaml
 
 # Local development credentials — never commit these
 .lightbend-token
-.akka-license-key
+.pekko-license-key

@@ -16,13 +16,13 @@
 //tag::code[]
 package sensordata
 
-import akka.stream.scaladsl._
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
+import org.apache.pekko.stream.scaladsl._
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
 import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 
-class SensorDataToMetrics extends AkkaStreamlet {
+class SensorDataToMetrics extends PekkoStreamlet {
   val in: CodecInlet[SensorData]     = AvroInlet[SensorData]("in")
   val out: CodecOutlet[Metric]       = AvroOutlet[Metric]("out").withPartitioner(RoundRobinPartitioner)
   override val shape: StreamletShape = StreamletShape(in, out)
@@ -35,7 +35,7 @@ class SensorDataToMetrics extends AkkaStreamlet {
           Metric(data.deviceId, data.timestamp, "windSpeed", data.measurements.windSpeed)
         )
       }
-  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+  override def createLogic: PekkoStreamletLogic = new RunnableGraphStreamletLogic() {
     override def runnableGraph: RunnableGraph[_] = sourceWithCommittableContext(in).via(flow).to(committableSink(out))
   }
 }

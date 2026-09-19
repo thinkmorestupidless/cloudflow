@@ -48,7 +48,7 @@ Decisions are collected at the end; the ones taken are recorded there with their
       | `scalafmtCheckAll` | passes |
       | `sbt +test` | **all green** — 822 tests (`cloudflow-akka` 301; `cloudflow-blueprint` 89 on each of 2.12, 2.13, 3; the rest across the other modules) |
       | `+publishLocal cloudflow-sbt-plugin/scripted` | **1 of 7 pass** (`app-graph-generation`). The other six fail building an image: the default streamlet base image `adoptopenjdk/openjdk8:alpine` (`CloudflowBasePlugin.scala:66`; `openjdk11:alpine` in the `base-image` test) has no arm64 manifest. Environmental on Apple silicon; CI runs amd64 and has not been checked. |
-      | `scripts/build-sbt-examples.sh test` | passes — every example builds, tests and verifies its blueprint |
+      | `scripts/build-sbt-examples.sh test` | **recorded as passing, which was wrong** — the script reported only the last example's result. `sensor-data-scala` was failing (Scala 3: implicit vals need explicit types), locally and in CI. Found and fixed in Phase 1 (`f2901ac7`, `5b1d49bb`). |
 
       Two things that look like failures and are not: the scripted tests and examples need
       `LIGHTBEND_COMMERCIAL_TOKEN` *exported* — `core/.lightbend-token` is read only by the core
@@ -73,63 +73,62 @@ Decisions are collected at the end; the ones taken are recorded there with their
 - [ ] **Upgrade the Prometheus JMX agent** fetched into every streamlet image —
       `jmx_prometheus_javaagent` 0.11.0, from 2018. It works on Java 25 (verified: the agent serves
       JVM metrics) but warns that `sun.misc.Unsafe` methods it calls will be removed in a future JDK.
-- [ ] **Align the operator's image**, still `eclipse-temurin:11-jre-focal`, with Java 25 — after the
-      Pekko port, since the operator should first run on the runtime it will ship with.
+- [ ] **Align the operator's image**, still `eclipse-temurin:11-jre-focal`, with Java 25 — tracked
+      under Phase 1's follow-ups now that the port is done.
 
-## Phase 1 — Port to Apache Pekko
+## Phase 1 — Port to Apache Pekko ✅
 
-### Dependencies
+Done on branch `phase-1-pekko`, in five commits:
 
-| Akka artefact (now) | Pekko replacement |
+| Commit | What |
 |---|---|
-| `akka-actor`, `-stream`, `-cluster`, `-cluster-sharding-typed`, `-discovery`, `-slf4j`, `-protobuf`, testkits (2.10.16) | `pekko-*` 1.x |
-| `akka-http`, `akka-http-spray-json` (10.7.3) | `pekko-http` 1.x |
-| `akka-stream-kafka`, `-cluster-sharding`, `-testkit` (Alpakka Kafka 8.0.0) | `pekko-connectors-kafka` 1.x |
-| `akka-grpc-runtime` (2.5.10) | `pekko-grpc` 1.x |
-| `akka-management`, `-cluster-bootstrap`, `akka-discovery-kubernetes-api` (1.6.4) | `pekko-management` 1.x |
+| `27821f38` | Dependencies and licensing: Pekko 1.7.0 / pekko-http 1.4.0 / pekko-connectors-kafka 1.2.0 / pekko-grpc 1.2.0 / pekko-management 1.2.1 (nakka's line); library packages and HOCON |
+| `bad80824` | Cloudflow's own `akka.*` packages → `cloudflow.cli`, `cloudflow.crd`, `cloudflow.kube`, `cloudflow.config` |
+| `6815ec71` | User-facing API and wire-level names → Pekko (the commit message lists every renamed name) |
+| `f2901ac7` | `build-sbt-examples.sh` fails when any example fails |
+| `5b1d49bb` | Examples and docs include paths |
 
-- [ ] **Risk to check first: `kafka-clients` 4.1.0.** The fork moved to Kafka 4 clients alongside
-      Alpakka Kafka 8. Confirm which `kafka-clients` the current `pekko-connectors-kafka` is built
-      and tested against before committing to it; if it is 3.x, either pin 3.x or verify 4.x at
-      runtime.
-- [ ] **Audit for Akka 2.7–2.10 APIs.** Pekko 1.x descends from Akka 2.6. The fork has lived on
-      2.10, so anything added since 2.6 will not exist; the compiler will find them, but budget
-      for it.
-- [ ] Mirror nakka's trap: pekko-management pulls an older `pekko-http`, and eviction lifts only
-      part of the family — pin the whole `pekko-http` family with `dependencyOverrides`.
-- [ ] Remove `project/LightbendCredentials.scala`, the commercial resolvers in `build.sbt` and
-      `CloudflowBasePlugin.scala`, and the `AKKA_LICENSE_KEY` injection (`9ec0ff8c`).
+- [x] **`kafka-clients`**: pinned to **3.9.2**, what pekko-connectors-kafka 1.2.0 is built and tested
+      against (it had been 4.1.0 with Alpakka Kafka 8). Kafka 4 brokers accept 3.9 clients.
+- [x] **Akka 2.7–2.10 APIs**: the only one in use was a rename, `AkkaManagement` → `PekkoManagement`.
+- [x] **Pekko families pinned whole** (`Dependencies.pekkoFamilyOverrides`, build-wide):
+      pekko-connectors-kafka 1.2.0 brings pekko-stream 1.1.5, pekko-management an older pekko-http.
+      The runtime classpath has one version per family and no Akka jar.
+- [x] **Licensing gone**: Lightbend resolvers and token (build, sbt plugin, workflows, examples),
+      the licence key for forked JVMs, and the operator's `AKKA_LICENSE_KEY` env var.
+- [x] **Mechanical rename** of library imports and config. One silent bug caught in review, not by any
+      test: HOCON inside a Scala string (`pekko.discovery.kubernetes-api.pod-label-selector`) had been
+      rewritten as a package name, which Pekko would have ignored.
+- [x] **Cloudflow's own `akka.*` packages** moved, with the CLI's GraalVM configs; dead
+      `akka.cli.microservice.*` reflect entries dropped.
+- [x] **User-facing API renamed to Pekko**, including the runtime identifier and every wire-level name.
+- [ ] **DECISION — the CRD group `cloudflow.lightbend.com`.** Kept. Changing it orphans every existing
+      resource on every cluster.
+- [x] **Examples and doc include paths** ported; the docs build resolves every page.
+- [x] **Images**: streamlet images run `/opt/pekko-entrypoint.sh` on Java 25 with Pekko jars only; the
+      operator image starts its Pekko ActorSystem and HTTP server and fails only at the Kubernetes
+      API, as it should without a cluster. Deploying it is Phase 3.
 
-### Code
+Verified at the end: `sbt +test` all green (822), scripted 7/7, 12/12 sbt examples, the Maven example,
+the docs build — with no Lightbend token anywhere.
 
-About 90 source files import real Akka library packages (streams and Kafka dominate:
-`akka.stream.scaladsl` ×34, `akka.kafka.ConsumerMessage` ×15, `akka.actor` ×13).
+### Follow-ups from the port
 
-- [ ] Mechanical rename `akka.` → `org.apache.pekko.` in library imports, and `akka { }` →
-      `pekko { }` in every HOCON file the runner, operator and testkit ship.
-- [ ] **Cloudflow's *own* code under `akka.*` packages** — `akka.cli.cloudflow` (36 files),
-      `akka.datap.crd`, `akka.kube.actions`, `akka.cloudflow.config`. These are not Akka at all;
-      after the port they would be misleading. Move to `cloudflow.cli`, `cloudflow.crd`,
-      `cloudflow.kube.actions`, `cloudflow.config`.
-- [ ] **Rename the user-facing API to Pekko** (decided): `cloudflow-akka` → `cloudflow-pekko`,
-      `cloudflow-akka-testkit`, `cloudflow-akka-util`, `cloudflow-akka-tests` likewise; the
-      `cloudflow.akkastream` package → `cloudflow.pekkostream`; `AkkaStreamlet`,
-      `AkkaServerStreamlet`, `AkkaStreamletLogic`, `AkkaRunner` and the rest → `Pekko*`; the sbt
-      plugin's `CloudflowAkkaPlugin` → `CloudflowPekkoPlugin`; and the runtime identifier `"akka"`
-      (`AkkaRunner.Runtime`, carried in every application descriptor) → `"pekko"`. This breaks
-      existing streamlets and deployed `CloudflowApplication`s, which is acceptable because existing
-      consumers stay on the frozen Akka line.
-- [ ] **DECISION — the CRD group `cloudflow.lightbend.com`.** Changing it orphans every existing
-      resource on every cluster. Probably keep it for now and revisit.
-- [ ] Port the examples, docs (`docs/docs-source`), the maven plugin and archetype, and the
-      integration test projects (`cloudflow-it`, `cloudflow-new-it`).
-- [ ] Operator and runner images build and deploy on kind with no licence secret present.
+- [ ] **The docs' prose** still describes Akka streamlets, `AkkaStreamlet`, `CloudflowAkkaPlugin` and
+      so on. Upstream's site content; needs a real rewrite rather than a find-and-replace, because some
+      of its "Akka" is correct history (doc.akka.io links, release notes).
+- [ ] **Align the operator image** with Java 25 (see Phase 0) — nothing blocks it now.
+- [ ] Two doc includes point at Avro schemas that do not exist (`Measurements.avsc`,
+      `InvalidMetric.avsc` in `sensor-data-scala`); broken before the port.
+- [ ] Test sources in several modules have no copyright header, so `headerCheckAll` fails; CI runs only
+      `headerCheck` (main sources). Broken before the port.
 
 ### Consumers of the fork
 
 - [ ] **Existing consumers stay on Akka for now** (decided). They keep consuming the frozen `0.1.0`
       Akka artefacts and operator image; migrating them to the Pekko line is a later, separate piece
-      of work. Nothing on `master` may overwrite what they pull (see Phase 0).
+      of work. Nothing on `master` may overwrite what they pull (see Phase 0). The migration is the
+      list of renamed names in `6815ec71`.
 
 ## Phase 2 — What the graph pipelines need from Cloudflow
 
@@ -138,7 +137,7 @@ These come straight from the design: nakka publishes CloudEvents to Kafka with t
 per-entity order, and be rebuildable.
 
 - [ ] **Record metadata on inlets.** Today every source decodes `record.value` alone
-      (`AkkaStreamletContextImpl`); keys and headers are dropped, so a streamlet cannot see
+      (`PekkoStreamletContextImpl`); keys and headers are dropped, so a streamlet cannot see
       `ce-type` or `ce-subject`. Add a metadata-carrying source — e.g.
       `sourceWithCommittableContext` yielding `Record[T](key, headers, value, partition, offset)` —
       and the same in the testkit.

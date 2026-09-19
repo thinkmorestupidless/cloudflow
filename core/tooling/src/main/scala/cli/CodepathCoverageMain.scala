@@ -6,9 +6,9 @@ package cli
 
 import java.io.{ File, FileInputStream }
 import scala.annotation.nowarn
-import akka.cli.cloudflow._
-import akka.cli.cloudflow.commands
-import akka.cli.cloudflow.commands.{ format, Command }
+import cloudflow.cli._
+import cloudflow.cli.commands
+import cloudflow.cli.commands.{ format, Command }
 import io.fabric8.kubernetes.api.model.{ NamespaceBuilder, ObjectMetaBuilder }
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.utils.Serialization
@@ -120,14 +120,14 @@ object CodepathCoverageMain extends App {
     commands
       .UpdateCredentials(cloudflowApp = "swiss-knife", dockerRegistry = "example2.io", username = "u", password = "p"))
 
-  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("akka-process" -> 5)))
-  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("akka-process" -> 2)))
+  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("pekko-process" -> 5)))
+  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("pekko-process" -> 2)))
 
   cli.run(
     commands.Configure(
       cloudflowApp = "swiss-knife",
       configKeys =
-        Map("cloudflow.streamlets.akka-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "cloudflow-spark")))
+        Map("cloudflow.streamlets.pekko-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "cloudflow-spark")))
 
   printingCli.run(commands.Configuration(cloudflowApp = "swiss-knife"))
   val conf = cli.run(commands.Configuration(cloudflowApp = "swiss-knife"))

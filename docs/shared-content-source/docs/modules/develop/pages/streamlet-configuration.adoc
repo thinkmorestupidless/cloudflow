@@ -30,14 +30,14 @@ The following section will break down how we can use an `Integer` configuration 
 
 [source,scala]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/RecordSumFlow.scala[tag=all]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/RecordSumFlow.scala[tag=all]
 --
 
 As seen in the example below, we first need to create an instance of `IntegerConfigParameter`.
 
 [source,scala]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/RecordSumFlow.scala[tag=definition]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/RecordSumFlow.scala[tag=definition]
 --
 
 The arguments provided to `IntegerConfigParameter()` are the following:
@@ -50,7 +50,7 @@ After the configuration parameter is defined, we can use it to extract its value
 
 [source,scala]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/RecordSumFlow.scala[tag=usage]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/RecordSumFlow.scala[tag=usage]
 --
 
 Note that its up to the developer to use the correct config method to extract the value of the parameter. Since the type being used here is `IntegerConfigParameter` the config method used is `getInt`.
@@ -63,7 +63,7 @@ For example, if we want to validate a 24 hour timestamp, this is how it could be
 
 [source,scala]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/ConfigCustomValidation.scala[tag=definition]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/ConfigCustomValidation.scala[tag=definition]
 --
 
 == Providing values for configuration parameters when testing streamlets
@@ -74,14 +74,14 @@ If we want to write a test for the example streamlet `RecordSumFlow`, we could a
 
 [source,scala]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/test/scala/com/example/SampleSpec.scala[tag=config-value]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/test/scala/com/example/SampleSpec.scala[tag=config-value]
 --
 
 The Java API is slightly different as you can see in the example below:
 
 [source,java]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-java/src/test/java/com/example/SampleTest.java[tag=config-value]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-java/src/test/java/com/example/SampleTest.java[tag=config-value]
 --
 
 == Using configuration parameters in Java
@@ -92,14 +92,14 @@ Creating an instance of a `StringConfigParameter` in Java:
 
 [source,java]
 --
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-java/src/main/java/cloudflow/akkastreamsdoc/FilterStreamlet.java[tag=definition]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-java/src/main/java/cloudflow/pekkostreamsdoc/FilterStreamlet.java[tag=definition]
 --
 
 Example of accessing the value of a configuration parameter in Java:
 
 [source,java]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-java/src/main/java/cloudflow/akkastreamsdoc/FilterStreamlet.java[tag=usage]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-java/src/main/java/cloudflow/pekkostreamsdoc/FilterStreamlet.java[tag=usage]
 ----
 
 

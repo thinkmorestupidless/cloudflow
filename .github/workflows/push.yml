@@ -45,13 +45,10 @@ jobs:
       uses: coursier/cache-action@v6
 
     - name: Scalafmt check
-      env:
-        LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
       run: cd core && sbt "scalafmtCheckAll; scalafmtSbtCheck"
 
     - name: build-and-test
       env:
-        LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
         SBT_OPTS: -Xms512M -Xmx2048M -Xss2M -XX:MaxMetaspaceSize=1024M
       run: ./scripts/build-core.sh +test
 
@@ -78,8 +75,6 @@ jobs:
       uses: coursier/cache-action@v6
 
     - name: test-sbt-examples
-      env:
-        LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
       run: ./scripts/build-sbt-examples.sh test
 
   build-and-test-mvn-examples:
@@ -105,7 +100,5 @@ jobs:
       uses: coursier/cache-action@v6
 
     - name: test-maven-examples
-      env:
-        LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
       run: ./scripts/build-mvn-examples.sh test
 

@@ -20,15 +20,15 @@ import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 
 // classes used in this particular example
-import akka.NotUsed
-import akka.stream.scaladsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.stream.scaladsl._
 import scala.util.Random
 import scala.concurrent.duration._
 
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
 
-class DataInput extends AkkaStreamlet {
+class DataInput extends PekkoStreamlet {
 
   // declare inputs and outputs
   // outputs may declare a partitioner

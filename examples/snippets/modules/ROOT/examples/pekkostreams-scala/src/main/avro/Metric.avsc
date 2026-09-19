@@ -1,0 +1,12 @@
+{
+    "namespace": "cloudflow.pekkostreamsdoc",
+    "type": "record",
+    "name": "Metric",
+    "fields":[
+         {
+              "name": "value",
+              "type": "string"
+         }
+    ]
+}
+

@@ -1,396 +1,324 @@
 [
 {
-  "name":"akka.cli.cloudflow.ListResult",
+  "name":"cloudflow.cli.ListResult",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.ListResult$",
+  "name":"cloudflow.cli.ListResult$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.Result",
+  "name":"cloudflow.cli.Result",
   "allDeclaredMethods":true
 },
 {
-  "name":"akka.cli.cloudflow.StatusResult",
+  "name":"cloudflow.cli.StatusResult",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.StatusResult$",
+  "name":"cloudflow.cli.StatusResult$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.VersionResult",
+  "name":"cloudflow.cli.VersionResult",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.VersionResult$",
+  "name":"cloudflow.cli.VersionResult$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.kubeclient.KubeClientFabric8$DockerConfig",
+  "name":"cloudflow.cli.kubeclient.KubeClientFabric8$DockerConfig",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.kubeclient.KubeClientFabric8$DockerConfig$",
+  "name":"cloudflow.cli.kubeclient.KubeClientFabric8$DockerConfig$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.kubeclient.KubeClientFabric8$DockerConfigEntry",
+  "name":"cloudflow.cli.kubeclient.KubeClientFabric8$DockerConfigEntry",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.kubeclient.KubeClientFabric8$DockerConfigEntry$",
+  "name":"cloudflow.cli.kubeclient.KubeClientFabric8$DockerConfigEntry$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.models$ApplicationStatus",
+  "name":"cloudflow.cli.models$ApplicationStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.models$ApplicationStatus$",
+  "name":"cloudflow.cli.models$ApplicationStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.models$CRSummary",
+  "name":"cloudflow.cli.models$CRSummary",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.models$CRSummary$",
+  "name":"cloudflow.cli.models$CRSummary$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.models$ContainersReady",
+  "name":"cloudflow.cli.models$ContainersReady",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.models$ContainersReady$",
+  "name":"cloudflow.cli.models$ContainersReady$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.models$PodStatus",
+  "name":"cloudflow.cli.models$PodStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.models$PodStatus$",
+  "name":"cloudflow.cli.models$PodStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.cloudflow.models$StreamletStatus",
+  "name":"cloudflow.cli.models$StreamletStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.cloudflow.models$StreamletStatus$",
+  "name":"cloudflow.cli.models$StreamletStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.microservice.AkkaClusterStatus",
+  "name":"cloudflow.crd.App$AppStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.microservice.AkkaClusterStatus$",
+  "name":"cloudflow.crd.App$AppStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.microservice.AkkaMicroservice",
+  "name":"cloudflow.crd.App$Attribute",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.microservice.AkkaMicroservice$",
+  "name":"cloudflow.crd.App$Attribute$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.microservice.AkkaMicroserviceSpec",
+  "name":"cloudflow.crd.App$ConfigParameterDescriptor",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.microservice.AkkaMicroserviceSpec$",
+  "name":"cloudflow.crd.App$ConfigParameterDescriptor$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.microservice.AkkaMicroserviceStatus",
+  "name":"cloudflow.crd.App$Cr",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.microservice.AkkaMicroserviceStatus$",
+  "name":"cloudflow.crd.App$Cr$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.microservice.LogbackSecret",
+  "name":"cloudflow.crd.App$Deployment",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.microservice.LogbackSecret$",
+  "name":"cloudflow.crd.App$Deployment$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.cli.microservice.SecretVolume",
+  "name":"cloudflow.crd.App$Descriptor",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.cli.microservice.SecretVolume$",
+  "name":"cloudflow.crd.App$Descriptor$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$AppStatus",
+  "name":"cloudflow.crd.App$Endpoint",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$AppStatus$",
+  "name":"cloudflow.crd.App$Endpoint$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$Attribute",
+  "name":"cloudflow.crd.App$EndpointStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$Attribute$",
+  "name":"cloudflow.crd.App$EndpointStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$ConfigParameterDescriptor",
+  "name":"cloudflow.crd.App$InOutlet",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$ConfigParameterDescriptor$",
+  "name":"cloudflow.crd.App$InOutlet$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$Cr",
+  "name":"cloudflow.crd.App$InOutletSchema",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$Cr$",
+  "name":"cloudflow.crd.App$InOutletSchema$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$Deployment",
+  "name":"cloudflow.crd.App$List",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$Deployment$",
+  "name":"cloudflow.crd.App$PodStatus",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"cloudflow.crd.App$PodStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$Descriptor",
+  "name":"cloudflow.crd.App$PortMapping",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$Descriptor$",
+  "name":"cloudflow.crd.App$PortMapping$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$Endpoint",
+  "name":"cloudflow.crd.App$Spec",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$Endpoint$",
+  "name":"cloudflow.crd.App$Spec$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$EndpointStatus",
+  "name":"cloudflow.crd.App$Streamlet",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$EndpointStatus$",
+  "name":"cloudflow.crd.App$Streamlet$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$InOutlet",
+  "name":"cloudflow.crd.App$StreamletStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$InOutlet$",
+  "name":"cloudflow.crd.App$StreamletStatus$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },
 {
-  "name":"akka.datap.crd.App$InOutletSchema",
+  "name":"cloudflow.crd.App$VolumeMountDescriptor",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true,
   "allPublicConstructors":true
 },
 {
-  "name":"akka.datap.crd.App$InOutletSchema$",
-  "allPublicMethods":true,
-  "fields":[{"name":"MODULE$"}]
-},
-{
-  "name":"akka.datap.crd.App$List",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$PodStatus",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$PodStatus$",
-  "allPublicMethods":true,
-  "fields":[{"name":"MODULE$"}]
-},
-{
-  "name":"akka.datap.crd.App$PortMapping",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$PortMapping$",
-  "allPublicMethods":true,
-  "fields":[{"name":"MODULE$"}]
-},
-{
-  "name":"akka.datap.crd.App$Spec",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$Spec$",
-  "allPublicMethods":true,
-  "fields":[{"name":"MODULE$"}]
-},
-{
-  "name":"akka.datap.crd.App$Streamlet",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$Streamlet$",
-  "allPublicMethods":true,
-  "fields":[{"name":"MODULE$"}]
-},
-{
-  "name":"akka.datap.crd.App$StreamletStatus",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$StreamletStatus$",
-  "allPublicMethods":true,
-  "fields":[{"name":"MODULE$"}]
-},
-{
-  "name":"akka.datap.crd.App$VolumeMountDescriptor",
-  "allDeclaredFields":true,
-  "allDeclaredMethods":true,
-  "allDeclaredConstructors":true,
-  "allPublicConstructors":true
-},
-{
-  "name":"akka.datap.crd.App$VolumeMountDescriptor$",
+  "name":"cloudflow.crd.App$VolumeMountDescriptor$",
   "allPublicMethods":true,
   "fields":[{"name":"MODULE$"}]
 },

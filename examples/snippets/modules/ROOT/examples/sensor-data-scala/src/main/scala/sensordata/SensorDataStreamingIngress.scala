@@ -16,19 +16,19 @@
 
 package sensordata
 
-import akka.http.scaladsl.common.EntityStreamingSupport
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import org.apache.pekko.http.scaladsl.common.EntityStreamingSupport
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
 import SensorDataJsonSupport._
-import cloudflow.akkastream._
-import cloudflow.akkastream.util.scaladsl._
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.util.scaladsl._
 import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 
-class SensorDataStreamingIngress extends AkkaServerStreamlet {
-  val out: CodecOutlet[SensorData]     = AvroOutlet[SensorData]("out", RoundRobinPartitioner)
+class SensorDataStreamingIngress extends PekkoServerStreamlet {
+  val out: CodecOutlet[SensorData]   = AvroOutlet[SensorData]("out", RoundRobinPartitioner)
   override def shape: StreamletShape = StreamletShape.withOutlets(out)
 
   implicit val entityStreamingSupport: EntityStreamingSupport = EntityStreamingSupport.json()
-  override def createLogic: AkkaStreamletLogic                = HttpServerLogic.defaultStreaming(this, out)
+  override def createLogic: PekkoStreamletLogic               = HttpServerLogic.defaultStreaming(this, out)
 }

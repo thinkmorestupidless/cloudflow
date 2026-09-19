@@ -48,7 +48,7 @@ We add the Cloudflow plugin to our application by creating a `cloudflow-plugins.
 
 [source, scala]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/project/cloudflow-plugins.sbt[]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/project/cloudflow-plugins.sbt[]
 ----
 <1> Adds the `sbt-cloudflow` plugin with a given version to the build definition.
 
@@ -108,7 +108,7 @@ Let's explore how to declare a Cloudflow application in a build definition with 
 .Single Runtime Setup
 [source, scala]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/build.sbt[tag=docs-projectSetup-example]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/build.sbt[tag=docs-projectSetup-example]
 ----
 <1> use `enablePlugins` to activate the Cloudflow plugins for this project.
 

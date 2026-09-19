@@ -16,8 +16,8 @@
 
 package cloudflow.operator.action
 
-import akka.datap.crd.App
-import akka.kube.actions.Action
+import cloudflow.crd.App
+import cloudflow.kube.actions.Action
 import cloudflow.operator.action.runner.Runner
 import io.fabric8.kubernetes.api.model.OwnerReference
 

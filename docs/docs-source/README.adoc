@@ -140,7 +140,7 @@ As a general rule, limit the number of projects at this location: one project pe
 For a file at `examples/snippets/modules/ROOT/examples/akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/RecordSumFlow.scala`, the following statement is used to include the whole file:
 
 ```
- include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/RecordSumFlow.scala[]
+ include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/RecordSumFlow.scala[]
 ```
 
 In most case, including the complete file is not optimal. It is better to include only section of it. To do this, use tags.
@@ -160,7 +160,7 @@ object RecordSumFlow extends AkkaStreamlet {
 
 the relevant part is added using:
 ```
- include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/RecordSumFlow.scala[tag=definition]
+ include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/RecordSumFlow.scala[tag=definition]
 ```
 
 Antora has a good support for the tags:

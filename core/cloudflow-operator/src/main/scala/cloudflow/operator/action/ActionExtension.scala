@@ -16,7 +16,7 @@
 
 package cloudflow.operator.action
 
-import akka.kube.actions.Action
+import cloudflow.kube.actions.Action
 import io.fabric8.kubernetes.api.model.{ Secret, SecretList }
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.{ MixedOperation, Resource }

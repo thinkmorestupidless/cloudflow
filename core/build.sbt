@@ -5,7 +5,7 @@ Global / cancelable := true
 // `-` rather than dynver's default `+`, which a Docker image tag cannot contain.
 ThisBuild / dynverSeparator := "-"
 
-ThisBuild / resolvers ++= LightbendCredentials.lightbendResolvers
+ThisBuild / dependencyOverrides ++= Dependencies.pekkoFamilyOverrides
 
 ThisBuild / credentials += Credentials(
   "GitHub Package Registry",
@@ -38,7 +38,7 @@ lazy val cloudflowCli =
     .settings(name := "kubectl-cloudflow")
     .settings(
       scalaVersion := Dependencies.Scala3,
-      Compile / mainClass := Some("akka.cli.cloudflow.Main"),
+      Compile / mainClass := Some("cloudflow.cli.Main"),
       Compile / discoveredMainClasses := Seq(),
       run / fork := true,
       getMuslBundle := {
@@ -71,8 +71,8 @@ lazy val cloudflowCli =
         // TODO: possibly to be removed
         "--allow-incomplete-classpath",
         "--initialize-at-run-time" + Seq(
-          "akka.cloudflow.config.CloudflowConfig$",
-          "akka.cloudflow.config.UnsafeCloudflowConfigLoader$",
+          "cloudflow.config.CloudflowConfig$",
+          "cloudflow.config.UnsafeCloudflowConfigLoader$",
           "com.typesafe.config.impl.ConfigImpl",
           "com.typesafe.config.impl.ConfigImpl$EnvVariablesHolder",
           "com.typesafe.config.impl.ConfigImpl$SystemPropertiesHolder",
@@ -255,8 +255,7 @@ lazy val cloudflowOperator =
       dockerUsername := sys.props.get("docker.username"),
       dockerRepository := sys.props.get("docker.registry"),
       dockerBaseImage := "eclipse-temurin:11-jre-focal")
-    .settings(
-      dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0", "com.typesafe.akka" %% "akka-pki" % "2.10.16"))
+    .settings(dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0"))
     .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat)
 
 // cloudflow-extractor, cloudflow-build-support, cloudflow-cr-generator, and
@@ -313,40 +312,40 @@ lazy val cloudflowStreamlets =
     .settings(Dependencies.cloudflowStreamlet)
     .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
-lazy val cloudflowAkka =
-  Project(id = "cloudflow-akka", base = file("cloudflow-akka"))
+lazy val cloudflowPekko =
+  Project(id = "cloudflow-pekko", base = file("cloudflow-pekko"))
     .enablePlugins(GenJavadocPlugin, JavaFormatterPlugin, ScalafmtPlugin)
     .dependsOn(cloudflowStreamlets)
-    .settings(Dependencies.cloudflowAkka)
+    .settings(Dependencies.cloudflowPekko)
     .settings(scalaVersion := Dependencies.Scala3, javacOptions += "-Xlint:deprecation", scalafmtOnCompile := true)
 
-lazy val cloudflowAkkaTestkit =
-  Project(id = "cloudflow-akka-testkit", base = file("cloudflow-akka-testkit"))
+lazy val cloudflowPekkoTestkit =
+  Project(id = "cloudflow-pekko-testkit", base = file("cloudflow-pekko-testkit"))
     .enablePlugins(GenJavadocPlugin, JavaFormatterPlugin, ScalafmtPlugin)
-    .dependsOn(cloudflowAkka, (cloudflowAvro % "test->test").classpathDependency)
-    .settings(Dependencies.cloudflowAkkaTestkit)
+    .dependsOn(cloudflowPekko, (cloudflowAvro % "test->test").classpathDependency)
+    .settings(Dependencies.cloudflowPekkoTestkit)
     .settings(
       scalaVersion := Dependencies.Scala3,
       scalafmtOnCompile := true,
       javacOptions ++= Seq("-Xlint:deprecation", "-Xlint:unchecked"),
       (Test / sourceGenerators) += (Test / avroScalaGenerateSpecific).taskValue)
 
-lazy val cloudflowAkkaUtil =
-  Project(id = "cloudflow-akka-util", base = file("cloudflow-akka-util"))
+lazy val cloudflowPekkoUtil =
+  Project(id = "cloudflow-pekko-util", base = file("cloudflow-pekko-util"))
     .enablePlugins(GenJavadocPlugin, JavaFormatterPlugin, ScalafmtPlugin)
-    .dependsOn(cloudflowAkka, (cloudflowAkkaTestkit % "test->test").classpathDependency)
-    .settings(Dependencies.cloudflowAkkaUtil)
+    .dependsOn(cloudflowPekko, (cloudflowPekkoTestkit % "test->test").classpathDependency)
+    .settings(Dependencies.cloudflowPekkoUtil)
     .settings(
       scalaVersion := Dependencies.Scala3,
       scalafmtOnCompile := true,
       javacOptions += "-Xlint:deprecation",
       (Test / sourceGenerators) += (Test / avroScalaGenerateSpecific).taskValue)
 
-lazy val cloudflowAkkaTests =
-  Project(id = "cloudflow-akka-tests", base = file("cloudflow-akka-tests"))
+lazy val cloudflowPekkoTests =
+  Project(id = "cloudflow-pekko-tests", base = file("cloudflow-pekko-tests"))
     .enablePlugins(JavaFormatterPlugin, ScalafmtPlugin)
-    .dependsOn(cloudflowAkka, (cloudflowAkkaTestkit % "test->test").classpathDependency)
-    .settings(Dependencies.cloudflowAkkaTests)
+    .dependsOn(cloudflowPekko, (cloudflowPekkoTestkit % "test->test").classpathDependency)
+    .settings(Dependencies.cloudflowPekkoTests)
     .settings(
       scalaVersion := Dependencies.Scala3,
       scalafmtOnCompile := true,
@@ -436,9 +435,9 @@ lazy val root = Project(id = "root", base = file("."))
     },
     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
       cloudflowStreamlets,
-      cloudflowAkka,
-      cloudflowAkkaUtil,
-      cloudflowAkkaTestkit),
+      cloudflowPekko,
+      cloudflowPekkoUtil,
+      cloudflowPekkoTestkit),
     JavaUnidoc / unidoc / unidocProjectFilter := (ScalaUnidoc / unidoc / unidocProjectFilter).value)
   .aggregate(
     cloudflowAvro,
@@ -455,10 +454,10 @@ lazy val root = Project(id = "root", base = file("."))
     cloudflowSbtPlugin,
     cloudflowRunnerConfig,
     cloudflowStreamlets,
-    cloudflowAkka,
-    cloudflowAkkaTestkit,
-    cloudflowAkkaUtil,
-    cloudflowAkkaTests,
+    cloudflowPekko,
+    cloudflowPekkoTestkit,
+    cloudflowPekkoUtil,
+    cloudflowPekkoTests,
     cloudflowRunner,
     cloudflowLocalRunner,
     cloudflowCrGenerator,

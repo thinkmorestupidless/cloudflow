@@ -52,17 +52,6 @@ object CloudflowBasePlugin extends AutoPlugin {
 
   override def projectSettings =
     Seq(
-      // Inject the Lightbend commercial resolver when LIGHTBEND_COMMERCIAL_TOKEN is present.
-      // Required so projects that depend on cloudflow-akka_3 can resolve its transitive
-      // commercial Akka deps (akka-stream_3, akka-cluster-sharding-typed_3, etc.).
-      resolvers ++= sys.env
-        .get("LIGHTBEND_COMMERCIAL_TOKEN")
-        .toSeq
-        .flatMap { token =>
-          Seq(
-            "akka-secure-mvn".at(s"https://repo.akka.io/$token/secure"),
-            Resolver.url("akka-secure-ivy", url(s"https://repo.akka.io/$token/secure"))(Resolver.ivyStylePatterns))
-        },
       // Must be Alpine-based: the image build runs `apk`, and BusyBox's `addgroup`/`adduser -S`.
       cloudflowDockerBaseImage := "eclipse-temurin:25-jre-alpine",
       libraryDependencies ++= Vector(
@@ -181,7 +170,7 @@ object DockerRegistryNotSetError {
       |Example:
       |
       |lazy val myProject = (project in file("."))
-      |  .enablePlugins(CloudflowAkkaPlugin)
+      |  .enablePlugins(CloudflowPekkoPlugin)
       |  .settings(
       |   cloudflowDockerRegistry := Some("docker-registry-default.cluster.example.com"),
       |   // other settings

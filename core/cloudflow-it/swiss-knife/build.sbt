@@ -8,7 +8,7 @@ lazy val swissKnife = (project in file("."))
     organization := "com.lightbend.cloudflow",
     headerLicense := Some(HeaderLicense.ALv2("(C) 2016-2021", "Lightbend Inc. <https://www.lightbend.com>")))
   .settings(commonSettings)
-  .aggregate(app, datamodel, akka)
+  .aggregate(app, datamodel, pekko)
 lazy val app = (project in file("./app"))
   .settings(name := "swiss-knife")
   .enablePlugins(CloudflowApplicationPlugin)
@@ -21,10 +21,10 @@ lazy val datamodel = (project in file("datamodel"))
     Compile / sourceGenerators += (Compile / avroScalaGenerateSpecific).taskValue,
     libraryDependencies += Cloudflow.library.CloudflowAvro)
 
-lazy val akka = (project in file("./akka"))
-  .enablePlugins(CloudflowAkkaPlugin)
+lazy val pekko = (project in file("./pekko"))
+  .enablePlugins(CloudflowPekkoPlugin)
   .settings(commonSettings)
-  .settings(name := "swiss-knife-akka", libraryDependencies ++= Seq("ch.qos.logback" % "logback-classic" % "1.2.11"))
+  .settings(name := "swiss-knife-pekko", libraryDependencies ++= Seq("ch.qos.logback" % "logback-classic" % "1.2.11"))
   .dependsOn(datamodel)
 
 lazy val commonSettings = Seq(

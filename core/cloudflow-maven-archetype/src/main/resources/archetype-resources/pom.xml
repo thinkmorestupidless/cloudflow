@@ -39,7 +39,7 @@
   </build>
 
   <modules>
-    <module>akka</module>
+    <module>pekko</module>
     <module>pipeline</module>
   </modules>
 </project>

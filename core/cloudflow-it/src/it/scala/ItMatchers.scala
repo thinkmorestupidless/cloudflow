@@ -2,7 +2,7 @@
  * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import akka.cli.cloudflow.models.ApplicationStatus
+import cloudflow.cli.models.ApplicationStatus
 import org.scalatest.matchers._
 
 trait ItMatchers {

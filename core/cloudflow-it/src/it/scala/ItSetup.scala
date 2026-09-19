@@ -9,8 +9,8 @@ import scala.io.Source
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 import scala.util.Using
-import akka.cli.cloudflow.commands
-import akka.cli.cloudflow.models.ApplicationStatus
+import cloudflow.cli.commands
+import cloudflow.cli.models.ApplicationStatus
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient

@@ -10,11 +10,12 @@ object Dependencies {
   val Scala3 = "3.3.5"
 
   object Versions {
-    val akka = "2.10.16"
-    val akkaHttp = "10.7.3"
-    val akkaGrpc = "2.5.10"
-    val alpakkaKafka = "8.0.0"
-    val akkaMgmt = "1.6.4"
+    // The same Pekko line as npekko, which these pipelines run beside.
+    val pekko = "1.7.0"
+    val pekkoHttp = "1.4.0"
+    val pekkoGrpc = "1.2.0"
+    val pekkoConnectorsKafka = "1.2.0"
+    val pekkoMgmt = "1.2.1"
     val spark = "2.4.5"
     val fabric8 = "6.13.4"
     val jackson = "2.17.2"
@@ -48,33 +49,32 @@ object Dependencies {
     val bouncyCastleCore = "org.bouncycastle" % "bcpkix-jdk18on" % "1.78.1"
     val bouncyCastleExt = "org.bouncycastle" % "bcprov-ext-jdk18on" % "1.78.1"
 
-    val akkaActor = "com.typesafe.akka" %% "akka-actor" % Versions.akka
-    val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka
-    val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
-    val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka
-    val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
-    val akkaProtobuf = "com.typesafe.akka" %% "akka-protobuf" % Versions.akka
-    val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
-    val akkaShardingTyped = "com.typesafe.akka" %% "akka-cluster-sharding-typed" % Versions.akka
-    val akkaCluster = "com.typesafe.akka" %% "akka-cluster" % Versions.akka
+    val pekkoActor = "org.apache.pekko" %% "pekko-actor" % Versions.pekko
+    val pekkoTestkit = "org.apache.pekko" %% "pekko-testkit" % Versions.pekko
+    val pekkoStream = "org.apache.pekko" %% "pekko-stream" % Versions.pekko
+    val pekkoStreamTestkit = "org.apache.pekko" %% "pekko-stream-testkit" % Versions.pekko
+    val pekkoSlf4j = "org.apache.pekko" %% "pekko-slf4j" % Versions.pekko
+    val pekkoDiscovery = "org.apache.pekko" %% "pekko-discovery" % Versions.pekko
+    val pekkoShardingTyped = "org.apache.pekko" %% "pekko-cluster-sharding-typed" % Versions.pekko
+    val pekkoCluster = "org.apache.pekko" %% "pekko-cluster" % Versions.pekko
 
-    val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
-    val akkaHttpSprayJson = "com.typesafe.akka" %% "akka-http-spray-json" % Versions.akkaHttp
-    // akka-http2-support was merged into akka-http in 10.4.x; no longer a separate artifact.
+    val pekkoHttp = "org.apache.pekko" %% "pekko-http" % Versions.pekkoHttp
+    val pekkoHttpSprayJson = "org.apache.pekko" %% "pekko-http-spray-json" % Versions.pekkoHttp
 
-    val akkaStreamKafka = ("com.typesafe.akka" %% "akka-stream-kafka" % Versions.alpakkaKafka)
+    val pekkoConnectorsKafka = ("org.apache.pekko" %% "pekko-connectors-kafka" % Versions.pekkoConnectorsKafka)
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-    val akkaStreamKafaSharding = "com.typesafe.akka" %% "akka-stream-kafka-cluster-sharding" % Versions.alpakkaKafka
-    val akkaStreamKafkaTestkit = ("com.typesafe.akka" %% "akka-stream-kafka-testkit" % Versions.alpakkaKafka)
-      .exclude("com.typesafe.akka", "akka-stream-testkit")
+    val pekkoConnectorsKafkaSharding =
+      "org.apache.pekko" %% "pekko-connectors-kafka-cluster-sharding" % Versions.pekkoConnectorsKafka
+    val pekkoConnectorsKafkaTestkit =
+      ("org.apache.pekko" %% "pekko-connectors-kafka-testkit" % Versions.pekkoConnectorsKafka)
+        .exclude("org.apache.pekko", "pekko-stream-testkit")
 
-    val akkaManagement = "com.lightbend.akka.management" %% "akka-management" % Versions.akkaMgmt
-    val akkaClusterBootstrap =
-      "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % Versions.akkaMgmt
-    val akkaDiscoveryK8 = "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % Versions.akkaMgmt
+    val pekkoManagement = "org.apache.pekko" %% "pekko-management" % Versions.pekkoMgmt
+    val pekkoClusterBootstrap = "org.apache.pekko" %% "pekko-management-cluster-bootstrap" % Versions.pekkoMgmt
+    val pekkoDiscoveryK8 = "org.apache.pekko" %% "pekko-discovery-kubernetes-api" % Versions.pekkoMgmt
 
-    val akkaGrpcRuntime = "com.lightbend.akka.grpc" %% "akka-grpc-runtime" % Versions.akkaGrpc
+    val pekkoGrpcRuntime = "org.apache.pekko" %% "pekko-grpc-runtime" % Versions.pekkoGrpc
 
     // akka-stream-contrib has no Scala 3 artifact; PartitionWith is inlined in SplitterLogic.scala.
     val avro = ("org.apache.avro" % "avro" % "1.12.0")
@@ -96,7 +96,8 @@ object Dependencies {
     // kube-actions was vendored into cloudflow-operator for fabric8 6.x compatibility.
     val sourcecode = "com.lihaoyi" %% "sourcecode" % "0.3.1"
 
-    val kafkaClient = "org.apache.kafka" % "kafka-clients" % "4.1.0"
+    // What pekko-connectors-kafka 1.2.0 is built and tested against; Kafka 4 brokers accept 3.9 clients.
+    val kafkaClient = "org.apache.kafka" % "kafka-clients" % "3.9.2"
     // kafka-clients 4.x class files can't be parsed by the Scala 2.12 compiler; use 3.x for 2.12-only modules.
     val kafkaClient212 = "org.apache.kafka" % "kafka-clients" % "3.8.0"
 
@@ -116,13 +117,47 @@ object Dependencies {
     val junit = "junit" % "junit" % "4.13.2"
   }
 
+  /** Pekko checks at startup that every module of one family is on the same version, and eviction lifts only the
+    * modules a build names directly: pekko-connectors-kafka 1.2.0 brings pekko-stream 1.1.5, and pekko-management
+    * brings an older pekko-http. Pin both families whole, wherever they appear.
+    */
+  val pekkoFamilyOverrides: Seq[ModuleID] =
+    Seq(
+      "pekko-actor",
+      "pekko-actor-typed",
+      "pekko-stream",
+      "pekko-stream-typed",
+      "pekko-slf4j",
+      "pekko-protobuf-v3",
+      "pekko-discovery",
+      "pekko-cluster",
+      "pekko-cluster-typed",
+      "pekko-cluster-tools",
+      "pekko-cluster-sharding",
+      "pekko-cluster-sharding-typed",
+      "pekko-coordination",
+      "pekko-distributed-data",
+      "pekko-remote",
+      "pekko-pki",
+      "pekko-serialization-jackson",
+      "pekko-testkit",
+      "pekko-stream-testkit").map(m => "org.apache.pekko" %% m % Versions.pekko) ++
+      Seq(
+        "pekko-http",
+        "pekko-http-core",
+        "pekko-parsing",
+        "pekko-http-spray-json",
+        "pekko-http-jackson",
+        "pekko-http-testkit")
+        .map(m => "org.apache.pekko" %% m % Versions.pekkoHttp)
+
   object TestDeps {
 
     val fabric8KubernetesServerMock = "io.fabric8" % "kubernetes-server-mock" % Versions.fabric8 % Test
 
-    val akkaHttpJackson = "com.typesafe.akka" %% "akka-http-jackson" % Versions.akkaHttp % Test
+    val pekkoHttpJackson = "org.apache.pekko" %% "pekko-http-jackson" % Versions.pekkoHttp % Test
 
-    val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Versions.akkaHttp % Test
+    val pekkoHttpTestkit = "org.apache.pekko" %% "pekko-http-testkit" % Versions.pekkoHttp % Test
 
     val avro4s = "com.sksamuel.avro4s" %% "avro4s-core" % "5.0.15" % Test
     val avro4s212 = "com.sksamuel.avro4s" %% "avro4s-core" % "4.1.0" % Test
@@ -184,10 +219,10 @@ object Dependencies {
 
   val cloudflowOperator =
     libraryDependencies ++= Seq(
-      Compile.akkaActor,
-      Compile.akkaStream,
-      Compile.akkaHttp,
-      Compile.akkaSlf4j,
+      Compile.pekkoActor,
+      Compile.pekkoStream,
+      Compile.pekkoHttp,
+      Compile.pekkoSlf4j,
       Compile.logback,
       Compile.jacksonScala,
       Compile.jacksonDatabind,
@@ -225,54 +260,54 @@ object Dependencies {
       Compile.ficus,
       Compile.scalatest % Test)
 
-  val cloudflowAkka =
+  val cloudflowPekko =
     libraryDependencies ++= Seq(
-      Compile.akkaActor,
-      Compile.akkaStream,
-      Compile.akkaSlf4j,
-      Compile.akkaDiscovery,
-      Compile.akkaHttp,
-      Compile.akkaHttpSprayJson,
-      Compile.akkaStreamKafka,
-      Compile.akkaStreamKafaSharding,
-      Compile.akkaShardingTyped,
-      Compile.akkaCluster,
-      Compile.akkaManagement,
-      Compile.akkaClusterBootstrap,
-      Compile.akkaDiscoveryK8,
+      Compile.pekkoActor,
+      Compile.pekkoStream,
+      Compile.pekkoSlf4j,
+      Compile.pekkoDiscovery,
+      Compile.pekkoHttp,
+      Compile.pekkoHttpSprayJson,
+      Compile.pekkoConnectorsKafka,
+      Compile.pekkoConnectorsKafkaSharding,
+      Compile.pekkoShardingTyped,
+      Compile.pekkoCluster,
+      Compile.pekkoManagement,
+      Compile.pekkoClusterBootstrap,
+      Compile.pekkoDiscoveryK8,
       Compile.logback,
       Compile.jacksonScala,
       Compile.jacksonDatabind,
       Compile.sprayJson,
       Compile.ficus)
 
-  val cloudflowAkkaTestkit =
+  val cloudflowPekkoTestkit =
     libraryDependencies ++= Seq(
-      Compile.akkaSlf4j,
-      Compile.akkaStream,
+      Compile.pekkoSlf4j,
+      Compile.pekkoStream,
       Compile.ficus,
-      Compile.akkaStreamKafkaTestkit,
-      Compile.akkaStreamTestkit,
-      Compile.akkaTestkit,
+      Compile.pekkoConnectorsKafkaTestkit,
+      Compile.pekkoStreamTestkit,
+      Compile.pekkoTestkit,
       Compile.scalatest,
       Compile.scalatestMustMatchers % "test",
       Compile.scalatest % Test,
       TestDeps.scalatestJunit)
 
-  val cloudflowAkkaUtil =
+  val cloudflowPekkoUtil =
     libraryDependencies ++= Vector(
-      Compile.akkaHttp,
-      Compile.akkaGrpcRuntime,
-      Compile.akkaStreamTestkit % Test,
+      Compile.pekkoHttp,
+      Compile.pekkoGrpcRuntime,
+      Compile.pekkoStreamTestkit % Test,
       Compile.scalatest % Test,
-      TestDeps.akkaHttpTestkit,
-      TestDeps.akkaHttpJackson,
+      TestDeps.pekkoHttpTestkit,
+      TestDeps.pekkoHttpJackson,
       TestDeps.scalatestJunit)
 
-  val cloudflowAkkaTests =
+  val cloudflowPekkoTests =
     libraryDependencies ++= Vector(
-      TestDeps.akkaHttpTestkit,
-      Compile.akkaHttpSprayJson % Test,
+      TestDeps.pekkoHttpTestkit,
+      Compile.pekkoHttpSprayJson % Test,
       Compile.testcontainersKafka % Test,
       Compile.testcontainersKafka % Test,
       Compile.scalatest % Test,

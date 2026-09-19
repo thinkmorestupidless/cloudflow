@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2016-2026 Lightbend Inc. <https://www.lightbend.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package cloudflow.pekkostream
+
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.cluster.Cluster
+import org.apache.pekko.discovery.Discovery
+import org.apache.pekko.management.cluster.bootstrap.ClusterBootstrap
+import org.apache.pekko.management.scaladsl.PekkoManagement
+import cloudflow.streamlets._
+import BootstrapInfo._
+import cloudflow.streamlets.StreamletRuntime
+import com.typesafe.config._
+
+import scala.util.Failure
+import net.ceedubs.ficus.Ficus._
+
+import scala.util.control.NonFatal
+
+/** Extend from this class to build Pekko-based Streamlets.
+  */
+abstract class PekkoStreamlet extends Streamlet[PekkoStreamletContext] {
+  final override val runtime = PekkoStreamletRuntime
+
+  /** Initialize the streamlet from the config. In some cases (e.g. the tests) we may pass a context directly to be used
+    * instead of building it from the config.
+    */
+  override protected final def createContext(config: Config): PekkoStreamletContext =
+    (for {
+      streamletDefinition <- StreamletDefinition.read(config)
+    } yield {
+
+      val localMode = config.as[Option[Boolean]]("cloudflow.local").getOrElse(false)
+
+      // Inject configParameter defaults so streamletConfig.get*() works when parameters
+      // have not been explicitly set at deploy time. Defaults are lower-priority than
+      // any value in the mounted secret's context.config.
+      val paramDefaults: Config = configParameters
+        .flatMap { p => p.toDescriptor.defaultValue.map(p.key -> _) }
+        .foldLeft(ConfigFactory.empty()) { case (acc, (k, v)) =>
+          acc.withValue(k, ConfigValueFactory.fromAnyRef(v))
+        }
+      val streamletDefaults =
+        if (paramDefaults.isEmpty) ConfigFactory.empty()
+        else
+          ConfigFactory
+            .empty()
+            .withValue(s"cloudflow.streamlets.${streamletDefinition.streamletRef}", paramDefaults.root())
+
+      val updatedStreamletDefinition = streamletDefinition.copy(config = streamletDefinition.config
+        .withFallback(ConfigFactory.parseResourcesAnySyntax("pekko.conf"))
+        .withFallback(config)
+        .withFallback(streamletDefaults))
+
+      if (activateCluster && localMode) {
+        val clusterConfig = ConfigFactory.parseResourcesAnySyntax("pekko-cluster-local.conf")
+        val fullConfig = clusterConfig.withFallback(updatedStreamletDefinition.config)
+
+        val system = ActorSystem(streamletDefinition.streamletRef, ConfigFactory.load(fullConfig))
+        val cluster = Cluster(system)
+        cluster.join(cluster.selfAddress)
+
+        new PekkoStreamletContextImpl(updatedStreamletDefinition, system)
+      } else if (activateCluster) {
+        val clusterConfig = ConfigFactory
+          .parseString(
+            s"""pekko.discovery.kubernetes-api.pod-label-selector = "com.lightbend.cloudflow/streamlet-name=${streamletDefinition.streamletRef}"""")
+          .withFallback(ConfigFactory.parseResourcesAnySyntax("pekko-cluster-k8.conf"))
+
+        val fullConfig = clusterConfig.withFallback(updatedStreamletDefinition.config)
+
+        val system = ActorSystem(streamletDefinition.streamletRef, ConfigFactory.load(fullConfig))
+        PekkoManagement(system).start()
+        ClusterBootstrap(system).start()
+        Discovery(system).loadServiceDiscovery("kubernetes-api")
+
+        new PekkoStreamletContextImpl(updatedStreamletDefinition, system)
+      } else {
+        val system = ActorSystem(streamletDefinition.streamletRef, updatedStreamletDefinition.config)
+        new PekkoStreamletContextImpl(updatedStreamletDefinition, system)
+      }
+    }).recoverWith { case th =>
+      Failure(new Exception(s"Failed to create context from $config", th))
+    }.get
+
+  override final def run(context: PekkoStreamletContext): StreamletExecution =
+    try {
+      val localMode = context.config.as[Option[Boolean]]("cloudflow.local").getOrElse(false)
+      context.ready(localMode)
+
+      val logic = createLogic
+
+      context.alive(localMode)
+      logic.run()
+      signalReadyAfterStart()
+      context.streamletExecution
+    } catch {
+      case NonFatal(e) =>
+        context.stopOnException(e)
+        throw e
+    }
+
+  override def logStartRunnerMessage(buildInfo: String): Unit =
+    log.info(s"""
+      |Initializing Pekkostream Runner ..
+      |\n${box("Build Info")}
+      |${buildInfo}
+      """.stripMargin)
+
+  /** Implement this method to define the logic that this streamlet should execute once it is run.
+    */
+  protected def createLogic: PekkoStreamletLogic
+
+  private def readyAfterStart(): Boolean = !attributes.contains(ServerAttribute)
+
+  private val activateCluster: Boolean = attributes.contains(PekkoClusterAttribute)
+
+  private def signalReadyAfterStart(): Unit =
+    if (readyAfterStart()) context.signalReady()
+
+  // Scala 3: protected members of a class cannot be accessed from traits via self-type;
+  // provide a package-private accessor for the Server mixin.
+  private[pekkostream] def _pekkoContext: PekkoStreamletContext = context
+}
+
+final case object PekkoStreamletRuntime extends StreamletRuntime {
+  override val name: String = "pekko"
+}

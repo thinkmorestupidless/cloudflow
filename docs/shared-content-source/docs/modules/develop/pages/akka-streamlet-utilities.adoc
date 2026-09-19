@@ -31,14 +31,14 @@ Scala::
 +
 [source,scala]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/DataSplitter.scala[tag=splitter]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/DataSplitter.scala[tag=splitter]
 ----
 
 Java::
 +
 [source,java]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-java/src/main/java/cloudflow/akkastreamsdoc/DataSplitter.java[tag=splitter]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-java/src/main/java/cloudflow/pekkostreamsdoc/DataSplitter.java[tag=splitter]
 ----
 
 == Merger
@@ -58,12 +58,12 @@ Scala::
 +
 [source,scala]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/DataMerge.scala[tag=merge]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/DataMerge.scala[tag=merge]
 ----
 
 Java::
 +
 [source,java]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-java/src/main/java/cloudflow/akkastreamsdoc/DataMerge.java[tag=merge]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-java/src/main/java/cloudflow/pekkostreamsdoc/DataMerge.java[tag=merge]
 ----

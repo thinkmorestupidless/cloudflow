@@ -2,7 +2,7 @@
  * Copyright (C) 2020-2026 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import akka.cli.cloudflow._
+import cloudflow.cli._
 
 import java.io.File
 

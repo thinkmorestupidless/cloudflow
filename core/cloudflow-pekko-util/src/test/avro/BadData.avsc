@@ -1,0 +1,12 @@
+{
+    "namespace": "cloudflow.pekkostream.testdata",
+    "type": "record",
+    "name": "BadData",
+    "fields":[
+         {
+            "name": "name", "type": "string"
+         }
+    ]
+}
+
+

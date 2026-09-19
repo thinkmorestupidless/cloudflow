@@ -216,7 +216,7 @@ trait StreamletDescriptorBuilder extends EitherValues with OptionValues {
   def buildStreamletDescriptor(className: String): StreamletDescriptor =
     StreamletDescriptor(
       className = className,
-      runtime = StreamletRuntimeDescriptor("akka"),
+      runtime = StreamletRuntimeDescriptor("pekko"),
       labels = Vector.empty,
       description = "",
       inlets = Vector.empty,

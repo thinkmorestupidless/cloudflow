@@ -15,7 +15,7 @@ An example of a blueprint is shown below:
 
 [source,hocon]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/blueprint/blueprint.conf[tag=all]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/blueprint/blueprint.conf[tag=all]
 ----
 
 NOTE: Blueprint files are specified in the https://github.com/lightbend/config/blob/main/HOCON.md[HOCON,window=_blank] format, a superset of JSON.
@@ -58,7 +58,7 @@ Lets zoom in on the streamlets section in the example below:
 
 [source,hocon]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/blueprint/blueprint.conf[tag=streamlets]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/blueprint/blueprint.conf[tag=streamlets]
 ----
 
 The above example shows four streamlet instances defined in the `com.example` package:

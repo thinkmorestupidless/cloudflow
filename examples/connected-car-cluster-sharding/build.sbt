@@ -14,14 +14,14 @@ lazy val root =
     .aggregate(
       connectedCarExample,
       datamodel,
-      akkaConnectedCar
+      pekkoConnectedCar
     )
 
-lazy val connectedCarExample = (project in file("./akka-connected-car"))
+lazy val connectedCarExample = (project in file("./pekko-connected-car"))
   .enablePlugins(CloudflowApplicationPlugin)
   .settings(
     commonSettings,
-    name := "connected-car-akka-cluster",
+    name := "connected-car-pekko-cluster",
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.19" % "test"
       )
@@ -34,11 +34,11 @@ lazy val datamodel = (project in file("./datamodel"))
     libraryDependencies += Cloudflow.library.CloudflowAvro
   )
 
-lazy val akkaConnectedCar= (project in file("./akka-connected-car-streamlet"))
-  .enablePlugins(CloudflowAkkaPlugin)
+lazy val pekkoConnectedCar= (project in file("./pekko-connected-car-streamlet"))
+  .enablePlugins(CloudflowPekkoPlugin)
   .settings(
     commonSettings,
-    name := "akka-connected-car-streamlet",
+    name := "pekko-connected-car-streamlet",
     libraryDependencies ++= Seq(
       "ch.qos.logback" %  "logback-classic" % "1.2.11",
       "org.scalatest"  %% "scalatest"       % "3.2.19" % "test"

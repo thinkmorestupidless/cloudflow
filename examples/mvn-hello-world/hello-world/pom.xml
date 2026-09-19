@@ -40,7 +40,7 @@
                 <from>eclipse-temurin:25-jre-alpine</from>
 
                 <env>
-                  <LOGBACK_CONFIG>-Dlogback.configurationFile=/opt/logging/logback.xml -Dakka.loggers.0=akka.event.slf4j.Slf4jLogger -Dakka.loglevel=DEBUG -Dakka.logging-filter=akka.event.slf4j.Slf4jLoggingFilter</LOGBACK_CONFIG>
+                  <LOGBACK_CONFIG>-Dlogback.configurationFile=/opt/logging/logback.xml -Dpekko.loggers.0=org.apache.pekko.event.slf4j.Slf4jLogger -Dpekko.loglevel=DEBUG -Dpekko.logging-filter=org.apache.pekko.event.slf4j.Slf4jLoggingFilter</LOGBACK_CONFIG>
                 </env>
 
                 <runCmds>
@@ -49,7 +49,7 @@
                   <run>addgroup -g 185 -S cloudflow</run>
                   <run>adduser -u 185 -S -h /home/cloudflow -s /sbin/nologin cloudflow cloudflow</run>
                   <run>curl https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.11.0/jmx_prometheus_javaagent-0.11.0.jar -o /prometheus/jmx_prometheus_javaagent.jar</run>
-                  <run>chmod a+x /opt/akka-entrypoint.sh</run>
+                  <run>chmod a+x /opt/pekko-entrypoint.sh</run>
                 </runCmds>
 
                 <assemblies>
@@ -73,7 +73,7 @@
                     <inline>
                       <files>
                         <file>
-                          <source>${basedir}/src/main/resources/akka-entrypoint.sh</source>
+                          <source>${basedir}/src/main/resources/pekko-entrypoint.sh</source>
                         </file>
                       </files>
                     </inline>
@@ -99,7 +99,7 @@
                 <entryPoint>
                   <exec>
                     <arg>bash</arg>
-                    <arg>/opt/akka-entrypoint.sh</arg>
+                    <arg>/opt/pekko-entrypoint.sh</arg>
                   </exec>
                 </entryPoint>
               </build>
@@ -129,7 +129,7 @@
   <dependencies>
     <dependency>
       <groupId>com.lightbend.cloudflow</groupId>
-      <artifactId>cloudflow-akka_${scala.binary.version}</artifactId>
+      <artifactId>cloudflow-pekko_${scala.binary.version}</artifactId>
       <version>${cloudflow.version}</version>
     </dependency>
     <dependency>

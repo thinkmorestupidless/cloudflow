@@ -1,0 +1,16 @@
+{
+    "namespace": "cloudflow.pekkostreamsdoc",
+    "type": "record",
+    "name": "Data",
+    "fields":[
+         {
+              "name": "key",
+              "type": "string"
+         },
+         {
+              "name": "value",
+              "type": "int"
+         }
+    ]
+}
+

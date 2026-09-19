@@ -69,7 +69,7 @@ final case class RegexpValidationType(regExpPattern: String) extends ValidationT
   *
   * Example on how to use a configuration parameter in a streamlet:
   * {{{
-  * class RecordSumFlow extends AkkaStreamlet {
+  * class RecordSumFlow extends PekkoStreamlet {
   *   val recordsInWindowParameter = IntegerConfigParameter("records-in-window","This value describes how many records of data should be processed together, default 65 KB", Some(64 * 1024))
   *   override def configParameters = Set(recordsInWindowParameter)
   *

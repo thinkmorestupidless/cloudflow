@@ -15,7 +15,7 @@ import collection.mutable.ListBuffer
 import scala.collection.immutable.{ Seq => ISeq }
 import scopt.OptionDef._
 import scopt.OptionDefKind._
-import akka.cli.cloudflow.{ Options, OptionsParser }
+import cloudflow.cli.{ Options, OptionsParser }
 
 object DocGenMain extends App {
 

@@ -17,10 +17,10 @@
 package cloudflow.operator
 package flow
 
-import akka.NotUsed
-import akka.datap.crd.App
-import akka.kube.actions.Action
-import akka.stream.scaladsl._
+import org.apache.pekko.NotUsed
+import cloudflow.crd.App
+import cloudflow.kube.actions.Action
+import org.apache.pekko.stream.scaladsl._
 import cloudflow.operator.action.runner.Runner
 import cloudflow.operator.event._
 import io.fabric8.kubernetes.api.model.Pod

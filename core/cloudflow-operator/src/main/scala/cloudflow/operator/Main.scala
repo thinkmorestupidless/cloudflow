@@ -16,8 +16,8 @@
 
 package cloudflow.operator
 
-import akka.actor._
-import akka.datap.crd.App
+import org.apache.pekko.actor._
+import cloudflow.crd.App
 import cloudflow.operator.action._
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -71,7 +71,7 @@ object Main {
 
       import cloudflow.operator.action.runner._
 
-      val runners = Map(AkkaRunner.Runtime -> new AkkaRunner(ctx.akkaRunnerDefaults))
+      val runners = Map(PekkoRunner.Runtime -> new PekkoRunner(ctx.pekkoRunnerDefaults))
 
       Operator.handleEvents(client, runners, ctx.podName, ctx.podNamespace)
     } catch {

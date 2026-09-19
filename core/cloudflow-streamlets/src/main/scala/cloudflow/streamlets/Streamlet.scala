@@ -121,7 +121,7 @@ abstract class Streamlet[Context <: StreamletContext] {
   final def jsonDescriptor: String = StreamletDescriptor.jsonDescriptor(this)
 }
 
-/** A simple marker trait to provide the name of the "runtime" supported by a streamlet, e.g. "akka", "spark", etc.
+/** A simple marker trait to provide the name of the "runtime" supported by a streamlet, e.g. "pekko", "spark", etc.
   *
   * Implementations will usually be provided by a runtime support library
   */

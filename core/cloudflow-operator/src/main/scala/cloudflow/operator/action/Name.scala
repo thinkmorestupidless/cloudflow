@@ -85,11 +85,11 @@ object Name {
   def ofServiceAccount =
     "cloudflow-app-serviceaccount"
 
-  def ofAkkaRoleBinding =
-    "cloudflow-app-akka-rolebinding"
+  def ofPekkoRoleBinding =
+    "cloudflow-app-pekko-rolebinding"
 
-  def ofAkkaRole =
-    "cloudflow-app-akka-role"
+  def ofPekkoRole =
+    "cloudflow-app-pekko-role"
 
   def ofDockerRegistrySecret =
     "cloudflow-app-docker-registry"
