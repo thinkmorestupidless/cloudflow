@@ -16,8 +16,8 @@
 
 package cloudflow.operator.action.runner
 
-import akka.datap.crd.App
-import akka.kube.actions.{ CreateOrReplaceAction, DeleteAction, GetAction, OperatorAction }
+import cloudflow.crd.App
+import cloudflow.kube.actions.{ CreateOrReplaceAction, DeleteAction, GetAction, OperatorAction }
 import cloudflow.blueprint.BlueprintBuilder._
 import cloudflow.blueprint.deployment._
 import cloudflow.blueprint.{ Topic => BTopic, _ }

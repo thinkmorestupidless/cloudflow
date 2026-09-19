@@ -16,7 +16,7 @@
 
 package cloudflow.operator.action
 
-import akka.datap.crd.App
+import cloudflow.crd.App
 import cloudflow.blueprint._
 import cloudflow.blueprint.deployment._
 import com.fasterxml.jackson.databind.JsonNode

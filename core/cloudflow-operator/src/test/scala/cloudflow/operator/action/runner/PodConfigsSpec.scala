@@ -16,7 +16,7 @@
 
 package cloudflow.operator.action.runner
 
-import akka.cloudflow.config.UnsafeCloudflowConfigLoader
+import cloudflow.config.UnsafeCloudflowConfigLoader
 import com.typesafe.config._
 import io.fabric8.kubernetes.api.model.{ EnvVarBuilder, Quantity }
 import org.scalatest.matchers.must.Matchers

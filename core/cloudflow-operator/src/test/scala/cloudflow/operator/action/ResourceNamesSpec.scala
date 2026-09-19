@@ -17,7 +17,7 @@
 package cloudflow.operator.action
 
 import _root_.cloudflow.blueprint.BlueprintBuilder._
-import akka.datap.crd.App
+import cloudflow.crd.App
 import cloudflow.blueprint._
 import cloudflow.operator.action.EndpointActions.CreateServiceAction
 import cloudflow.operator.action.runner._

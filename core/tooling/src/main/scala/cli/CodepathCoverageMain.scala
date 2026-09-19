@@ -6,9 +6,9 @@ package cli
 
 import java.io.{ File, FileInputStream }
 import scala.annotation.nowarn
-import akka.cli.cloudflow._
-import akka.cli.cloudflow.commands
-import akka.cli.cloudflow.commands.{ format, Command }
+import cloudflow.cli._
+import cloudflow.cli.commands
+import cloudflow.cli.commands.{ format, Command }
 import io.fabric8.kubernetes.api.model.{ NamespaceBuilder, ObjectMetaBuilder }
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.utils.Serialization

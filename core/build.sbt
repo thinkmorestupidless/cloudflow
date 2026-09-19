@@ -38,7 +38,7 @@ lazy val cloudflowCli =
     .settings(name := "kubectl-cloudflow")
     .settings(
       scalaVersion := Dependencies.Scala3,
-      Compile / mainClass := Some("akka.cli.cloudflow.Main"),
+      Compile / mainClass := Some("cloudflow.cli.Main"),
       Compile / discoveredMainClasses := Seq(),
       run / fork := true,
       getMuslBundle := {
@@ -71,8 +71,8 @@ lazy val cloudflowCli =
         // TODO: possibly to be removed
         "--allow-incomplete-classpath",
         "--initialize-at-run-time" + Seq(
-          "akka.cloudflow.config.CloudflowConfig$",
-          "akka.cloudflow.config.UnsafeCloudflowConfigLoader$",
+          "cloudflow.config.CloudflowConfig$",
+          "cloudflow.config.UnsafeCloudflowConfigLoader$",
           "com.typesafe.config.impl.ConfigImpl",
           "com.typesafe.config.impl.ConfigImpl$EnvVariablesHolder",
           "com.typesafe.config.impl.ConfigImpl$SystemPropertiesHolder",

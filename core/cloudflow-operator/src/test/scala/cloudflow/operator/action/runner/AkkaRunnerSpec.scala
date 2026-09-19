@@ -16,7 +16,7 @@
 
 package cloudflow.operator.action.runner
 
-import akka.datap.crd.App
+import cloudflow.crd.App
 import cloudflow.blueprint._
 import cloudflow.blueprint.deployment.PrometheusConfig
 import cloudflow.operator.action._

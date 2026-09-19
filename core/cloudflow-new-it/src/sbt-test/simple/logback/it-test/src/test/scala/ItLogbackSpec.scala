@@ -1,4 +1,4 @@
-import akka.cli.cloudflow.commands.Configure
+import cloudflow.cli.commands.Configure
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.should._

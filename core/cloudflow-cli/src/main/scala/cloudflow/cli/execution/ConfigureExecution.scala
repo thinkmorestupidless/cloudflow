@@ -1,0 +1,53 @@
+/*
+ * Copyright (C) 2020-2026 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package cloudflow.cli.execution
+
+import cloudflow.cli.commands.Configure
+import cloudflow.cli.kubeclient.KubeClient
+import cloudflow.cli.{ Cli, CliException, CliLogger, ConfigureResult, Execution }
+
+import scala.util.Try
+
+final case class ConfigureExecution(c: Configure, client: KubeClient, logger: CliLogger)
+    extends Execution[ConfigureResult]
+    with WithProtocolVersion
+    with WithConfiguration {
+  def run(): Try[ConfigureResult] = {
+    logger.info("Executing command Configure")
+    for {
+      _ <- validateProtocolVersion(client, c.operatorNamespace, logger)
+      namespace = c.namespace.getOrElse(c.cloudflowApp)
+
+      currentCr <- client.readCloudflowApp(c.cloudflowApp, namespace).map {
+        _.getOrElse(throw CliException(s"Cloudflow application ${c.cloudflowApp} not found in the cluster"))
+      }
+
+      logbackContent = readLogbackContent(c.logbackConfig)
+      // configuration validation
+      (cloudflowConfig, configStr) <- generateConfiguration(
+        c.aggregatedConfig,
+        currentCr,
+        logbackContent,
+        () => client.getPvcs(namespace = namespace))
+
+      // streamlets configurations
+      streamletsConfigs <- streamletsConfigs(
+        currentCr,
+        cloudflowConfig,
+        () => client.getKafkaClusters(namespace = c.operatorNamespace).map(parseValues))
+
+      uid <- client.uidCloudflowApp(currentCr.getSpec.appId, namespace)
+      _ <- client.configureCloudflowApp(
+        currentCr.getSpec.appId,
+        namespace,
+        uid,
+        configStr,
+        logbackContent,
+        streamletsConfigs)
+    } yield {
+      ConfigureResult()
+    }
+  }
+}

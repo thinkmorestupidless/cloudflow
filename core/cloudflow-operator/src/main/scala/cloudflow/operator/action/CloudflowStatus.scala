@@ -16,8 +16,8 @@
 
 package cloudflow.operator.action
 
-import akka.datap.crd.App
-import akka.kube.actions.{ Action, CustomResourceAdapter }
+import cloudflow.crd.App
+import cloudflow.kube.actions.{ Action, CustomResourceAdapter }
 import cloudflow.operator.action.runner.Runner
 import io.fabric8.kubernetes.api.model.{ ContainerState, Pod }
 import io.fabric8.kubernetes.api.{ model => fabric8 }

@@ -16,7 +16,7 @@
 
 package cloudflow.operator.action
 
-import akka.datap.crd.App
+import cloudflow.crd.App
 
 case class CloudflowLabels(partOf: String, appVersion: String) {
 

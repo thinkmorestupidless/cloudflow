@@ -16,8 +16,8 @@
 
 package cloudflow.operator.action
 
-import akka.datap.crd.App
-import akka.kube.actions.DeleteAction
+import cloudflow.crd.App
+import cloudflow.kube.actions.DeleteAction
 import cloudflow.blueprint.BlueprintBuilder._
 import cloudflow.blueprint._
 import cloudflow.operator.action.EndpointActions.CreateServiceAction

@@ -16,8 +16,8 @@
 
 package cloudflow.operator.action
 
-import akka.datap.crd.App
-import akka.kube.actions.CreateOrReplaceAction
+import cloudflow.crd.App
+import cloudflow.kube.actions.CreateOrReplaceAction
 import cloudflow.blueprint.BlueprintBuilder._
 import cloudflow.blueprint._
 import cloudflow.operator.action.runner.AkkaRunner

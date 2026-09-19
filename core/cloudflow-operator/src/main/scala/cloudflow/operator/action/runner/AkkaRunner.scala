@@ -16,8 +16,8 @@
 
 package cloudflow.operator.action.runner
 
-import akka.datap.crd.App
-import akka.kube.actions.Action
+import cloudflow.crd.App
+import cloudflow.kube.actions.Action
 import cloudflow.blueprint.deployment.PrometheusConfig
 import cloudflow.operator.action._
 import io.fabric8.kubernetes.api.model._

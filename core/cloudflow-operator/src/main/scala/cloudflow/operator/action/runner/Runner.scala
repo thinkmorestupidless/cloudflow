@@ -16,9 +16,9 @@
 
 package cloudflow.operator.action.runner
 
-import akka.cloudflow.config.{ CloudflowConfig, UnsafeCloudflowConfigLoader }
-import akka.datap.crd.App
-import akka.kube.actions.Action
+import cloudflow.config.{ CloudflowConfig, UnsafeCloudflowConfigLoader }
+import cloudflow.crd.App
+import cloudflow.kube.actions.Action
 import cloudflow.blueprint.VolumeMountDescriptor
 import cloudflow.blueprint.deployment._
 import cloudflow.operator.action._

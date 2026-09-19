@@ -1,0 +1,38 @@
+/*
+ * Copyright (C) 2021-2026 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package cloudflow.cli.execution
+
+import cloudflow.crd.App
+
+import cloudflow.cli.{ CliException, CliLogger }
+import cloudflow.cli.kubeclient.KubeClient
+
+import scala.util.{ Failure, Success, Try }
+
+trait WithProtocolVersion {
+
+  def validateProtocolVersion(client: KubeClient, namespace: Option[String], logger: CliLogger): Try[String] = {
+    (for {
+      version <- client.getOperatorProtocolVersion(namespace)
+    } yield {
+      logger.info(s"Protocol version found: $version")
+      version match {
+        case v if v == App.ProtocolVersion =>
+          Success(version)
+        case ver =>
+          val pVersion = Integer.parseInt(App.ProtocolVersion)
+          Integer.parseInt(ver) match {
+            case v if pVersion > v =>
+              Failure(CliException(
+                "This version of kubectl cloudflow is not compatible with the Cloudflow operator, please upgrade the Cloudflow operator"))
+            case v if pVersion < v =>
+              Failure(CliException(
+                "This version of kubectl cloudflow is not compatible with the Cloudflow operator, please upgrade kubectl cloudflow"))
+          }
+      }
+    }).flatten
+  }
+
+}

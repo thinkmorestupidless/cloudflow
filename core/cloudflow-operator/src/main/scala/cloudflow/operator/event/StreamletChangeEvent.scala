@@ -17,8 +17,8 @@
 package cloudflow.operator
 package event
 
-import akka.datap.crd.App
-import akka.kube.actions.Action
+import cloudflow.crd.App
+import cloudflow.kube.actions.Action
 import cloudflow.operator.action._
 import cloudflow.operator.action.runner._
 import io.fabric8.kubernetes.api.model.{ HasMetadata, ObjectReference, Secret }

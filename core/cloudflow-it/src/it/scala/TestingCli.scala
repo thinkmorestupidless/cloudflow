@@ -1,6 +1,6 @@
-import akka.cli.cloudflow._
-import akka.cli.cloudflow.commands.{ format, Command }
-import akka.cli.cloudflow.kubeclient.KubeClientFabric8
+import cloudflow.cli._
+import cloudflow.cli.commands.{ format, Command }
+import cloudflow.cli.kubeclient.KubeClientFabric8
 import io.fabric8.kubernetes.client.KubernetesClient
 import org.slf4j.LoggerFactory
 

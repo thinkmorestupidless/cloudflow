@@ -2,7 +2,7 @@
  * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import akka.cli.cloudflow._
+import cloudflow.cli._
 
 import org.scalatest._
 import org.scalatest.concurrent.Eventually

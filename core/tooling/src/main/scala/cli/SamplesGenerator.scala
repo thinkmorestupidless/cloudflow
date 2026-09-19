@@ -4,7 +4,7 @@
 
 package cli
 
-import akka.cloudflow.config.CloudflowConfig._
+import cloudflow.config.CloudflowConfig._
 
 import java.io._
 import com.typesafe.config.ConfigFactory
