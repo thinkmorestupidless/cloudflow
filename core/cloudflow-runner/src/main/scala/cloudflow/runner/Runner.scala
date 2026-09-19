@@ -75,7 +75,7 @@ object Runner extends RunnerConfigResolver with StreamletLoader {
   }
 
   private def shutdown(loadedStreamlet: LoadedStreamlet, maybeException: Option[Throwable] = None) = {
-    // we created this file when the pod started running (see AkkaStreamlet#run)
+    // we created this file when the pod started running (see PekkoStreamlet#run)
     Files.deleteIfExists(Paths.get(s"/tmp/${loadedStreamlet.config.streamletRef}.txt"))
     maybeException match {
       case Some(ex) =>

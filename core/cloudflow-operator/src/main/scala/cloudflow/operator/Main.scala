@@ -71,7 +71,7 @@ object Main {
 
       import cloudflow.operator.action.runner._
 
-      val runners = Map(AkkaRunner.Runtime -> new AkkaRunner(ctx.akkaRunnerDefaults))
+      val runners = Map(PekkoRunner.Runtime -> new PekkoRunner(ctx.pekkoRunnerDefaults))
 
       Operator.handleEvents(client, runners, ctx.podName, ctx.podNamespace)
     } catch {

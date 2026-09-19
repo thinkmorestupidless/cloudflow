@@ -62,9 +62,9 @@ object Settings extends ExtensionId[Settings] with ExtensionIdProvider {
       getOptionalString(config, "limits-cpu").map(v => Quantity.parse(v)),
       getOptionalString(config, "limits-memory").map(v => Quantity.parse(v)))
 
-  private def getAkkaRunnerDefaults(config: Config, runnerPath: String, runnerStr: String): AkkaRunnerDefaults = {
+  private def getPekkoRunnerDefaults(config: Config, runnerPath: String, runnerStr: String): PekkoRunnerDefaults = {
     val runnerConfig = config.getConfig(runnerPath)
-    AkkaRunnerDefaults(getResourceConstraints(runnerConfig), getNonEmptyString(runnerConfig, "java-opts"))
+    PekkoRunnerDefaults(getResourceConstraints(runnerConfig), getNonEmptyString(runnerConfig, "java-opts"))
   }
 
   private def appendResourcesToString(paths: String*): String =
@@ -88,14 +88,14 @@ final case class Settings(config: Config) extends Extension {
   val podName = getNonEmptyString(config, s"$root.pod-name")
   val podNamespace = getNonEmptyString(config, s"$root.pod-namespace")
 
-  val akkaRunnerSettings = getAkkaRunnerDefaults(config, s"$root.deployment.akka-runner", AkkaRunner.Runtime)
+  val pekkoRunnerSettings = getPekkoRunnerDefaults(config, s"$root.deployment.pekko-runner", PekkoRunner.Runtime)
 
   val controlledNamespace = Try(config.getString(s"$root.controlled-namespace")).toOption
 
   val api = ApiSettings(getNonEmptyString(config, s"$root.api.bind-interface"), getPort(config, s"$root.api.bind-port"))
 
   val deploymentContext = {
-    DeploymentContext(akkaRunnerSettings, podName, podNamespace)
+    DeploymentContext(pekkoRunnerSettings, podName, podNamespace)
   }
 }
 

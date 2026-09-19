@@ -1,5 +1,5 @@
 lazy val helloWorld = (project in file("hello-world-logback"))
-  .enablePlugins(CloudflowApplicationPlugin, CloudflowAkkaPlugin)
+  .enablePlugins(CloudflowApplicationPlugin, CloudflowPekkoPlugin)
   .settings(scalaVersion := "2.12.15", name := "hello-world-logback", version := "0.0.1")
 cloudflowDockerRegistry in ThisBuild := Some(sys.env("DOCKER_REGISTRY"))
 cloudflowDockerRepository in ThisBuild := Some(sys.env("DOCKER_REPOSITORY"))
@@ -8,7 +8,7 @@ val testLibraryVersion = {
   if (sys.props.get("scripted").isDefined) {
     sys.props("library.version")
   } else {
-    sys.env.get("AKKA_PLATFORM_VERSION").getOrElse("latest")
+    sys.env.get("PEKKO_PLATFORM_VERSION").getOrElse("latest")
   }
 }
 

@@ -4,19 +4,19 @@
         name="cloudflow-maven-archetype">
     <fileSets>
         <fileSet filtered="true">
-          <directory>akka/src/main/scala</directory>
+          <directory>pekko/src/main/scala</directory>
           <includes>
             <include>**/*.scala</include>
           </includes>
         </fileSet>
         <fileSet>
-          <directory>akka/src/main/resources</directory>
+          <directory>pekko/src/main/resources</directory>
           <includes>
             <include>*.*</include>
           </includes>
         </fileSet>
         <fileSet filtered="true">
-          <directory>akka</directory>
+          <directory>pekko</directory>
           <includes>
             <include>pom.xml</include>
           </includes>

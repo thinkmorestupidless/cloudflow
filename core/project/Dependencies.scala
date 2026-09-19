@@ -10,7 +10,7 @@ object Dependencies {
   val Scala3 = "3.3.5"
 
   object Versions {
-    // The same Pekko line as nakka, which these pipelines run beside.
+    // The same Pekko line as npekko, which these pipelines run beside.
     val pekko = "1.7.0"
     val pekkoHttp = "1.4.0"
     val pekkoGrpc = "1.2.0"
@@ -260,7 +260,7 @@ object Dependencies {
       Compile.ficus,
       Compile.scalatest % Test)
 
-  val cloudflowAkka =
+  val cloudflowPekko =
     libraryDependencies ++= Seq(
       Compile.pekkoActor,
       Compile.pekkoStream,
@@ -281,7 +281,7 @@ object Dependencies {
       Compile.sprayJson,
       Compile.ficus)
 
-  val cloudflowAkkaTestkit =
+  val cloudflowPekkoTestkit =
     libraryDependencies ++= Seq(
       Compile.pekkoSlf4j,
       Compile.pekkoStream,
@@ -294,7 +294,7 @@ object Dependencies {
       Compile.scalatest % Test,
       TestDeps.scalatestJunit)
 
-  val cloudflowAkkaUtil =
+  val cloudflowPekkoUtil =
     libraryDependencies ++= Vector(
       Compile.pekkoHttp,
       Compile.pekkoGrpcRuntime,
@@ -304,7 +304,7 @@ object Dependencies {
       TestDeps.pekkoHttpJackson,
       TestDeps.scalatestJunit)
 
-  val cloudflowAkkaTests =
+  val cloudflowPekkoTests =
     libraryDependencies ++= Vector(
       TestDeps.pekkoHttpTestkit,
       Compile.pekkoHttpSprayJson % Test,

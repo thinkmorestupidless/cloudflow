@@ -211,9 +211,9 @@ class AppCrSpec
   }
 
   def mkTestStatus() = {
-    val ingress = randomStreamlet("akka").asIngress[Foo].withServerAttribute
-    val egress1 = randomStreamlet("akka").asEgress[Foo]
-    val egress2 = randomStreamlet("akka").asEgress[Foo]
+    val ingress = randomStreamlet("pekko").asIngress[Foo].withServerAttribute
+    val egress1 = randomStreamlet("pekko").asEgress[Foo]
+    val egress2 = randomStreamlet("pekko").asEgress[Foo]
 
     val ingressRef = ingress.ref("s1")
     val egress1Ref = egress1.ref("s2")
@@ -234,7 +234,7 @@ class AppCrSpec
   }
 
   def mkTestStatusMixedApp() = {
-    val ingress = randomStreamlet("akka").asIngress[Foo].withServerAttribute
+    val ingress = randomStreamlet("pekko").asIngress[Foo].withServerAttribute
     val sparkEgress = randomStreamlet("spark").asEgress[Foo]
     val flinkEgress = randomStreamlet("flink").asEgress[Foo]
 
@@ -257,7 +257,7 @@ class AppCrSpec
   }
 
   def mkTestStatusExternalFlinkApp() = {
-    val ingress = randomStreamlet("akka").asIngress[Foo].withServerAttribute
+    val ingress = randomStreamlet("pekko").asIngress[Foo].withServerAttribute
     val sparkEgress = randomStreamlet("spark").asEgress[Foo]
     val flinkEgress = randomStreamlet("flink").asEgress[Foo]
 
@@ -280,7 +280,7 @@ class AppCrSpec
   }
 
   def mkTestStatusExternalSparkApp() = {
-    val ingress = randomStreamlet("akka").asIngress[Foo].withServerAttribute
+    val ingress = randomStreamlet("pekko").asIngress[Foo].withServerAttribute
     val sparkEgress = randomStreamlet("spark").asEgress[Foo]
     val flinkEgress = randomStreamlet("flink").asEgress[Foo]
 

@@ -33,7 +33,7 @@ object SamplesGenerator extends App {
                   volumeMounts = Map("my-pvc" ->
                     VolumeMount(mountPath = "/mnt", readOnly = false, subPath = "/tmp"))))))))),
       runtimes = Map(
-        "akka" -> Runtime(
+        "pekko" -> Runtime(
           config = ConfigFactory.empty(),
           kubernetes = Kubernetes(pods = Map(
             "my-pod" ->

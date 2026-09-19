@@ -26,10 +26,10 @@ class WithUpdateVolumesMountsSpec extends AnyFlatSpec with WithUpdateVolumeMount
         deployments = Seq(
           App.Deployment(
             name = "some-app-id",
-            runtime = "akka",
+            runtime = "pekko",
             image = "docker-registry.foo.com/lightbend/call-record-pipeline:277-ceb9629",
             streamletName = streamletName,
-            className = "cloudflow.operator.runner.AkkaRunner",
+            className = "cloudflow.operator.runner.PekkoRunner",
             secretName = streamletName,
             config = emptyConfig,
             portMappings = Map("valid" -> App

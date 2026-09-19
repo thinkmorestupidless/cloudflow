@@ -54,7 +54,7 @@ object BootstrapInfo {
     """.stripMargin
   }
 
-  // TODO move this, this is Akka specific?
+  // TODO move this, this is Pekko specific?
   def startRunnerMessage(
       blockingIODispatcherConfig: Config,
       dispatcherConfig: Config,
@@ -63,11 +63,11 @@ object BootstrapInfo {
     s"""
       |\n${box("JVM Resources")}
       |${getJVMRuntimeParameters}
-      |\n${box("Akka Deployment Config")}
+      |\n${box("Pekko Deployment Config")}
       |\n${prettyPrintConfig(deploymentConfig)}
-      |\n${box("Akka Default Blocking IO Dispatcher Config")}
+      |\n${box("Pekko Default Blocking IO Dispatcher Config")}
       |\n${prettyPrintConfig(blockingIODispatcherConfig)}
-      |\n${box("Akka Default Dispatcher Config")}
+      |\n${box("Pekko Default Dispatcher Config")}
       |\n${prettyPrintConfig(dispatcherConfig)}
       |\n${box("Streamlet Config")}
       |\n${prettyPrintConfig(streamletConfig)}

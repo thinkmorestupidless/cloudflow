@@ -20,7 +20,7 @@ import cloudflow.crd.App
 import cloudflow.kube.actions.CreateOrReplaceAction
 import cloudflow.blueprint.BlueprintBuilder._
 import cloudflow.blueprint._
-import cloudflow.operator.action.runner.AkkaRunner
+import cloudflow.operator.action.runner.PekkoRunner
 import cloudflow.operator.event.AppEvent
 import cloudflow.operator.event.Event.toObjectReference
 import io.fabric8.kubernetes.api.model.Event
@@ -38,7 +38,7 @@ class EventActionsSpec
 
   case class Foo(name: String)
   case class Bar(name: String)
-  val runner = new AkkaRunner(ctx.akkaRunnerDefaults)
+  val runner = new PekkoRunner(ctx.pekkoRunnerDefaults)
   val namespace = "ns"
   val agentPaths = Map("prometheus" -> "/app/prometheus/prometheus.jar")
 

@@ -21,12 +21,12 @@ trait ItResources {
   val pvcName = "myclaim"
   val updateMountingSecret = new File(s"$prefix/update_mounting_secret.conf")
   val updateMountingPvc = new File(s"$prefix/update_mounting_pvc.conf")
-  val updateAkkaProcessResources = new File(s"$prefix/update_akka_process_resources.conf")
-  val updateAkkaRuntimeResources = new File(s"$prefix/update_akka_runtime.conf")
+  val updatePekkoProcessResources = new File(s"$prefix/update_pekko_process_resources.conf")
+  val updatePekkoRuntimeResources = new File(s"$prefix/update_pekko_runtime.conf")
   val updateSparkConfiguration = new File(s"$prefix/update_spark_config.conf")
-  val updateAkkaConfiguration = new File(s"$prefix/update_akka_config.conf")
+  val updatePekkoConfiguration = new File(s"$prefix/update_pekko_config.conf")
   val defaultConfiguration = new File(s"$prefix/default_config.conf")
-  val pvcResourceAkkaFileMountPath = "/tmp/some-akka/file.txt"
+  val pvcResourcePekkoFileMountPath = "/tmp/some-pekko/file.txt"
   val pvcResourceLocal = new File(s"$prefix/imhere.txt")
   val pvcResourceLocalContent = Using(Source.fromFile(pvcResourceLocal)) { _.mkString }.get
   val secretFileMountPath = "/tmp/some/password"

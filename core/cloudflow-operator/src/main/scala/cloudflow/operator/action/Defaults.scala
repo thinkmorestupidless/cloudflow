@@ -22,7 +22,7 @@ final case class Resources(request: String, limit: String)
 
 sealed trait RunnerDefaults {}
 
-final case class AkkaRunnerDefaults(resourceConstraints: ResourceConstraints, javaOptions: String)
+final case class PekkoRunnerDefaults(resourceConstraints: ResourceConstraints, javaOptions: String)
     extends RunnerDefaults
 
 final case class ResourceConstraints(

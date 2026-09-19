@@ -50,9 +50,9 @@
                         "volume_mounts": null
                     },
                     {
-                        "class_name": "swissknife.akka.AkkaLogger",
+                        "class_name": "swissknife.pekko.PekkoLogger",
                         "config": {},
-                        "image": "docker.io/lightbend/swiss-knife-akka@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
+                        "image": "docker.io/lightbend/swiss-knife-pekko@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
                         "name": "swiss-knife.flink-egress",
                         "port_mappings": {
                             "in": {
@@ -60,7 +60,7 @@
                                 "id": "flink-pipe"
                             }
                         },
-                        "runtime": "akka",
+                        "runtime": "pekko",
                         "secret_name": "flink-egress",
                         "streamlet_name": "flink-egress",
                         "volume_mounts": null
@@ -102,9 +102,9 @@
                         "volume_mounts": null
                     },
                     {
-                        "class_name": "swissknife.akka.AkkaLogger",
+                        "class_name": "swissknife.pekko.PekkoLogger",
                         "config": {},
-                        "image": "docker.io/lightbend/swiss-knife-akka@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
+                        "image": "docker.io/lightbend/swiss-knife-pekko@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
                         "name": "swiss-knife.spark-egress",
                         "port_mappings": {
                             "in": {
@@ -112,16 +112,16 @@
                                 "id": "spark-pipe"
                             }
                         },
-                        "runtime": "akka",
+                        "runtime": "pekko",
                         "secret_name": "spark-egress",
                         "streamlet_name": "spark-egress",
                         "volume_mounts": null
                     },
                     {
-                        "class_name": "swissknife.akka.AkkaTransformation",
+                        "class_name": "swissknife.pekko.PekkoTransformation",
                         "config": {},
-                        "image": "docker.io/lightbend/swiss-knife-akka@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
-                        "name": "swiss-knife.akka-process",
+                        "image": "docker.io/lightbend/swiss-knife-pekko@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
+                        "name": "swiss-knife.pekko-process",
                         "port_mappings": {
                             "in": {
                                 "config": {},
@@ -129,12 +129,12 @@
                             },
                             "out": {
                                 "config": {},
-                                "id": "akka-pipe"
+                                "id": "pekko-pipe"
                             }
                         },
-                        "runtime": "akka",
-                        "secret_name": "akka-process",
-                        "streamlet_name": "akka-process",
+                        "runtime": "pekko",
+                        "secret_name": "pekko-process",
+                        "streamlet_name": "pekko-process",
                         "volume_mounts": null
                     },
                     {
@@ -154,9 +154,9 @@
                         "volume_mounts": null
                     },
                     {
-                        "class_name": "swissknife.akka.AkkaLogger",
+                        "class_name": "swissknife.pekko.PekkoLogger",
                         "config": {},
-                        "image": "docker.io/lightbend/swiss-knife-akka@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
+                        "image": "docker.io/lightbend/swiss-knife-pekko@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
                         "name": "swiss-knife.raw-egress",
                         "port_mappings": {
                             "in": {
@@ -164,41 +164,41 @@
                                 "id": "source-data-pipe"
                             }
                         },
-                        "runtime": "akka",
+                        "runtime": "pekko",
                         "secret_name": "raw-egress",
                         "streamlet_name": "raw-egress",
                         "volume_mounts": null
                     },
                     {
-                        "class_name": "swissknife.akka.AkkaConfigLogger",
+                        "class_name": "swissknife.pekko.PekkoConfigLogger",
                         "config": {},
-                        "image": "docker.io/lightbend/swiss-knife-akka@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
-                        "name": "swiss-knife.akka-config-output",
+                        "image": "docker.io/lightbend/swiss-knife-pekko@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
+                        "name": "swiss-knife.pekko-config-output",
                         "port_mappings": {
                             "in": {
                                 "config": {},
                                 "id": "source-data-pipe"
                             }
                         },
-                        "runtime": "akka",
-                        "secret_name": "akka-config-output",
-                        "streamlet_name": "akka-config-output",
+                        "runtime": "pekko",
+                        "secret_name": "pekko-config-output",
+                        "streamlet_name": "pekko-config-output",
                         "volume_mounts": null
                     },
                     {
-                        "class_name": "swissknife.akka.AkkaLogger",
+                        "class_name": "swissknife.pekko.PekkoLogger",
                         "config": {},
-                        "image": "docker.io/lightbend/swiss-knife-akka@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
-                        "name": "swiss-knife.akka-egress",
+                        "image": "docker.io/lightbend/swiss-knife-pekko@sha256:69800cf60af99143bd0a4b34466aa96943a98554e62c5d9b0078c4e117fd86d2",
+                        "name": "swiss-knife.pekko-egress",
                         "port_mappings": {
                             "in": {
                                 "config": {},
-                                "id": "akka-pipe"
+                                "id": "pekko-pipe"
                             }
                         },
-                        "runtime": "akka",
-                        "secret_name": "akka-egress",
-                        "streamlet_name": "akka-egress",
+                        "runtime": "pekko",
+                        "secret_name": "pekko-egress",
+                        "streamlet_name": "pekko-egress",
                         "volume_mounts": null
                     }
                 ],
@@ -249,7 +249,7 @@
                     {
                         "descriptor": {
                             "attributes": [],
-                            "class_name": "swissknife.akka.AkkaLogger",
+                            "class_name": "swissknife.pekko.PekkoLogger",
                             "config_parameters": [
                                 {
                                     "default_value": "test-case",
@@ -273,7 +273,7 @@
                             ],
                             "labels": [],
                             "outlets": [],
-                            "runtime": "akka",
+                            "runtime": "pekko",
                             "volume_mounts": []
                         },
                         "name": "flink-egress"
@@ -355,7 +355,7 @@
                     {
                         "descriptor": {
                             "attributes": [],
-                            "class_name": "swissknife.akka.AkkaLogger",
+                            "class_name": "swissknife.pekko.PekkoLogger",
                             "config_parameters": [
                                 {
                                     "default_value": "test-case",
@@ -379,7 +379,7 @@
                             ],
                             "labels": [],
                             "outlets": [],
-                            "runtime": "akka",
+                            "runtime": "pekko",
                             "volume_mounts": []
                         },
                         "name": "spark-egress"
@@ -387,10 +387,10 @@
                     {
                         "descriptor": {
                             "attributes": [],
-                            "class_name": "swissknife.akka.AkkaTransformation",
+                            "class_name": "swissknife.pekko.PekkoTransformation",
                             "config_parameters": [
                                 {
-                                    "default_value": "akka-original",
+                                    "default_value": "pekko-original",
                                     "description": "Configurable message.",
                                     "key": "configurable-message",
                                     "validation_pattern": ".*",
@@ -421,10 +421,10 @@
                                     }
                                 }
                             ],
-                            "runtime": "akka",
+                            "runtime": "pekko",
                             "volume_mounts": []
                         },
-                        "name": "akka-process"
+                        "name": "pekko-process"
                     },
                     {
                         "descriptor": {
@@ -453,7 +453,7 @@
                     {
                         "descriptor": {
                             "attributes": [],
-                            "class_name": "swissknife.akka.AkkaLogger",
+                            "class_name": "swissknife.pekko.PekkoLogger",
                             "config_parameters": [
                                 {
                                     "default_value": "test-case",
@@ -477,7 +477,7 @@
                             ],
                             "labels": [],
                             "outlets": [],
-                            "runtime": "akka",
+                            "runtime": "pekko",
                             "volume_mounts": []
                         },
                         "name": "raw-egress"
@@ -485,7 +485,7 @@
                     {
                         "descriptor": {
                             "attributes": [],
-                            "class_name": "swissknife.akka.AkkaConfigLogger",
+                            "class_name": "swissknife.pekko.PekkoConfigLogger",
                             "config_parameters": [],
                             "description": "",
                             "inlets": [
@@ -501,15 +501,15 @@
                             ],
                             "labels": [],
                             "outlets": [],
-                            "runtime": "akka",
+                            "runtime": "pekko",
                             "volume_mounts": []
                         },
-                        "name": "akka-config-output"
+                        "name": "pekko-config-output"
                     },
                     {
                         "descriptor": {
                             "attributes": [],
-                            "class_name": "swissknife.akka.AkkaLogger",
+                            "class_name": "swissknife.pekko.PekkoLogger",
                             "config_parameters": [
                                 {
                                     "default_value": "test-case",
@@ -533,10 +533,10 @@
                             ],
                             "labels": [],
                             "outlets": [],
-                            "runtime": "akka",
+                            "runtime": "pekko",
                             "volume_mounts": []
                         },
-                        "name": "akka-egress"
+                        "name": "pekko-egress"
                     }
                 ],
                 "version": "4"
@@ -606,7 +606,7 @@
                         "expected_pod_count": 1,
                         "pod_statuses": [
                             {
-                                "name": "swiss-knife-akka-process-58548fb68b-b79hg",
+                                "name": "swiss-knife-pekko-process-58548fb68b-b79hg",
                                 "nr_of_containers": 1,
                                 "nr_of_containers_ready": 1,
                                 "ready": "True",
@@ -614,7 +614,7 @@
                                 "status": "Running"
                             }
                         ],
-                        "streamlet_name": "akka-process"
+                        "streamlet_name": "pekko-process"
                     },
                     {
                         "expected_pod_count": 2,
@@ -648,7 +648,7 @@
                         "expected_pod_count": 1,
                         "pod_statuses": [
                             {
-                                "name": "swiss-knife-akka-config-output-54645cdc8d-nh6sk",
+                                "name": "swiss-knife-pekko-config-output-54645cdc8d-nh6sk",
                                 "nr_of_containers": 1,
                                 "nr_of_containers_ready": 1,
                                 "ready": "True",
@@ -656,13 +656,13 @@
                                 "status": "Running"
                             }
                         ],
-                        "streamlet_name": "akka-config-output"
+                        "streamlet_name": "pekko-config-output"
                     },
                     {
                         "expected_pod_count": 1,
                         "pod_statuses": [
                             {
-                                "name": "swiss-knife-akka-egress-dd88c9688-mc9xt",
+                                "name": "swiss-knife-pekko-egress-dd88c9688-mc9xt",
                                 "nr_of_containers": 1,
                                 "nr_of_containers_ready": 1,
                                 "ready": "True",
@@ -670,7 +670,7 @@
                                 "status": "Running"
                             }
                         ],
-                        "streamlet_name": "akka-egress"
+                        "streamlet_name": "pekko-egress"
                     },
                     {
                         "expected_pod_count": 3,

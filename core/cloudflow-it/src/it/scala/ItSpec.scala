@@ -151,7 +151,7 @@ trait ItDeploySpec extends ItSpec {
 trait ItBaseSpec extends ItSpec {
   "should contain these processes:" - {
     def check(proc: String) = withRunningApp { _ should containStreamlet(proc) }
-    "akka" in check("akka-process")
+    "pekko" in check("pekko-process")
   }
 
   "should write counter data to these output logs:" - {
@@ -161,7 +161,7 @@ trait ItBaseSpec extends ItSpec {
       }
     }
     "raw" in check("raw-egress")
-    "akka" in check("akka-egress")
+    "pekko" in check("pekko-egress")
   }
 }
 
@@ -174,15 +174,18 @@ trait ItSecretsSpec extends ItSpec {
     }
   }
 
-  "should reconfigure akka streamlets to add a secret as mounting file" in {
+  "should reconfigure pekko streamlets to add a secret as mounting file" in {
     configureApp() { _ =>
       cli.run(commands.Configure(appName, confs = Seq(resource.updateMountingSecret, resource.defaultConfiguration)))
     }
   }
 
-  "should find specific content in the secret mounted file in any akka streamlet" in {
+  "should find specific content in the secret mounted file in any pekko streamlet" in {
     withRunningApp { status =>
-      streamletPodFileContent(status, "akka-process", resource.secretFileMountPath) shouldBe resource.secretFilePassword
+      streamletPodFileContent(
+        status,
+        "pekko-process",
+        resource.secretFileMountPath) shouldBe resource.secretFilePassword
     }
   }
 
@@ -212,8 +215,8 @@ trait ItPvcSpec extends ItSpec {
 
   "should write specific content in any streamlet" in {
     withRunningApp { status =>
-      withStreamletPod(status, "akka-process") {
-        noException should be thrownBy _.file(resource.pvcResourceAkkaFileMountPath)
+      withStreamletPod(status, "pekko-process") {
+        noException should be thrownBy _.file(resource.pvcResourcePekkoFileMountPath)
           .upload(resource.pvcResourceLocal.toPath())
       }
     }
@@ -234,17 +237,17 @@ trait ItPvcSpec extends ItSpec {
 
 trait ItCliConfigSpec extends ItSpec {
   def getResources() = withRunningApp { status =>
-    withStreamletPod(status, "akka-process")(podResources)
+    withStreamletPod(status, "pekko-process")(podResources)
   }
 
-  "should reconfigure the pods of an akka application" in {
-    note("get current cpu and memory for akka pods")
+  "should reconfigure the pods of an pekko application" in {
+    note("get current cpu and memory for pekko pods")
     val (oldCpu, oldMem) = getResources()
 
-    note("reconfigure a single akka streamlet")
+    note("reconfigure a single pekko streamlet")
     configureApp() { _ =>
       cli.run(
-        commands.Configure(appName, confs = Seq(resource.updateAkkaProcessResources, resource.defaultConfiguration)))
+        commands.Configure(appName, confs = Seq(resource.updatePekkoProcessResources, resource.defaultConfiguration)))
     }
 
     note("get new resource configuration")
@@ -255,10 +258,10 @@ trait ItCliConfigSpec extends ItSpec {
     mem shouldBe "612M"
   }
 
-  "should reconfigure the akka runtime of the complete application" in {
-    val streamlets = Seq("akka-process", "akka-egress", "raw-egress")
+  "should reconfigure the pekko runtime of the complete application" in {
+    val streamlets = Seq("pekko-process", "pekko-egress", "raw-egress")
 
-    note("register current cpu and memory for all akka streamlets")
+    note("register current cpu and memory for all pekko streamlets")
     val resourceConfigMap = withRunningApp { status =>
       streamlets.map { s =>
         val res = withStreamletPod(status, s)(podResources)
@@ -266,10 +269,10 @@ trait ItCliConfigSpec extends ItSpec {
       }.toMap
     }
 
-    note("reconfigure akka kubernetes runtime")
+    note("reconfigure pekko kubernetes runtime")
     configureApp() { _ =>
       cli.run(
-        commands.Configure(appName, confs = Seq(resource.updateAkkaRuntimeResources, resource.defaultConfiguration)))
+        commands.Configure(appName, confs = Seq(resource.updatePekkoRuntimeResources, resource.defaultConfiguration)))
     }
 
     note("get new resource configuration")
@@ -289,16 +292,17 @@ trait ItCliConfigSpec extends ItSpec {
 }
 
 trait ItFrameworkConfigSpec extends ItSpec {
-  "should reconfigure an akka application" in {
-    note("reconfigure akka-specific configuration")
+  "should reconfigure an pekko application" in {
+    note("reconfigure pekko-specific configuration")
     configureApp() { _ =>
-      cli.run(commands.Configure(appName, confs = Seq(resource.updateAkkaConfiguration, resource.defaultConfiguration)))
+      cli.run(
+        commands.Configure(appName, confs = Seq(resource.updatePekkoConfiguration, resource.defaultConfiguration)))
     }
 
     note("verifying configuration update")
     eventually {
       withRunningApp { status =>
-        streamletPodLog(status, "akka-config-output") should include("log-dead-letters=[15]")
+        streamletPodLog(status, "pekko-config-output") should include("log-dead-letters=[15]")
       }
     }
   }
@@ -335,7 +339,7 @@ trait ItStreamletScaleSpec extends ItSpec {
     }
   }
 
-  "should scale an akka streamlet up and down" in {
-    scaleCheck("akka-process", noCorrection)
+  "should scale an pekko streamlet up and down" in {
+    scaleCheck("pekko-process", noCorrection)
   }
 }

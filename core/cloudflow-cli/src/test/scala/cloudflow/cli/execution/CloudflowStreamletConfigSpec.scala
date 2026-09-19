@@ -58,7 +58,7 @@ class CloudflowStreamletConfigSpec
             }
           }
         }
-        runtimes.akka {
+        runtimes.pekko {
           config {
             pekko.loglevel = INFO
             pekko.kafka.producer.parallelism = 15000
@@ -87,12 +87,12 @@ class CloudflowStreamletConfigSpec
     // Act
     val cloudflowConfig = CloudflowConfig.loadAndValidate(appConfig).get
 
-    val runtimeConfig = CloudflowConfig.runtimeConfig("logger", "akka", cloudflowConfig)
+    val runtimeConfig = CloudflowConfig.runtimeConfig("logger", "pekko", cloudflowConfig)
 
-    val podConfig = CloudflowConfig.podsConfig("logger", "akka", cloudflowConfig)
+    val podConfig = CloudflowConfig.podsConfig("logger", "pekko", cloudflowConfig)
 
     val completeConfig =
-      CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "akka", cloudflowConfig)
+      CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "pekko", cloudflowConfig)
 
     // Assert
     runtimeConfig.getLong("pekko.kafka.producer.parallelism") shouldBe 15000
@@ -188,11 +188,11 @@ class CloudflowStreamletConfigSpec
 
     val deployment = App.Deployment(
       name = "some-app-id",
-      runtime = "akka",
+      runtime = "pekko",
       image = "docker-registry.foo.com/lightbend/call-record-pipeline:277-ceb9629",
-      streamletName = "akka-streamlet",
-      className = "cloudflow.operator.runner.AkkaRunner",
-      secretName = "akka-streamlet",
+      streamletName = "pekko-streamlet",
+      className = "cloudflow.operator.runner.PekkoRunner",
+      secretName = "pekko-streamlet",
       config = emptyConfig,
       portMappings = Map(
         "maybe" -> App.PortMapping(id = "maybe-valid", config = null, cluster = None),
@@ -265,7 +265,7 @@ class CloudflowStreamletConfigSpec
     val cloudflowConfig = CloudflowConfig.loadAndValidate(appConfig).get
 
     val streamletConfig = {
-      val sConfig = CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "akka", cloudflowConfig)
+      val sConfig = CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "pekko", cloudflowConfig)
       val withConfig = new WithConfiguration { val logger: CliLogger = new CliLogger(None) }
 
       withConfig.portMappings(
@@ -327,11 +327,11 @@ class CloudflowStreamletConfigSpec
 
     val deployment = App.Deployment(
       name = "some-app-id",
-      runtime = "akka",
+      runtime = "pekko",
       image = "docker-registry.foo.com/lightbend/call-record-pipeline:277-ceb9629",
-      streamletName = "akka-streamlet",
-      className = "cloudflow.operator.runner.AkkaRunner",
-      secretName = "akka-streamlet",
+      streamletName = "pekko-streamlet",
+      className = "cloudflow.operator.runner.PekkoRunner",
+      secretName = "pekko-streamlet",
       config = emptyConfig,
       portMappings = Map(
         "valid" -> App.PortMapping(id = "valid-metrics", config = null, cluster = Some("deployment-named-cluster"))),
@@ -386,7 +386,7 @@ class CloudflowStreamletConfigSpec
     val cloudflowConfig = CloudflowConfig.loadAndValidate(appConfig).get
 
     val streamletConfig = {
-      val sConfig = CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "akka", cloudflowConfig)
+      val sConfig = CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "pekko", cloudflowConfig)
       val withConfig = new WithConfiguration { val logger: CliLogger = new CliLogger(None) }
 
       withConfig.portMappings(

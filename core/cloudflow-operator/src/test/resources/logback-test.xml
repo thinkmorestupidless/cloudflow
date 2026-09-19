@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <logger name="org.apache.pekko" level="${LOGLEVEL_AKKA:-WARN}" />
+  <logger name="org.apache.pekko" level="${LOGLEVEL_PEKKO:-WARN}" />
   <logger name="org.apache.pekko.actor.ActorSystemImpl" level="WARN" />
 
   <logger name="org.apache.kafka" level="${LOGLEVEL_KAFKA:-WARN}" />

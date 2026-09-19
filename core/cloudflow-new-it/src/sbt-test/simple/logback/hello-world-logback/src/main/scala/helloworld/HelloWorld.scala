@@ -1,12 +1,12 @@
 package helloworld
 
 import org.apache.pekko.stream.scaladsl._
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
 import cloudflow.streamlets._
 import scala.concurrent.duration._
 
-class HelloWorldShape extends AkkaStreamlet {
+class HelloWorldShape extends PekkoStreamlet {
   val shape = StreamletShape.empty
 
   def createLogic = new RunnableGraphStreamletLogic() {

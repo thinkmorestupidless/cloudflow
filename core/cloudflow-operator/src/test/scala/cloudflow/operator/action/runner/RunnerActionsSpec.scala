@@ -22,7 +22,7 @@ import cloudflow.blueprint.BlueprintBuilder._
 import cloudflow.blueprint.deployment._
 import cloudflow.blueprint.{ Topic => BTopic, _ }
 import cloudflow.operator.action._
-import cloudflow.operator.action.runner.AkkaRunner.PrometheusExporterPortEnvVar
+import cloudflow.operator.action.runner.PekkoRunner.PrometheusExporterPortEnvVar
 import com.typesafe.config._
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model._
@@ -45,7 +45,7 @@ class RunnerActionsSpec
   case class Bar(name: String)
   val agentPaths = Map("prometheus" -> "/app/prometheus/prometheus.jar")
   val secret = new SecretBuilder().build()
-  val akkaRunner = new AkkaRunner(ctx.akkaRunnerDefaults)
+  val pekkoRunner = new PekkoRunner(ctx.pekkoRunnerDefaults)
 
   "RunnerActions" should {
     "create resources for runners when there is no previous application deployment" in {
@@ -75,7 +75,7 @@ class RunnerActionsSpec
         _metadata = CloudflowApplicationSpecBuilder.demoMetadata)
 
       When("runner actions are created from a new app")
-      val actions = akkaRunner.actions(newApp, currentApp, runners)
+      val actions = pekkoRunner.actions(newApp, currentApp, runners)
 
       Then("only 'create actions' must be created for every runner")
       val createActions = actions.collect { case c: CreateOrReplaceAction[_] =>
@@ -89,15 +89,15 @@ class RunnerActionsSpec
       val configMaps = createActions.map(_.resource).collect { case configMap: ConfigMap =>
         configMap
       }
-      val akkaDeployments = createDeploymentActions.map(_.resource)
+      val pekkoDeployments = createDeploymentActions.map(_.resource)
 
       val streamletDeployments = newApp.getSpec.deployments
 
       createActions.size + createDeploymentActions.size mustBe actions.size
       configMaps.size mustBe 0
-      akkaDeployments.size mustBe streamletDeployments.size
-      akkaDeployments.foreach { deployment =>
-        assertAkkaDeployment(deployment, configMaps, newApp.getSpec, appId, ctx)
+      pekkoDeployments.size mustBe streamletDeployments.size
+      pekkoDeployments.foreach { deployment =>
+        assertPekkoDeployment(deployment, configMaps, newApp.getSpec, appId, ctx)
       }
     }
 
@@ -127,7 +127,7 @@ class RunnerActionsSpec
       val currentApp = Some(newApp)
 
       When("nothing changes in the new app")
-      val actions = akkaRunner.actions(newApp, currentApp, runners)
+      val actions = pekkoRunner.actions(newApp, currentApp, runners)
 
       Then("update actions should be created")
       val updateActions = actions.collect { case c: CreateOrReplaceAction[_] =>
@@ -169,7 +169,7 @@ class RunnerActionsSpec
       val newApp = App.Cr(
         _spec = CloudflowApplicationSpecBuilder.create(appId, newAppVersion, image, newBp.verified.value, agentPaths),
         _metadata = CloudflowApplicationSpecBuilder.demoMetadata)
-      val actions = akkaRunner.actions(newApp, Some(currentApp), runners)
+      val actions = pekkoRunner.actions(newApp, Some(currentApp), runners)
 
       Then("delete actions should be created")
       val deleteActions = actions.collect { case d: DeleteAction[_] => d }
@@ -206,7 +206,7 @@ class RunnerActionsSpec
         _metadata = CloudflowApplicationSpecBuilder.demoMetadata)
 
       Then("create actions for runner resources should be created for the new endpoint")
-      val actions = akkaRunner.actions(newApp, Some(currentApp), runners)
+      val actions = pekkoRunner.actions(newApp, Some(currentApp), runners)
 
       val createActions = actions.collect { case a: CreateOrReplaceAction[_] => a }
 
@@ -220,18 +220,18 @@ class RunnerActionsSpec
       val configMaps = createActions.map(_.resource).collect { case configMap: ConfigMap =>
         configMap
       }
-      val akkaDeployments = createDeploymentActions.map(_.resource)
+      val pekkoDeployments = createDeploymentActions.map(_.resource)
       // create and update
       configMaps.size mustBe 0
-      akkaDeployments.size mustBe 2
+      pekkoDeployments.size mustBe 2
 
-      akkaDeployments.foreach { deployment =>
-        assertAkkaDeployment(deployment, configMaps, newApp.getSpec, appId, ctx)
+      pekkoDeployments.foreach { deployment =>
+        assertPekkoDeployment(deployment, configMaps, newApp.getSpec, appId, ctx)
       }
     }
   }
 
-  def assertAkkaDeployment(
+  def assertPekkoDeployment(
       deployment: Deployment,
       configMaps: Seq[ConfigMap],
       app: App.Spec,
@@ -257,7 +257,7 @@ class RunnerActionsSpec
       deployment.getSpec.getStrategy.getType mustEqual "RollingUpdate"
     }
 
-    deployment.getSpec.getReplicas mustBe AkkaRunner.DefaultReplicas
+    deployment.getSpec.getReplicas mustBe PekkoRunner.DefaultReplicas
 
     podSpec.getContainers must have size 1
 
@@ -272,7 +272,7 @@ class RunnerActionsSpec
     container.getName mustBe Name.ofPod(deployment.getMetadata.getName)
     container.getImage mustBe streamletDeployment.image
 
-    container.getImagePullPolicy mustBe AkkaRunner.ImagePullPolicy
+    container.getImagePullPolicy mustBe PekkoRunner.ImagePullPolicy
 
     val probe = container.getLivenessProbe
     probe.getExec mustBe a[ExecAction]
@@ -282,10 +282,10 @@ class RunnerActionsSpec
     readinessProbe.getExec mustBe a[ExecAction]
     readinessProbe.getExec.getCommand.asScala.isEmpty mustBe false
 
-    val runnerDefaults = ctx.akkaRunnerDefaults
+    val runnerDefaults = ctx.pekkoRunnerDefaults
 
     val javaOptsEnvVar =
-      new EnvVarBuilder().withName(AkkaRunner.JavaOptsEnvVar).withValue(runnerDefaults.javaOptions).build()
+      new EnvVarBuilder().withName(PekkoRunner.JavaOptsEnvVar).withValue(runnerDefaults.javaOptions).build()
     val promPortEnvVar = new EnvVarBuilder()
       .withName(PrometheusExporterPortEnvVar)
       .withValue(PrometheusConfig.PrometheusJmxExporterPort.toString)

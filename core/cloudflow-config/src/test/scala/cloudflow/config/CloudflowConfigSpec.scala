@@ -32,7 +32,7 @@ class CloudflowConfigSpec extends AnyFlatSpec with Matchers with OptionValues wi
                   |      }
                   |      config {
                   |        // runtime settings go here
-                  |        akka.loglevel = "DEBUG"
+                  |        pekko.loglevel = "DEBUG"
                   |      }
                   |      kubernetes {
                   |        pods.pod.containers.container {
@@ -928,7 +928,7 @@ class CloudflowConfigSpec extends AnyFlatSpec with Matchers with OptionValues wi
     // Arrange
     val config = s"""cloudflow {
                     |  streamlets {
-                    |    akka {
+                    |    pekko {
                     |      kubernetes.pods {
                     |        pod {
                     |          volumes {
@@ -983,7 +983,7 @@ class CloudflowConfigSpec extends AnyFlatSpec with Matchers with OptionValues wi
     }
 
     // Assert
-    val vols = res.getConfig(s"cloudflow.streamlets.akka.kubernetes.pods.pod.volumes")
+    val vols = res.getConfig(s"cloudflow.streamlets.pekko.kubernetes.pods.pod.volumes")
     shouldBeConfigMap(vols.getConfig("foo"), "myconfigmap")
     shouldBeConfigMap(
       vols.getConfig("bar"),
@@ -1125,7 +1125,7 @@ class CloudflowConfigSpec extends AnyFlatSpec with Matchers with OptionValues wi
             }
           }
         }
-        runtimes.akka {
+        runtimes.pekko {
           kubernetes.pods.pod.containers {
             cloudflow {
               resources {
@@ -1147,7 +1147,7 @@ class CloudflowConfigSpec extends AnyFlatSpec with Matchers with OptionValues wi
     // Act
     val cloudflowConfig = CloudflowConfig.loadAndValidate(appConfig).get
 
-    val podConfig = CloudflowConfig.podsConfig("logger", "akka", cloudflowConfig)
+    val podConfig = CloudflowConfig.podsConfig("logger", "pekko", cloudflowConfig)
 
     // Assert
     podConfig

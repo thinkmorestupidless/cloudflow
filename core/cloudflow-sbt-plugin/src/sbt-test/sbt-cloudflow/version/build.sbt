@@ -2,7 +2,7 @@ val version1 = "1.2.3-SNAPSHOT"
 val version2 = "10.0.0"
 
 lazy val helloWorld1 = (project in file("helloworld1"))
-  .enablePlugins(CloudflowApplicationPlugin, CloudflowAkkaPlugin)
+  .enablePlugins(CloudflowApplicationPlugin, CloudflowPekkoPlugin)
   .settings(
     version := version1,
     scalaVersion := "3.3.5",
@@ -10,7 +10,7 @@ lazy val helloWorld1 = (project in file("helloworld1"))
     libraryDependencies ++= Seq("ch.qos.logback" % "logback-classic" % "1.2.11"))
 
 lazy val helloWorld2 = (project in file("helloworld2"))
-  .enablePlugins(CloudflowApplicationPlugin, CloudflowAkkaPlugin)
+  .enablePlugins(CloudflowApplicationPlugin, CloudflowPekkoPlugin)
   .settings(
     version := version2,
     scalaVersion := "3.3.5",

@@ -120,14 +120,14 @@ object CodepathCoverageMain extends App {
     commands
       .UpdateCredentials(cloudflowApp = "swiss-knife", dockerRegistry = "example2.io", username = "u", password = "p"))
 
-  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("akka-process" -> 5)))
-  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("akka-process" -> 2)))
+  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("pekko-process" -> 5)))
+  cli.run(commands.Scale(cloudflowApp = "swiss-knife", scales = Map("pekko-process" -> 2)))
 
   cli.run(
     commands.Configure(
       cloudflowApp = "swiss-knife",
       configKeys =
-        Map("cloudflow.streamlets.akka-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "cloudflow-spark")))
+        Map("cloudflow.streamlets.pekko-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "cloudflow-spark")))
 
   printingCli.run(commands.Configuration(cloudflowApp = "swiss-knife"))
   val conf = cli.run(commands.Configuration(cloudflowApp = "swiss-knife"))

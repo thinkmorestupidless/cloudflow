@@ -152,7 +152,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
           .Deploy(
             crFile = crFile,
             configKeys = Map(
-              "cloudflow.streamlets.akka-process.config-parameters" -> "{ configurable-message = value1 }",
+              "cloudflow.streamlets.pekko-process.config-parameters" -> "{ configurable-message = value1 }",
               "cloudflow.streamlets.flink-process.config-parameters" -> "{ configurable-message = value2 }")))
 
     // Assert
@@ -182,11 +182,12 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
 
     // Act
     val res =
-      cli.run(commands
-        .Deploy(
-          crFile = crFile,
-          configKeys = Map(
-            "cloudflow.streamlets.akka-process.kubernetes.pods.pod.volumes.foo" -> "{ pvc { name = non-existent-mnt } }")))
+      cli.run(
+        commands
+          .Deploy(
+            crFile = crFile,
+            configKeys = Map(
+              "cloudflow.streamlets.pekko-process.kubernetes.pods.pod.volumes.foo" -> "{ pvc { name = non-existent-mnt } }")))
 
     // Assert
     res.isFailure shouldBe true
@@ -203,7 +204,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
         .Deploy(
           crFile = crFile,
           configKeys = Map(
-            "cloudflow.streamlets.akka-process.kubernetes.pods.pod.volumes.foo" -> "{ pvc { name = existent-mnt } }")))
+            "cloudflow.streamlets.pekko-process.kubernetes.pods.pod.volumes.foo" -> "{ pvc { name = existent-mnt } }")))
 
     // Assert
     res.isSuccess shouldBe true
@@ -232,7 +233,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
     val res =
       cli.run(
         commands
-          .Deploy(crFile = crFile, configKeys = Map("cloudflow.topics.akka-pipe" -> "{ }")))
+          .Deploy(crFile = crFile, configKeys = Map("cloudflow.topics.pekko-pipe" -> "{ }")))
 
     // Assert
     res.isSuccess shouldBe true
@@ -290,7 +291,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
 
     // Act
     val res =
-      cli.run(commands.Scale("skiss-knife", scales = Map("akka-process" -> 5)))
+      cli.run(commands.Scale("skiss-knife", scales = Map("pekko-process" -> 5)))
 
     // Assert
     res.isSuccess shouldBe true
@@ -300,7 +301,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
     // Arrange
     val appCr = Json.mapper.readValue(crFile, classOf[App.Cr])
     val configKey =
-      "cloudflow.streamlets.akka-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "non-existent-pvc"
+      "cloudflow.streamlets.pekko-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "non-existent-pvc"
     val cli = new TestingCli(testingKubeClientFactory(providedApplication = Some(appCr)))
 
     // Act
@@ -316,7 +317,7 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
     // Arrange
     val appCr = Json.mapper.readValue(crFile, classOf[App.Cr])
     val configKey =
-      "cloudflow.streamlets.akka-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "existent-pvc"
+      "cloudflow.streamlets.pekko-process.kubernetes.pods.pod.volumes.default.pvc.name" -> "existent-pvc"
     val cli =
       new TestingCli(
         testingKubeClientFactory(providedPvcs = defaultPvcMounts :+ "existent-pvc", providedApplication = Some(appCr)))
