@@ -10,6 +10,7 @@ import cloudflow.cli.execution.{
   ConfigureExecution,
   DeployExecution,
   ListExecution,
+  ResetOffsetsExecution,
   ScaleExecution,
   StatusExecution,
   UndeployExecution,
@@ -342,6 +343,26 @@ object OptionsParser {
         outputFmt)
   }
 
+  private val resetOffsetsCommand = {
+    cmd("reset-offsets")
+      .action((_, o) => o.copy(command = Some(commands.ResetOffsets())))
+      .text(
+        "resets the consumer groups of stopped streamlets to the earliest offsets of the topics they read, so that " +
+          "they reprocess their inputs from the start; the operator carries it out and reports each group as an event")
+      .children(
+        commandParse[commands.ResetOffsets, String](arg("<cloudflowApp>"))((c, v) => c.copy(cloudflowApp = v))
+          .required()
+          .text("the cloudflow application"),
+        commandParse[commands.ResetOffsets, String](arg("<streamlet>"))((c, v) =>
+          c.copy(streamlets = c.streamlets :+ v))
+          .optional()
+          .unbounded()
+          .text("the streamlets to reset, each scaled to 0 first; every streamlet with inlets when none is given"),
+        namespace,
+        operatorNamespace,
+        outputFmt)
+  }
+
   private val configureCommand = {
     cmd("configure")
       .action((_, o) => o.copy(command = Some(commands.Configure())))
@@ -401,6 +422,7 @@ object OptionsParser {
       undeployCommand,
       updateCredentialsCommand,
       scaleCommand,
+      resetOffsetsCommand,
       configureCommand,
       getConfigurationCommand,
       finalValidation)
@@ -660,6 +682,26 @@ object commands {
     def render(ucr: UpdateCredentialsResult) = {
       ucr.render(output)
     }
+
+    def withOutput(fmt: format.Format) = this.copy(output = fmt)
+
+    def withNamespace(namespace: String) = this.copy(namespace = Some(namespace))
+
+    def withOperatorNamespace(namespace: String) = this.copy(operatorNamespace = Some(namespace))
+  }
+
+  case class ResetOffsets(
+      cloudflowApp: String = "",
+      streamlets: scala.List[String] = scala.Nil,
+      namespace: Option[String] = None,
+      operatorNamespace: Option[String] = None,
+      output: format.Format = format.Default)
+      extends Command[ResetOffsetsResult] {
+
+    def execution(kubeClient: => KubeClient, logger: CliLogger): Execution[ResetOffsetsResult] =
+      ResetOffsetsExecution(this, kubeClient, logger)
+
+    def render(result: ResetOffsetsResult) = result.render(output)
 
     def withOutput(fmt: format.Format) = this.copy(output = fmt)
 

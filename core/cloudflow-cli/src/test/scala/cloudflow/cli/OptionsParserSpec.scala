@@ -199,4 +199,13 @@ class OptionsParserSpec extends AnyFlatSpec with Matchers {
       "cdr-generator2" -> 2))
   }
 
+  it should "parse reset-offsets with its streamlets" in {
+    val res = OptionsParser(Array("reset-offsets", "swiss-knife", "pekko-process", "raw-egress", "-n", "shop"))
+
+    res.isDefined shouldBe true
+    res.get.command.get shouldBe ResetOffsets(
+      "swiss-knife",
+      streamlets = scala.List("pekko-process", "raw-egress"),
+      namespace = Some("shop"))
+  }
 }

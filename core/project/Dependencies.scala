@@ -237,6 +237,8 @@ object Dependencies {
       Compile.sourcecode,
       Compile.kafkaClient,
       Compile.scalatest % Test,
+      Compile.testcontainersKafka % Test,
+      TestDeps.fabric8KubernetesServerMock,
       TestDeps.avro4s)
 
   val cloudflowExtractor =

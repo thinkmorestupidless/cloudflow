@@ -310,6 +310,20 @@ final case class ScaleResult() extends Result {
   def render(fmt: format.Format): String = ""
 }
 
+/** A reset-offsets request recorded on the application; the operator carries it out asynchronously. */
+@JsonCreator
+final case class ResetOffsetsResult(requestId: String, streamlets: List[String]) extends Result {
+  def render(fmt: format.Format): String =
+    fmt match {
+      case format.Classic | format.Table =>
+        s"""Requested offset reset $requestId for ${streamlets.mkString(", ")}.
+           |The operator resets each inlet's consumer group to the earliest offsets and reports every group as an
+           |event on the application; scale the streamlets back up once it has.""".stripMargin
+      case format.Json => JsonHelper.objectMapper.writeValueAsString(this)
+      case format.Yaml => YamlHelper.objectMapper.writeValueAsString(this)
+    }
+}
+
 @JsonCreator
 final case class ConfigureResult() extends Result {
   def render(fmt: format.Format): String = ""

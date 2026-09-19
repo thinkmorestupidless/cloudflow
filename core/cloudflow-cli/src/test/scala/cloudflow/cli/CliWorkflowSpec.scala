@@ -5,11 +5,12 @@
 package cloudflow.cli
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.nowarn
 import scala.util.{ Success, Try }
-import cloudflow.crd.App
+import cloudflow.crd.{ App, ResetOffsets }
 import cloudflow.cli.kubeclient.KubeClient
-import cloudflow.cli.models.ApplicationStatus
+import cloudflow.cli.models.{ ApplicationStatus, ContainersReady, PodStatus, StreamletStatus }
 import buildinfo.BuildInfo
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest._
@@ -33,12 +34,16 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
       providedPvcs: List[String] = defaultPvcMounts,
       providedKafkaClusters: Map[String, String] = defaultProvidedKafkaClusters,
       providedApplication: Option[App.Cr] = None,
-      providedInputSecret: String = "")(config: Option[File], logger: CliLogger) = {
+      providedInputSecret: String = "",
+      providedStatus: ApplicationStatus = statusResult,
+      updatedApplication: AtomicReference[Option[App.Cr]] = new AtomicReference(None))(
+      config: Option[File],
+      logger: CliLogger) = {
     new KubeClient {
       def listCloudflowApps(namespace: Option[String]): Try[List[models.CRSummary]] =
         Success(listResult)
       def getCloudflowAppStatus(app: String, namespace: String) =
-        Success(statusResult)
+        Success(providedStatus)
       def createImagePullSecret(
           namespace: String,
           dockerRegistryURL: String,
@@ -61,7 +66,10 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
       def getPvcs(namespace: String) = Success(providedPvcs)
       def getKafkaClusters(namespace: Option[String]) = Success(providedKafkaClusters)
       def readCloudflowApp(name: String, namespace: String): Try[Option[App.Cr]] = Success(providedApplication)
-      def updateCloudflowApp(app: App.Cr, namespace: String): Try[App.Cr] = Success(app)
+      def updateCloudflowApp(app: App.Cr, namespace: String): Try[App.Cr] = {
+        updatedApplication.set(Some(app))
+        Success(app)
+      }
       def getAppInputSecret(name: String, namespace: String): Try[String] = Success(providedInputSecret)
     }
   }
@@ -358,4 +366,80 @@ class CliWorkflowSpec extends AnyFlatSpec with Matchers with TryValues {
     res.failure.exception.getMessage.contains(" spec.library_version is missing, empty or invalid") shouldBe true
   }
 
+  private def swissKnife(scaledToZero: Set[String]): App.Cr = {
+    val cr = Json.mapper.readValue(crFile, classOf[App.Cr])
+    cr.setSpec(cr.getSpec.copy(deployments = cr.getSpec.deployments.map { d =>
+      if (scaledToZero.contains(d.streamletName)) d.copy(replicas = Some(0)) else d
+    }))
+    cr
+  }
+
+  private val pekkoReaders =
+    Set("flink-egress", "spark-egress", "pekko-process", "raw-egress", "pekko-config-output", "pekko-egress")
+
+  it should "request an offset reset for stopped streamlets, recording it on the application" in {
+    val updated = new AtomicReference[Option[App.Cr]](None)
+    val cli = new TestingCli(
+      testingKubeClientFactory(
+        providedApplication = Some(swissKnife(Set("pekko-process"))),
+        updatedApplication = updated))
+
+    val res = cli.run(commands.ResetOffsets("swiss-knife", streamlets = List("pekko-process")))
+
+    res.isSuccess shouldBe true
+    res.success.value.streamlets shouldBe List("pekko-process")
+    val request = ResetOffsets.request(updated.get.get).get
+    request.id shouldBe res.success.value.requestId
+    request.streamlets shouldBe List("pekko-process")
+    ResetOffsets.pending(updated.get.get) shouldBe Some(request)
+  }
+
+  it should "request a reset of every streamlet that reads when none is named, once all of them are stopped" in {
+    val updated = new AtomicReference[Option[App.Cr]](None)
+    val cli = new TestingCli(
+      testingKubeClientFactory(providedApplication = Some(swissKnife(pekkoReaders)), updatedApplication = updated))
+
+    val res = cli.run(commands.ResetOffsets("swiss-knife"))
+
+    res.isSuccess shouldBe true
+    res.success.value.streamlets should contain theSameElementsAs pekkoReaders
+    ResetOffsets.request(updated.get.get).get.streamlets shouldBe empty
+  }
+
+  it should "refuse to reset a streamlet that is not scaled to 0, saying how to stop it, and record nothing" in {
+    val updated = new AtomicReference[Option[App.Cr]](None)
+    val cli = new TestingCli(
+      testingKubeClientFactory(providedApplication = Some(swissKnife(Set.empty)), updatedApplication = updated))
+
+    val res = cli.run(commands.ResetOffsets("swiss-knife", streamlets = List("pekko-process")))
+
+    res.isFailure shouldBe true
+    res.failure.exception.getMessage should include("[pekko-process] is not scaled to 0")
+    res.failure.exception.getMessage should include("kubectl cloudflow scale swiss-knife pekko-process=0")
+    updated.get shouldBe None
+  }
+
+  it should "refuse to reset a streamlet whose pods have not gone yet" in {
+    val status = statusResult.copy(streamletsStatuses = List(
+      StreamletStatus("pekko-process", List(PodStatus("pekko-process-0", ContainersReady(0, 1), "Terminating", 0)))))
+    val cli = new TestingCli(
+      testingKubeClientFactory(providedApplication = Some(swissKnife(Set("pekko-process"))), providedStatus = status))
+
+    val res = cli.run(commands.ResetOffsets("swiss-knife", streamlets = List("pekko-process")))
+
+    res.isFailure shouldBe true
+    res.failure.exception.getMessage should include("[pekko-process] still has 1 pod(s)")
+  }
+
+  it should "refuse streamlets with no consumer groups to reset, naming each" in {
+    val cli = new TestingCli(testingKubeClientFactory(providedApplication = Some(swissKnife(Set("ingress")))))
+
+    val res = cli.run(commands.ResetOffsets("swiss-knife", streamlets = List("nope", "spark-process", "ingress")))
+
+    res.isFailure shouldBe true
+    val message = res.failure.exception.getMessage
+    message should include("no streamlet [nope]")
+    message should include("streamlet [spark-process] runs on the spark runtime")
+    message should include("streamlet [ingress] runs on the spark runtime")
+  }
 }

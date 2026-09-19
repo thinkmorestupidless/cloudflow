@@ -17,7 +17,7 @@
 package cloudflow.operator
 package event
 
-import cloudflow.crd.App
+import cloudflow.crd.{ App, ResetOffsets }
 import cloudflow.kube.actions.Action
 import cloudflow.operator.action._
 import io.fabric8.kubernetes.api.model.{ HasMetadata, ObjectReference }
@@ -42,6 +42,16 @@ case class UndeployEvent(app: App.Cr, cause: ObjectReference) extends AppEvent {
   override def toString() = s"UndeployEvent for application ${app.getSpec.appId} in namespace ${app.namespace}"
   def toActionList(runners: Map[String, runner.Runner[_]], podName: String, podNamespace: String): Seq[Action] =
     Actions.undeploy(app, podName, cause)
+}
+
+/** Indicates that a reset of the application's consumer groups was requested (see [[cloudflow.crd.ResetOffsets]]).
+  * Raised for a request not yet carried out, once per request.
+  */
+case class ResetOffsetsEvent(app: App.Cr, request: ResetOffsets.Request, cause: ObjectReference) extends AppEvent {
+  override def toString() =
+    s"ResetOffsetsEvent ${request.id} for application ${app.getSpec.appId} in namespace ${app.namespace}"
+  def toActionList(runners: Map[String, runner.Runner[_]], podName: String, podNamespace: String): Seq[Action] =
+    ResetOffsetsActions(app, request, podName, podNamespace, cause)
 }
 
 /** Indicates that something changed in the cloudflow application.
@@ -74,10 +84,20 @@ object AppEvent {
       case WatchEventType.DELETION =>
         (currentApps - appId, List(UndeployEvent(cr, Event.toObjectReference(watchEvent.obj))))
       case WatchEventType.ADDITION | WatchEventType.UPDATION =>
+        // A pending reset request is raised once: when this observation has it and the previous one did not. The
+        // annotation changes without the spec, so this observation is kept even when it is not a deploy - otherwise
+        // the status updates that follow would compare against a copy without the request, and raise it again.
+        val resets = ResetOffsets
+          .pending(cr)
+          .filterNot(request => currentApp.flatMap(ResetOffsets.pending).exists(_.id == request.id))
+          .map(request => ResetOffsetsEvent(cr, request, Event.toObjectReference(watchEvent.obj)))
+          .toList
         if (hasChanged) {
           (
             currentApps + (appId -> watchEvent),
-            List(DeployEvent(cr, currentApp, Event.toObjectReference(watchEvent.obj))))
+            DeployEvent(cr, currentApp, Event.toObjectReference(watchEvent.obj)) :: resets)
+        } else if (resets.nonEmpty) {
+          (currentApps + (appId -> watchEvent), resets)
         } else {
           (currentApps, List())
         }

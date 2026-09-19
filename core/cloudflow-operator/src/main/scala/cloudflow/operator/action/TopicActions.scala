@@ -77,11 +77,8 @@ object TopicActions {
   val KafkaClusterNameFormat = "cloudflow-kafka-cluster-%s"
   val KafkaClusterNameLabel = "cloudflow.lightbend.com/kafka-cluster-name"
 
-  /** Create a topic using the correct Kafka configuration.
-    *
-    * Configuration resolution order:
-    *   1. App secret contains inline connection configuration for topic 2. User-defined topic cluster configuration
-    *      name in blueprint 3. Default topic cluster configuration
+  /** Create a topic using the correct Kafka configuration (see [[withKafkaConnection]]); a topic whose Kafka
+    * configuration cannot be found puts the application in error.
     */
   def action(
       appConfigSecretName: Option[String],
@@ -89,17 +86,39 @@ object TopicActions {
       labels: CloudflowLabels,
       topic: TopicInfo,
       newApp: App.Cr,
-      namedClustersNamespace: String): Action = {
+      namedClustersNamespace: String): Action =
+    withKafkaConnection(appConfigSecretName, topic, newApp, namedClustersNamespace)(
+      use = connected => createTopicOrError(newApp, runners, labels, connected),
+      onMissing = msg => CloudflowStatus.errorAction(newApp, runners, msg))
+
+  /** Finds the Kafka configuration for a topic and passes it to `use`, as a [[TopicInfo]] carrying the bootstrap
+    * servers and connection (broker) configuration to reach it with.
+    *
+    * Configuration resolution order:
+    *   1. the port mappings in the secret of a streamlet using the topic (`appConfigSecretName`), which is what that
+    *      streamlet itself connects with, if they contain bootstrap servers; 2. the Kafka cluster secret the topic
+    *      names; 3. the default Kafka cluster secret.
+    *
+    * @param onMissing
+    *   the action to take, given a reason, when no configuration is found.
+    */
+  def withKafkaConnection(
+      appConfigSecretName: Option[String],
+      topic: TopicInfo,
+      newApp: App.Cr,
+      namedClustersNamespace: String)(use: TopicInfo => Action, onMissing: String => Action): Action = {
     def useClusterConfiguration(providedTopic: TopicInfo): Action = {
       providedTopic.cluster
         .map { cluster =>
           Action.get[Secret](String.format(KafkaClusterNameFormat, cluster), namedClustersNamespace) { res =>
             res match {
-              case Some(secret) => createActionFromKafkaConfigSecret(secret, newApp, runners, labels, providedTopic)
+              case Some(secret) =>
+                val config = getConfigFromSecret(secret)
+                use(TopicInfo(Topic(id = providedTopic.id, cluster = providedTopic.cluster, config = config)))
               case None =>
                 val msg = s"Could not find Kafka configuration for topic [${providedTopic.name}] cluster [$cluster]"
                 log.error(msg)
-                CloudflowStatus.errorAction(newApp, runners, msg)
+                onMissing(msg)
             }
           }
         }
@@ -108,7 +127,7 @@ object TopicActions {
             val msg =
               "A default Kafka configuration was not defined during installation of cloudflow-operator. Cannot create managed topics."
             log.error(msg)
-            CloudflowStatus.errorAction(newApp, runners, msg)
+            onMissing(msg)
           } else {
             useClusterConfiguration(topic.copy(cluster = Some(DefaultConfigurationName)))
           }
@@ -118,7 +137,8 @@ object TopicActions {
     appConfigSecretName
       .map { name =>
         Action.get[Secret](name, newApp.namespace) { secretOption =>
-          maybeCreateActionFromAppConfigSecret(secretOption, newApp, runners, labels, topic)
+          connectionFromAppConfigSecret(secretOption, topic)
+            .map(use)
             .getOrElse(useClusterConfiguration(topic))
         }
       }
@@ -133,30 +153,14 @@ object TopicActions {
     ConfigFactory.parseString(str)
   }
 
-  def createActionFromKafkaConfigSecret(
-      secret: Secret,
-      newApp: App.Cr,
-      runners: Map[String, runner.Runner[_]],
-      labels: CloudflowLabels,
-      topic: TopicInfo) = {
-    val config = getConfigFromSecret(secret)
-    val topicInfo = TopicInfo(Topic(id = topic.id, cluster = topic.cluster, config = config))
-    createTopicOrError(newApp, runners, labels, topicInfo)
-  }
-
-  def maybeCreateActionFromAppConfigSecret(
-      secretOption: Option[Secret],
-      newApp: App.Cr,
-      runners: Map[String, runner.Runner[_]],
-      labels: CloudflowLabels,
-      topic: TopicInfo) =
+  private def connectionFromAppConfigSecret(secretOption: Option[Secret], topic: TopicInfo): Option[TopicInfo] =
     for {
       secret <- secretOption
       config = getConfigFromSecret(secret)
       kafkaConfig <- getKafkaConfig(config, topic)
       topicWithKafkaConfig = TopicInfo(Topic(id = topic.id, config = kafkaConfig))
       _ <- topicWithKafkaConfig.bootstrapServers
-    } yield createTopicOrError(newApp, runners, labels, topicWithKafkaConfig)
+    } yield topicWithKafkaConfig
 
   def createTopicOrError(
       newApp: App.Cr,

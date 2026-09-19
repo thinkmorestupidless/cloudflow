@@ -354,7 +354,8 @@ lazy val cloudflowPekkoTests =
     .dependsOn(
       cloudflowPekko,
       (cloudflowPekkoTestkit % "test->test").classpathDependency,
-      (cloudflowJson % "test").classpathDependency)
+      (cloudflowJson % "test").classpathDependency,
+      (cloudflowCrd % "test").classpathDependency)
     .settings(Dependencies.cloudflowPekkoTests)
     .settings(
       scalaVersion := Dependencies.Scala3,
