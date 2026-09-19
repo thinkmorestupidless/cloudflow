@@ -20,6 +20,7 @@ import cloudflow.kube.actions.{ CompositeAction, CreateOrReplaceAction, GetActio
 import cloudflow.blueprint.BlueprintBuilder._
 import cloudflow.blueprint.{ Topic => BTopic, _ }
 import cloudflow.operator.action.runner.Base64Helper
+import com.typesafe.config.ConfigFactory
 import io.fabric8.kubernetes.api.model.{ Secret, SecretBuilder }
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -97,6 +98,54 @@ class TopicActionsSpec
           .asInstanceOf[TopicActions.TopicResource]
         assertTopic(topic, resource, newApp.getSpec.appId)
       }
+    }
+
+    "create no topic that Cloudflow does not own, and still create the ones it does" in {
+
+      Given("an app consuming another system's topic, declared unmanaged, and producing to a topic of its own")
+      val processor = randomStreamlet().asProcessor[Foo, Bar]
+      val egress = randomStreamlet().asEgress[Bar]
+      val processorRef = processor.ref("processor")
+      val egressRef = egress.ref("egress")
+      val external = BTopic(
+        "cart-events",
+        kafkaConfig = ConfigFactory.parseString("""
+            |topic.name = "nakka.cart-events.v1"
+            |managed = false
+            |bootstrap.servers = "nakka-kafka-bootstrap.kafka.svc:9092"
+            |""".stripMargin))
+      val bp = Blueprint()
+        .define(Vector(processor, egress))
+        .use(processorRef)
+        .use(egressRef)
+        .connect(external, processorRef.in)
+        .connect(BTopic("bars"), processorRef.out, egressRef.in)
+      val app = App.Cr(
+        _spec =
+          CloudflowApplicationSpecBuilder.create("unmanaged-app", appVersion, image, bp.verified.value, agentPaths),
+        _metadata = CloudflowApplicationSpecBuilder.demoMetadata)
+
+      When("topic actions are created")
+      val actions = TopicActions(app, runners, ctx.podNamespace)
+
+      Then("there is one action, and it creates the app's own topic")
+      actions must have size 1
+      val created = actions.head
+        .asInstanceOf[GetAction[Secret]]
+        .getAction(None)
+        .asInstanceOf[GetAction[Secret]]
+        .getAction(Option(defaultClusterSecret))
+        .asInstanceOf[CompositeAction[_]]
+        .actions
+        .collect { case act: CreateOrReplaceAction[TopicActions.TopicResource] => act }
+      created.map(_.resource.getMetadata.getName) mustBe List("topic-bars")
+
+      And("the external topic still reaches the consuming streamlet, by its own name and brokers")
+      val in = app.getSpec.deployments.find(_.streamletName == "processor").value.portMappings(processor.in.name)
+      val topic = TopicActions.TopicInfo(TopicActions.portMappingToTopic(in))
+      topic.managed mustBe false
+      topic.name mustBe "nakka.cart-events.v1"
+      topic.bootstrapServers mustBe Some("nakka-kafka-bootstrap.kafka.svc:9092")
     }
 
     "create a new topic when a savepoint is added" in {

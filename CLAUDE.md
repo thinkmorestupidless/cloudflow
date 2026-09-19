@@ -180,7 +180,20 @@ only in class names.
   — it cannot see the inbound key. A value-only stage between two keyed ones destroys per-key
   ordering; that is what the record API is for.
 - **`managed = false` on a blueprint topic** stops the operator creating it (`TopicActions`), which
-  is how a blueprint consumes a topic Cloudflow does not own.
+  is how a blueprint consumes a topic Cloudflow does not own — a nakka service's:
+  ```hocon
+  cart-events {
+    topic.name = "nakka.cart-events.v1"       # the topic's real name; the key above is only an id
+    managed = false
+    bootstrap.servers = "nakka-kafka:9092"   # or `cluster = <name>`, or the default cluster
+    consumers = [graph.in]                   # consumers only: nothing in the blueprint produces to it
+  }
+  ```
+  A topic's settings resolve, highest first: deploy-time `cloudflow.topics.<id>` (`kubectl cloudflow
+  deploy --conf`), the blueprint, then the Kafka cluster secret it names (or `default`). The consumer
+  group is Cloudflow's own, `<appId>.<streamletRef>.<inlet>`, whoever owns the topic. Committable
+  sources start from `earliest`, plain ones from their `ResetPosition` (default `Latest`); a topic's
+  `consumer-config` overrides either.
 - **Only real Kafka proves the wire.** The testkit never serialises headers or chooses partitions;
   `RecordKafkaSpec` checks keys, header bytes and partition placement with a plain Kafka consumer.
   New wire behaviour needs a test like it, not only a testkit one.
