@@ -152,6 +152,27 @@ example jobs are `continue-on-error`, so a red example does not block a merge �
 | `cloudflow-it`, `cloudflow-new-it`, `cloudflow-new-it-library` | Integration tests against a live cluster |
 | `tooling` | GraalVM reflection-config generation for the CLI (`regenerateGraalVMConfig`) |
 
+### Resetting consumer groups: `kubectl cloudflow reset-offsets`
+
+To make a pipeline reprocess its inputs from the start — how a graph it feeds is rebuilt — its streamlets'
+consumer groups go back to the earliest offsets. The **operator** does it, not the CLI: Kafka usually runs
+in-cluster behind credentials only the cluster holds, and the operator already has both.
+
+- The CLI checks every target is a Pekko streamlet with inlets, scaled to 0 and with no pods left, then
+  records a request (`cloudflow.crd.ResetOffsets`, JSON in the `cloudflow.lightbend.com/reset-offsets`
+  annotation, with a fresh id). One definition in `cloudflow-crd` serves both ends.
+- The operator raises `ResetOffsetsEvent` for a request it has not carried out — an annotation change, so
+  it is detected beside, not through, the spec-change deploy path (`AppEvent.toDeployEvent`) — and resets
+  each inlet's group `<appId>.<streamlet>.<inlet>` over **that streamlet's own Kafka connection**
+  (`TopicActions.withKafkaConnection`: its secret's port mappings, then the named, then the default
+  cluster). Each group's outcome is a Kubernetes event; a failure is a warning, never an app error.
+  Then it writes the id to `cloudflow.lightbend.com/reset-offsets-done`, so a restart does not repeat it.
+- Kafka itself refuses to reset a group with members, which is the guard if the CLI read a stale status.
+- The operator must be allowed to **patch** `cloudflowapplications` (it edits that annotation) — not only
+  update their status.
+- `ConsumerGroupNamingSpec` pins the operator's group naming to the runtime's; if they drifted, a reset
+  would succeed on a group nothing reads.
+
 ### What still says Akka, and why
 
 A handful of lines keep "Akka" on purpose, because they record history rather than name anything:

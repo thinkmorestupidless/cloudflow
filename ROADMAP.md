@@ -171,8 +171,18 @@ per-entity order, and be rebuildable.
       recorded in `CLAUDE.md`: brokers come from the topic, a named cluster or the default one;
       the consumer group is `<appId>.<streamletRef>.<inlet>`; committable sources start from
       `earliest`. What is still unproven is the same thing on a live cluster — Phase 3.
-- [ ] **Rebuild support.** A CLI command to reset a streamlet's (or an application's) consumer
-      groups to earliest, refusing while it is running — the rebuild runbook depends on it.
+- [x] **Rebuild support** (branch `phase-2-reset-offsets`): `kubectl cloudflow reset-offsets <app>
+      [<streamlet>...]`. Decided: the **operator** carries it out — Kafka is usually in-cluster behind
+      credentials only the cluster holds. The CLI refuses unless every target is a Pekko streamlet with
+      inlets, scaled to 0 and with no pods left, then records a request annotation; the operator resets
+      each inlet's group to earliest over the streamlet's own Kafka connection, reports each group as a
+      Kubernetes event (a failure is a warning, not an app error), and records the request done so a
+      restart does not repeat it. Kafka also refuses groups with members. Tested: against real Kafka
+      (`ConsumerGroupResetSpec`: offsets move back, a live group is refused, a new group starts at the
+      beginning); the operator's actions run by its own executor against a mock Kubernetes API and real
+      Kafka (`ResetOffsetsIntegrationSpec`); detection once per request, not on status updates, again
+      after a restart only if not done (`ResetOffsetsSpec`); the CLI's refusals and request
+      (`CliWorkflowSpec`); and the group naming pinned to the runtime's (`ConsumerGroupNamingSpec`).
 - [ ] **Commit after the side effect.** `committableSink(committerSettings)` already exists; add a
       documented, tested pattern for a sink-only streamlet that commits only after an external
       transaction (Neo4j) has committed.
@@ -186,6 +196,8 @@ per-entity order, and be rebuildable.
       install.
 - [ ] Install the Cloudflow operator from `kustomization/` alongside nakka's, with images loaded
       by `kind load` as nakka's are.
+- [ ] The operator's install RBAC must allow **patch** on `cloudflowapplications` (reset-offsets edits an
+      annotation), not only status updates; and `create` on events, as before.
 - [ ] Verify the operator (fabric8 6.13.4) against the Kubernetes version nakka's suites use
       (k3s v1.35.1).
 - [ ] A nakka sample service publishing to a topic, consumed by a trivial blueprint, end to end
