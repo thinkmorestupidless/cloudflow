@@ -85,6 +85,27 @@ final case class PekkoStreamletTestKit private[testkit] (
   def inletFromSource[T](inlet: CodecInlet[T], source: Source[T, NotUsed]): SourceInletTap[T] =
     SourceInletTap[T](inlet, source.map(t => (t, TestCommittableOffset())))
 
+  /** An inlet tap whose queue takes [[cloudflow.streamlets.Record Record]]s, so elements can carry a key and headers
+    * into a streamlet that reads the inlet with a record source.
+    */
+  def inletAsRecordTap[T](inlet: CodecInlet[T]): RecordQueueInletTap[T] =
+    RecordQueueInletTap[T](inlet)(system)
+
+  /** An inlet tap fed from a source of [[cloudflow.streamlets.Record Record]]s. */
+  def inletFromRecordSource[T](inlet: CodecInlet[T], source: Source[Record[T], NotUsed]): RecordSourceInletTap[T] =
+    RecordSourceInletTap[T](inlet, source.map(r => (r, TestCommittableOffset())))
+
+  /** An outlet tap whose probe receives each element written to the outlet as a [[cloudflow.streamlets.Record Record]]:
+    * its value, its key — the record's own for a record sink, otherwise the outlet's partitioner's, `None` if that gave
+    * none — and its headers.
+    *
+    * {{{
+    * out.probe.expectMsg(Record(Data(2, "b"), Some("2"), List(Header("ce_type", "created"))))
+    * }}}
+    */
+  def outletAsRecordTap[T](outlet: CodecOutlet[T]): RecordProbeOutletTap[T] =
+    RecordProbeOutletTap[T](outlet)(system)
+
   /** Creates an outlet tap. An outlet tap provides a probe that can be used to assert elements produced to the
     * specified outlet.
     *

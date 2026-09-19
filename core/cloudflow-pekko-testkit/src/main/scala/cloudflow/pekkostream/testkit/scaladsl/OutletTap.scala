@@ -40,6 +40,23 @@ case class SinkOutletTap[T](outlet: CodecOutlet[T], val snk: Sink[(String, T), N
     flow.toMat(Sink.ignore)(Keep.right)
 }
 
+/** An outlet tap whose probe receives whole [[cloudflow.streamlets.Record Record]]s — value, key (`None` when the
+  * outlet's partitioner gave none) and headers — rather than the `(key, value)` tuples of [[ProbeOutletTap]].
+  */
+case class RecordProbeOutletTap[T](outlet: CodecOutlet[T])(implicit system: ActorSystem) extends OutletTap[T] {
+  val probe = new TestKit(system)
+
+  private[testkit] val flow: Flow[PartitionedValue[T], PartitionedValue[T], NotUsed] =
+    Flow[PartitionedValue[T]]
+      .alsoTo(
+        Flow[PartitionedValue[T]]
+          .map(pv => Record(pv.value, Option(pv.key), pv.headers))
+          .to(Sink.actorRef[Record[T]](probe.testActor, Completed, Failed)))
+
+  private[testkit] val sink: Sink[PartitionedValue[T], Future[Done]] =
+    flow.toMat(Sink.ignore)(Keep.right)
+}
+
 case class ProbeOutletTap[T](outlet: CodecOutlet[T])(implicit system: ActorSystem) extends OutletTap[T] {
   val probe = new TestKit(system)
 

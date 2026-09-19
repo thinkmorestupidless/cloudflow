@@ -137,6 +137,47 @@ private[testkit] case class TestContext(
       committerSettings: CommitterSettings): Sink[(T, Committable), NotUsed] =
     flowWithCommittableContext[T](outlet).asFlow.toMat(Sink.ignore)(Keep.left)
 
+  override def recordSourceWithCommittableContext[T](
+      inlet: CodecInlet[T]): cloudflow.pekkostream.scaladsl.SourceWithCommittableContext[Record[T]] =
+    inletTaps
+      .find(_.portName == inlet.name)
+      .map(
+        _.asInstanceOf[InletTap[T]].recordSource
+          .via(killSwitch.flow)
+          .mapError { case cause: Throwable =>
+            execution.complete(Failure(cause))
+            cause
+          }
+          .asSourceWithContext(_._2)
+          .map(_._1))
+      .getOrElse(
+        throw TestContextException(inlet.name, s"Bad test context, could not find source for inlet ${inlet.name}"))
+
+  override def plainRecordSource[T](inlet: CodecInlet[T], resetPosition: ResetPosition): Source[Record[T], NotUsed] =
+    recordSourceWithCommittableContext[T](inlet).asSource.map(_._1).mapMaterializedValue(_ => NotUsed)
+
+  override def committableRecordSink[T](
+      outlet: CodecOutlet[T],
+      committerSettings: CommitterSettings): Sink[(Record[T], Committable), NotUsed] =
+    outletTaps
+      .find(_.portName == outlet.name)
+      .map { outletTap =>
+        val tout = outletTap.asInstanceOf[OutletTap[T]]
+        Flow[(Record[T], Committable)]
+          .via(killSwitch.flow)
+          .mapError { case cause: Throwable =>
+            execution.complete(Failure(cause))
+            cause
+          }
+          .map { case (record, _) => tout.toPartitionedValue(record) }
+          .toMat(tout.sink)(Keep.left)
+      }
+      .getOrElse(
+        throw TestContextException(outlet.name, s"Bad test context, could not find sink for outlet ${outlet.name}"))
+
+  override def plainRecordSink[T](outlet: CodecOutlet[T]): Sink[Record[T], NotUsed] =
+    committableRecordSink[T](outlet, CommitterSettings(system)).contramap(record => (record, TestCommittableOffset()))
+
   private[pekkostream] def flexiFlow[T](
       outlet: CodecOutlet[T]): Flow[(immutable.Seq[_ <: T], Committable), (Unit, Committable), NotUsed] =
     seqFlowWithCommittableContext[T](outlet)

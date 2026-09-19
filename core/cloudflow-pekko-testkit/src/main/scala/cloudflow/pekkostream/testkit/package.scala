@@ -17,11 +17,12 @@
 package cloudflow.pekkostream
 
 package testkit {
+  import scala.collection.immutable
   import scala.util.Try
   import scala.concurrent.{ Future, Promise }
   import org.apache.pekko.{ Done, NotUsed }
   import org.apache.pekko.stream.scaladsl._
-  import cloudflow.streamlets.CodecOutlet
+  import cloudflow.streamlets.{ CodecOutlet, Header, Record }
   import org.apache.pekko.kafka.ConsumerMessage._
 
   trait InletTap[T] {
@@ -29,6 +30,10 @@ package testkit {
 
     // This is for internal usage so using a scaladsl Source and a Tuple is no problem
     private[testkit] def source: Source[(T, Committable), NotUsed]
+
+    // What a record source reads: a value-only tap's elements arrive with no key and no headers.
+    private[testkit] def recordSource: Source[(Record[T], Committable), NotUsed] =
+      source.map { case (value, committable) => (Record(value), committable) }
   }
 
   trait OutletTap[T] {
@@ -44,11 +49,23 @@ package testkit {
 
     private[testkit] def toPartitionedValue(element: T, promise: Promise[T]): PartitionedValue[T] =
       PartitionedValue(outlet.partitioner(element), element, promise)
+
+    // Keyed as the record sinks key a Kafka record: the record's own key, else the outlet's partitioner.
+    private[testkit] def toPartitionedValue(record: Record[T]): PartitionedValue[T] =
+      PartitionedValue(
+        record.key.getOrElse(outlet.partitioner(record.value)),
+        record.value,
+        Promise.successful(record.value),
+        record.headers)
   }
 
   /** A representation of a key-value pair that is not bound to the Scala or Java DSLs
     */
-  private[testkit] case class PartitionedValue[T](key: String, value: T, promise: Promise[T]) {
+  private[testkit] case class PartitionedValue[T](
+      key: String,
+      value: T,
+      promise: Promise[T],
+      headers: immutable.Seq[Header] = Nil) {
     def getKey(): String = key
     def getValue(): T = value
   }

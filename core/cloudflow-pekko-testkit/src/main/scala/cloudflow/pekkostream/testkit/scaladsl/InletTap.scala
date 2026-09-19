@@ -29,6 +29,31 @@ case class SourceInletTap[T](inlet: CodecInlet[T], source: Source[(T, Committabl
   def portName = inlet.name
 }
 
+/** An inlet tap fed with whole [[cloudflow.streamlets.Record Record]]s, so a test can give elements keys and headers. A
+  * streamlet reading the inlet with a value source sees only the values.
+  */
+case class RecordSourceInletTap[T](inlet: CodecInlet[T], records: Source[(Record[T], Committable), NotUsed])
+    extends InletTap[T] {
+  def portName = inlet.name
+  private[testkit] override def recordSource = records
+  private[testkit] def source = records.map { case (record, committable) => (record.value, committable) }
+}
+
+/** An inlet tap with a queue of [[cloudflow.streamlets.Record Record]]s, so a test can offer elements with keys and
+  * headers.
+  */
+case class RecordQueueInletTap[T](inlet: CodecInlet[T])(implicit system: ActorSystem) extends InletTap[T] {
+  private val bufferSize = 1024
+  private val hub = BroadcastHub.sink[Record[T]](bufferSize)
+  private val qSource = Source.queue[Record[T]](bufferSize, OverflowStrategy.backpressure)
+  private[testkit] val (q, src) = qSource.toMat(hub)(Keep.both).run()
+
+  val portName = inlet.name
+  private[testkit] override val recordSource = src.map(record => (record, TestCommittableOffset()))
+  private[testkit] val source = recordSource.map { case (record, committable) => (record.value, committable) }
+  val queue: SourceQueueWithComplete[Record[T]] = q
+}
+
 case class QueueInletTap[T](inlet: CodecInlet[T])(implicit system: ActorSystem) extends InletTap[T] {
   private val bufferSize = 1024
   private val hub = BroadcastHub.sink[T](bufferSize)

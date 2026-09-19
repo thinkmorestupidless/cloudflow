@@ -322,6 +322,74 @@ abstract class PekkoStreamletLogic(implicit val context: PekkoStreamletContext)
       : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, Committable], NotUsed] =
     getCommittableSink[T](defaultCommitterSettings)
 
+  /** As [[sourceWithCommittableContext]], but each element is a [[cloudflow.streamlets.Record Record]]: the decoded
+    * value together with the Kafka record's key and headers.
+    *
+    * Use it when the key or headers carry meaning a stage needs — the subject of a CloudEvent is its record key, and
+    * its attributes are headers — and with [[committableRecordSink]] to pass them on: writing the inbound key keeps
+    * every element with that key on one partition downstream, which is what preserves per-key ordering across the
+    * stage.
+    */
+  def recordSourceWithCommittableContext[T](inlet: CodecInlet[T]): SourceWithCommittableContext[Record[T]] =
+    context.recordSourceWithCommittableContext(inlet)
+
+  /** Java API
+    * @see
+    *   [[recordSourceWithCommittableContext]]
+    */
+  def getRecordSourceWithCommittableContext[T](
+      inlet: CodecInlet[T]): org.apache.pekko.stream.javadsl.SourceWithContext[Record[T], Committable, _] =
+    context.recordSourceWithCommittableContext(inlet).asJava
+
+  /** As [[plainSource]], but each element is a [[cloudflow.streamlets.Record Record]] with its Kafka key and headers.
+    */
+  def plainRecordSource[T](
+      inlet: CodecInlet[T],
+      resetPosition: ResetPosition = Latest): org.apache.pekko.stream.scaladsl.Source[Record[T], NotUsed] =
+    context.plainRecordSource(inlet, resetPosition)
+
+  /** Java API
+    */
+  def getPlainRecordSource[T](inlet: CodecInlet[T]): org.apache.pekko.stream.javadsl.Source[Record[T], NotUsed] =
+    plainRecordSource(inlet).asJava
+
+  /** Java API
+    */
+  def getPlainRecordSource[T](
+      inlet: CodecInlet[T],
+      resetPosition: ResetPosition): org.apache.pekko.stream.javadsl.Source[Record[T], NotUsed] =
+    plainRecordSource(inlet, resetPosition).asJava
+
+  /** As [[committableSink]], but writes each [[cloudflow.streamlets.Record Record]]'s key and headers along with its
+    * value. A record without a key is keyed by the outlet's `partitioner`, exactly as a plain element would be.
+    */
+  def committableRecordSink[T](
+      outlet: CodecOutlet[T],
+      committerSettings: CommitterSettings = defaultCommitterSettings): Sink[(Record[T], Committable), NotUsed] =
+    context.committableRecordSink(outlet, committerSettings)
+
+  /** Java API
+    */
+  def getCommittableRecordSink[T](outlet: CodecOutlet[T], committerSettings: CommitterSettings)
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[Record[T], Committable], NotUsed] =
+    committableRecordSink[T](outlet, committerSettings).asJava.contramap { case pair => (pair.first, pair.second) }
+
+  /** Java API
+    */
+  def getCommittableRecordSink[T](outlet: CodecOutlet[T])
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[Record[T], Committable], NotUsed] =
+    getCommittableRecordSink[T](outlet, defaultCommitterSettings)
+
+  /** As [[plainSink]], but writes each [[cloudflow.streamlets.Record Record]]'s key and headers along with its value. A
+    * record without a key is keyed by the outlet's `partitioner`.
+    */
+  def plainRecordSink[T](outlet: CodecOutlet[T]): Sink[Record[T], NotUsed] = context.plainRecordSink(outlet)
+
+  /** Java API
+    */
+  def getPlainRecordSink[T](outlet: CodecOutlet[T]): org.apache.pekko.stream.javadsl.Sink[Record[T], NotUsed] =
+    plainRecordSink(outlet).asJava
+
   /** Java API
     */
   @deprecated("Use `getCommittableSink` instead.", "1.3.1")

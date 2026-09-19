@@ -66,6 +66,27 @@ trait PekkoStreamletContext extends StreamletContext {
       committerSettings: CommitterSettings): Sink[(T, Committable), NotUsed]
   private[pekkostream] def committableSink[T](committerSettings: CommitterSettings): Sink[(T, Committable), NotUsed]
 
+  /** As [[sourceWithCommittableContext]], but each element keeps its Kafka key and headers. */
+  private[pekkostream] def recordSourceWithCommittableContext[T](
+      inlet: CodecInlet[T]): cloudflow.pekkostream.scaladsl.SourceWithCommittableContext[Record[T]]
+
+  /** As [[plainSource]], but each element keeps its Kafka key and headers. */
+  private[pekkostream] def plainRecordSource[T](
+      inlet: CodecInlet[T],
+      resetPosition: ResetPosition): Source[Record[T], NotUsed]
+
+  /** As [[committableSink]], but writes each record's key and headers. A record without a key is keyed by the outlet's
+    * partitioner.
+    */
+  private[pekkostream] def committableRecordSink[T](
+      outlet: CodecOutlet[T],
+      committerSettings: CommitterSettings): Sink[(Record[T], Committable), NotUsed]
+
+  /** As [[plainSink]], but writes each record's key and headers. A record without a key is keyed by the outlet's
+    * partitioner.
+    */
+  private[pekkostream] def plainRecordSink[T](outlet: CodecOutlet[T]): Sink[Record[T], NotUsed]
+
   private[pekkostream] def flexiFlow[T](
       outlet: CodecOutlet[T]): Flow[(immutable.Seq[_ <: T], _ <: Committable), (Unit, Committable), NotUsed]
 
