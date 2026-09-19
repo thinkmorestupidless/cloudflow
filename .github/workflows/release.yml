@@ -1,9 +1,12 @@
-name: Publish to GitHub Packages
+name: Release
 
+# A release is a pushed tag: `git tag -a v0.2.0 -m ... && git push origin v0.2.0`.
+# sbt-dynver derives the version from that tag, so every artefact and the operator image
+# carry exactly the tag's version. Untagged commits never publish, which is what keeps a
+# build from colliding with (or, on GHCR, where tags are mutable, overwriting) a release.
 on:
   push:
-    branches: [fix-example-tests]
-  workflow_dispatch:
+    tags: ['v*']
 
 jobs:
   publish:
@@ -14,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # sbt-dynver needs the history and tags
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -24,27 +27,22 @@ jobs:
         uses: sbt/setup-sbt@v1
       - name: Cache SBT
         uses: coursier/cache-action@v6
-      - name: Set version
+      - name: Refuse a version that is not exactly the tag
         working-directory: core
-        run: sbt setVersionFromTag
         env:
-          VERSION: "0.1.0"
           LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
-      - name: Publish
+        run: |
+          VERSION=$(sbt -Dsbt.supershell=false --error 'print cloudflow-streamlets/version' | tail -1)
+          if [ "v${VERSION}" != "${GITHUB_REF_NAME}" ]; then
+            echo "sbt-dynver computed version '${VERSION}' for tag '${GITHUB_REF_NAME}' — the tag is not on this commit, or the tree is dirty." >&2
+            exit 1
+          fi
+      - name: Publish artefacts
         working-directory: core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
-        run: |
-          sbt "cloudflow-blueprint_3/publish; publish" 2>&1 | tee /tmp/sbt-publish.log
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
-            # 409 = version already exists in GitHub Packages; not a real failure.
-            # Fail only if there are non-409 error causes.
-            NON_409=$(grep 'Caused by:' /tmp/sbt-publish.log | grep -v 'HTTP response code: 409' || true)
-            if [ -n "$NON_409" ]; then echo "$NON_409"; exit 1; fi
-            echo "All failures were 409 conflicts — artifacts already published at this version."
-          fi
+        run: sbt "cloudflow-blueprint_3/publish; publish"
 
   publish-operator-image:
     runs-on: ubuntu-22.04
@@ -71,12 +69,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set version
-        working-directory: core
-        run: sbt setVersionFromTag
-        env:
-          VERSION: "0.1.0"
-          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
       - name: Build and push cloudflow-operator image
         working-directory: core
         env:

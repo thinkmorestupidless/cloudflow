@@ -8,7 +8,7 @@ Upstream Cloudflow ([lightbend/cloudflow](https://github.com/lightbend/cloudflow
 - **Real bugs fixed**, not just version bumps - e.g. a text/binary Protobuf schema mismatch that made blueprint verification crash with a raw exception instead of reporting a proper compatibility error.
 - **CI modernised**: GitHub Actions updated to current actions, a JDK 21-only matrix, and per-job timeouts (the previous setup action was hanging jobs indefinitely).
 - **Publishes to GitHub Packages and GHCR** (Maven artifacts and the `cloudflow-operator` Docker image), replacing the unmaintained Sonatype/Docker Hub path.
-- **Verified in a real deployment**, not just its own test suite - run end-to-end (operator and runtime) against a Kubernetes cluster (KinD) and a Docker Compose stack as part of the [eitheror](https://github.com/eitheror) platform, with the full suite (23 streamlets, 89 blueprint, 301 Akka - 413 tests) passing alongside a live smoke test.
+- **Verified in a real deployment**, not just its own test suite - run end-to-end (operator and runtime) against a Kubernetes cluster (KinD) and a Docker Compose stack, with the full suite (23 streamlets, 89 blueprint, 301 Akka - 413 tests) passing alongside a live smoke test.
 
 See the commit history for full detail on each change, and [`CLAUDE.md`](CLAUDE.md) for build and architecture notes.
 

@@ -90,7 +90,7 @@ The Akka plugins is:
 ====
 Each runtime plugin uses its own default base image. It's `lightbend/akka-base` for Akka. It could be the case that you're working against your own container registry and therefore prefer to point to your copy or customized version of our base images. To use your base images, set `cloudflowAkkaBaseImage` in `settings` of the `CloudflowAkkaPlugin` in your application `build.sbt`.
 
-In an any streamlet the default base image value is `adoptopenjdk/openjdk8:alpine`. To override this base image in your cloudflow application go to its build.sbt and set up a value in settings such as:
+In any streamlet the default base image value is `eclipse-temurin:25-jre-alpine`. A replacement must also be Alpine-based, because the image build installs packages with `apk` and creates its user with BusyBox's `addgroup` and `adduser`. To override this base image in your cloudflow application go to its build.sbt and set up a value in settings such as:
 ====
 
 [source, scala]

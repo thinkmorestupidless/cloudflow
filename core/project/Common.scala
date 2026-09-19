@@ -2,8 +2,6 @@ import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
-import xerial.sbt.Sonatype.SonatypeKeys.sonatypePublishToBundle
-import com.jsuereth.sbtpgp.PgpKeys.useGpgAgent
 import com.lightbend.sbt.JavaFormatterPlugin.autoImport.javafmtOnCompile
 import sbtunidoc.GenJavadocPlugin.autoImport.unidocGenjavadocVersion
 
@@ -21,7 +19,10 @@ object Common extends AutoPlugin {
       startYear := Some(2020),
       description := "Cloudflow enables users to quickly develop, orchestrate, and operate distributed streaming applications on Kubernetes.",
       homepage := Some(url("https://cloudflow.io")),
-      scmInfo := Some(ScmInfo(url("https://github.com/lightbend/cloudflow"), "git@github.com:lightbend/cloudflow.git")),
+      scmInfo := Some(
+        ScmInfo(
+          url("https://github.com/thinkmorestupidless/cloudflow"),
+          "git@github.com:thinkmorestupidless/cloudflow.git")),
       licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
       publishMavenStyle := true,
       developers += Developer(
@@ -29,18 +30,12 @@ object Common extends AutoPlugin {
         "Contributors",
         "https://cloudflow.zulipchat.com/",
         url("https://github.com/lightbend/cloudflow/graphs/contributors")),
-      excludeLintKeys ++= Set(unidocGenjavadocVersion, useGpgAgent, publishMavenStyle, crossSbtVersions, javacOptions))
+      excludeLintKeys ++= Set(unidocGenjavadocVersion, publishMavenStyle, crossSbtVersions, javacOptions))
 
   override lazy val projectSettings = Seq(
     crossVersion := CrossVersion.binary,
     scalacOptions ++= List("-feature", "-deprecation"),
-    publishTo := {
-      if (sys.env.get("GITHUB_TOKEN").exists(_.nonEmpty))
-        Some("GitHub Packages".at("https://maven.pkg.github.com/thinkmorestupidless/cloudflow"))
-      else
-        sonatypePublishToBundle.value
-    },
-    useGpgAgent := false,
+    publishTo := Some("GitHub Packages".at("https://maven.pkg.github.com/thinkmorestupidless/cloudflow")),
     scalafmtOnCompile := true,
     // TODO: disabled since there are problems in cross JVMs compilation re-enable me possibly
     javafmtOnCompile := false,

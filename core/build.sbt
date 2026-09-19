@@ -1,5 +1,10 @@
 Global / cancelable := true
 
+// The version comes from git alone, via sbt-dynver: exactly `0.2.0` on a commit tagged `v0.2.0`,
+// `0.2.0-3-abc1234` three commits later, with `-dirty...` for uncommitted changes. The separator is
+// `-` rather than dynver's default `+`, which a Docker image tag cannot contain.
+ThisBuild / dynverSeparator := "-"
+
 ThisBuild / resolvers ++= LightbendCredentials.lightbendResolvers
 
 ThisBuild / credentials += Credentials(
@@ -16,21 +21,12 @@ lazy val tooling =
 lazy val cloudflowCrd =
   Project(id = "cloudflow-crd", base = file("cloudflow-crd"))
     .settings(Dependencies.cloudflowCrd)
-    .settings(
-      name := "cloudflow-crd",
-      scalaVersion := Dependencies.Scala3,
-      // make version compatible with docker for publishing
-      ThisBuild / dynverSeparator := "-",
-      Defaults.itSettings)
+    .settings(name := "cloudflow-crd", scalaVersion := Dependencies.Scala3, Defaults.itSettings)
 
 lazy val cloudflowConfig =
   Project(id = "cloudflow-config", base = file("cloudflow-config"))
     .settings(Dependencies.cloudflowConfig)
-    .settings(
-      name := "cloudflow-config",
-      scalaVersion := Dependencies.Scala3,
-      // make version compatible with docker for publishing
-      ThisBuild / dynverSeparator := "-")
+    .settings(name := "cloudflow-config", scalaVersion := Dependencies.Scala3)
     .dependsOn(cloudflowCrd)
 
 val getMuslBundle = taskKey[Unit]("Fetch Musl bundle")
@@ -44,8 +40,6 @@ lazy val cloudflowCli =
       scalaVersion := Dependencies.Scala3,
       Compile / mainClass := Some("akka.cli.cloudflow.Main"),
       Compile / discoveredMainClasses := Seq(),
-      // make version compatible with docker for publishing
-      ThisBuild / dynverSeparator := "-",
       run / fork := true,
       getMuslBundle := {
         if (!((ThisProject / baseDirectory).value / "src" / "graal" / "bundle").exists && graalVMNativeImageGraalVersion.value.isDefined) {
@@ -176,16 +170,6 @@ lazy val cloudflowNewIt =
       scriptedBatchExecution := true,
       scriptedParallelInstances := 1)
     .enablePlugins(ScriptedPlugin)
-
-lazy val setVersionFromTag = taskKey[Unit]("Set a stable version from env variable")
-
-setVersionFromTag := {
-  IO.write(
-    file("version.sbt"),
-    s"""ThisBuild / version := "${sys.env
-        .get("VERSION")
-        .getOrElse("0.0.0-SNAPSHOT")}"""")
-}
 
 // makePom fails, often with: java.lang.StringIndexOutOfBoundsException: String index out of range: 0
 addCommandAlias(
