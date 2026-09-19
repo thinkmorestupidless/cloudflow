@@ -33,14 +33,17 @@ export CLOUDFLOW_VERSION
 # Find all directories under `examples` with a `build.sbt` file
 PROJECTS=$(find "$ROOT_DIR/examples" -name build.sbt -exec dirname {} \;)
 
+FAILED=()
 for prj in $PROJECTS; do
   show_message "sbt ${TARGET}: $prj"
   cd "$prj"
 
-  # Only run `scalafmtCheckAll` task if there is a scalafmt config file in the project
+  # Only run `scalafmtCheckAll` task if there is a scalafmt config file in the project.
+  # Check only: formatting first would make the check pass by definition, and would rewrite
+  # tracked sources mid-run, which changes the version sbt-dynver computes for later projects.
   scalafmtTask=""
   if [[ -n $(find . -name ".scalafmt.conf") ]]; then
-    scalafmtTask="; scalafmtAll ; scalafmtCheckAll"
+    scalafmtTask="; scalafmtCheckAll"
   fi
 
   # Only run `verifyBlueprint` task if there are blueprint files in the project
@@ -49,5 +52,12 @@ for prj in $PROJECTS; do
     blueprintTask="; verifyBlueprint"
   fi
 
-  sbt -mem 4096 --supershell=false "${scalafmtTask} $blueprintTask ; $TARGET"
+  sbt -mem 4096 --supershell=false "${scalafmtTask} $blueprintTask ; $TARGET" || FAILED+=("$prj")
 done
+
+# Every project runs even after one fails, so a single run reports them all.
+if [ ${#FAILED[@]} -ne 0 ]; then
+  echo "Failure in sbt ${TARGET} for ${#FAILED[@]} example project(s):"
+  printf '  %s\n' "${FAILED[@]}"
+  exit 1
+fi
