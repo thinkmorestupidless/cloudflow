@@ -16,6 +16,7 @@ object Dependencies {
     val pekkoGrpc = "1.2.0"
     val pekkoConnectorsKafka = "1.2.0"
     val pekkoMgmt = "1.2.1"
+    val jsoniter = "2.40.1" // as nakka, whose topics the JSON codec reads
     val spark = "2.4.5"
     val fabric8 = "6.13.4"
     val jackson = "2.17.2"
@@ -79,6 +80,9 @@ object Dependencies {
     // akka-stream-contrib has no Scala 3 artifact; PartitionWith is inlined in SplitterLogic.scala.
     val avro = ("org.apache.avro" % "avro" % "1.12.0")
       .exclude("com.fasterxml.jackson.core", "jackson-databind")
+
+    val jsoniterCore = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % Versions.jsoniter
+    val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % Versions.jsoniter
 
     val jacksonCore = "com.fasterxml.jackson.core" % "jackson-core" % Versions.jackson
     val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % Versions.jacksonDatabind
@@ -169,6 +173,10 @@ object Dependencies {
 
   val cloudflowAvro =
     libraryDependencies ++= Seq(Compile.avro)
+
+  // Users derive their codecs with jsoniter's macros themselves; the module needs only the core.
+  val cloudflowJson =
+    libraryDependencies ++= Seq(Compile.jsoniterCore, Compile.jsoniterMacros % Test, Compile.scalatest % Test)
 
   val cloudflowConfig =
     libraryDependencies ++= Seq(
@@ -306,6 +314,7 @@ object Dependencies {
 
   val cloudflowPekkoTests =
     libraryDependencies ++= Vector(
+      Compile.jsoniterMacros % Test,
       TestDeps.pekkoHttpTestkit,
       Compile.pekkoHttpSprayJson % Test,
       Compile.testcontainersKafka % Test,

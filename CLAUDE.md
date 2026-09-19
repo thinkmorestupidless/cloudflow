@@ -114,7 +114,12 @@ example jobs are `continue-on-error`, so a red example does not block a merge â€
 
 - **Streamlet** (`cloudflow-streamlets`): a stream-processing unit with typed inlets and outlets. No
   runtime dependency.
-- **Codec** (`cloudflow-avro`, `cloudflow-proto`): an inlet or outlet's schema and (de)serialiser.
+- **Codec** (`cloudflow-avro`, `cloudflow-proto`, `cloudflow-json`): an inlet or outlet's schema and
+  (de)serialiser. Blueprint verification connects two ports when their format and fingerprint match
+  (Avro and Protobuf also get a structural check). JSON has no schema, so a JSON port declares a
+  **schema name** â€” the contract, e.g. `nakka.cart-events.v1`, defaulting to the type's class name â€”
+  and its fingerprint is that name's hash: a new version of a contract is a new name, and fails
+  verification rather than decoding in production.
 - **Blueprint** (`cloudflow-blueprint`): how streamlets connect, and which Kafka topics sit between
   them; verified at build time by the sbt plugin.
 - **Runtime**: how a streamlet executes. Only the **Pekko** runtime is built here (`cloudflow-pekko`).
@@ -130,7 +135,7 @@ example jobs are `continue-on-error`, so a red example does not block a merge â€
 | Module | Purpose |
 |---|---|
 | `cloudflow-streamlets` | Streamlet API (no runtime dependency) |
-| `cloudflow-avro` / `cloudflow-proto` | Codecs |
+| `cloudflow-avro` / `cloudflow-proto` / `cloudflow-json` | Codecs (JSON: jsoniter-scala, as nakka; Scala only) |
 | `cloudflow-blueprint` | Blueprint model and verification (2.12 / 2.13 / 3) |
 | `cloudflow-pekko` | Pekko Streams runtime for streamlets |
 | `cloudflow-pekko-util` | HTTP and gRPC server streamlets |
