@@ -63,7 +63,8 @@ object CloudflowBasePlugin extends AutoPlugin {
             "akka-secure-mvn".at(s"https://repo.akka.io/$token/secure"),
             Resolver.url("akka-secure-ivy", url(s"https://repo.akka.io/$token/secure"))(Resolver.ivyStylePatterns))
         },
-      cloudflowDockerBaseImage := "adoptopenjdk/openjdk8:alpine",
+      // Must be Alpine-based: the image build runs `apk`, and BusyBox's `addgroup`/`adduser -S`.
+      cloudflowDockerBaseImage := "eclipse-temurin:25-jre-alpine",
       libraryDependencies ++= Vector(
         "com.lightbend.cloudflow" % "cloudflow-runner_3" % (ThisProject / cloudflowVersion).value,
         "com.lightbend.cloudflow" % "cloudflow-localrunner_3" % (ThisProject / cloudflowVersion).value),

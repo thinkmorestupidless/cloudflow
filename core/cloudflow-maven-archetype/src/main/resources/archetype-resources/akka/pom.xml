@@ -57,7 +57,7 @@
                 <registry> subelement above. For more information, please see https://dmp.fabric8.io/#registry.
               -->
               <build>
-                <from>adoptopenjdk/openjdk8:alpine</from>
+                <from>eclipse-temurin:25-jre-alpine</from>
 
                 <env>
                   <LOGBACK_CONFIG>-Dlogback.configurationFile=/opt/logging/logback.xml -Dakka.loggers.0=akka.event.slf4j.Slf4jLogger -Dakka.loglevel=DEBUG -Dakka.logging-filter=akka.event.slf4j.Slf4jLoggingFilter</LOGBACK_CONFIG>
