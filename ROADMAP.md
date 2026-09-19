@@ -151,9 +151,16 @@ per-entity order, and be rebuildable.
 - [ ] **Record variants still missing**: the sharded sources (`shardedSourceWithCommittableContext`,
       `shardedPlainSource`), `flexiFlow`, `sinkRef`, and record taps in the *Java* testkit. None is
       needed by the graph pipelines as planned; add each when something is.
-- [ ] **A JSON codec** (`cloudflow-json`, jsoniter-scala, to match nakka) next to the Avro and
-      Protobuf ones, including whatever schema definition blueprint verification needs to check
-      inlet/outlet compatibility.
+- [x] **A JSON codec** (branch `phase-2-json-codec`): module `cloudflow-json`, `JsonInlet` /
+      `JsonOutlet` over a jsoniter-scala `JsonValueCodec` (2.40.1, as nakka), offered to builds as
+      `Cloudflow.library.CloudflowJson`. JSON has no schema, so a port declares a *schema name* — the
+      contract — defaulting to the element type's class name and pinned with `withSchemaName`; the
+      fingerprint is the name's SHA-256, so blueprint verification connects equal names, refuses
+      different ones (a new contract version is a new name) and never connects JSON to another format.
+      Verified against real Kafka (`JsonKafkaSpec`): CloudEvents written by a *plain Kafka producer*,
+      as nakka writes them — subject as key, `ce_*` headers, JSON body — read by a streamlet as
+      records, with a malformed body skipped and the stream carrying on. Scala only: a
+      `JsonValueCodec` comes from Scala macros.
 - [ ] **Consuming topics Cloudflow does not own.** `managed = false` exists
       (`ApplicationDescriptor.scala:193`; the operator skips creation in `TopicActions`). Verify end
       to end against a nakka topic: per-topic bootstrap servers, consumer-group naming, and

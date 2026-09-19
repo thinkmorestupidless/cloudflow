@@ -203,6 +203,13 @@ lazy val cloudflowAvro =
     .settings(Dependencies.cloudflowAvro)
     .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
 
+lazy val cloudflowJson =
+  Project(id = "cloudflow-json", base = file("cloudflow-json"))
+    .dependsOn(cloudflowStreamlets)
+    .enablePlugins(ScalafmtPlugin)
+    .settings(Dependencies.cloudflowJson)
+    .settings(scalaVersion := Dependencies.Scala3, scalafmtOnCompile := true)
+
 lazy val cloudflowBlueprint =
   Project(id = "cloudflow-blueprint", base = file("cloudflow-blueprint"))
     .enablePlugins(BuildInfoPlugin, ScalafmtPlugin)
@@ -344,7 +351,10 @@ lazy val cloudflowPekkoUtil =
 lazy val cloudflowPekkoTests =
   Project(id = "cloudflow-pekko-tests", base = file("cloudflow-pekko-tests"))
     .enablePlugins(JavaFormatterPlugin, ScalafmtPlugin)
-    .dependsOn(cloudflowPekko, (cloudflowPekkoTestkit % "test->test").classpathDependency)
+    .dependsOn(
+      cloudflowPekko,
+      (cloudflowPekkoTestkit % "test->test").classpathDependency,
+      (cloudflowJson % "test").classpathDependency)
     .settings(Dependencies.cloudflowPekkoTests)
     .settings(
       scalaVersion := Dependencies.Scala3,
@@ -441,6 +451,7 @@ lazy val root = Project(id = "root", base = file("."))
     JavaUnidoc / unidoc / unidocProjectFilter := (ScalaUnidoc / unidoc / unidocProjectFilter).value)
   .aggregate(
     cloudflowAvro,
+    cloudflowJson,
     cloudflowBlueprint,
     cloudflowCli,
     cloudflowConfig,

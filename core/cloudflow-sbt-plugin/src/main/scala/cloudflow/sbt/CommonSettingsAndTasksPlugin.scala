@@ -55,6 +55,7 @@ trait CloudflowKeys extends CloudflowSettingKeys with CloudflowTaskKeys {
     object library {
       final val CloudflowAvro = "com.lightbend.cloudflow" %% "cloudflow-avro" % Version
       final val CloudflowProto = "com.lightbend.cloudflow" %% "cloudflow-proto" % Version
+      final val CloudflowJson = "com.lightbend.cloudflow" %% "cloudflow-json" % Version
     }
   }
 }
