@@ -19,9 +19,9 @@ package cloudflow.akkastream.util.scaladsl
 import scala.concurrent._
 import scala.concurrent.duration._
 
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.stream.scaladsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl._
 
 import com.typesafe.config._
 import cloudflow.akkastream._
@@ -34,7 +34,7 @@ import org.scalatest.time._
 
 object AkkaStreamletConsumerGroupSpec {
   val config = ConfigFactory.parseString("""
-      akka {
+      pekko {
         stdout-loglevel = "OFF"
         loglevel = "OFF"
       }
@@ -60,7 +60,7 @@ class AkkaStreamletConsumerGroupSpec extends TestcontainersKafkaSpec(ActorSystem
       val _ = genExecution.completed.futureValue // assert that the future completed
 
       // all test receivers will write their data to a sink which is probed.
-      val probe = akka.testkit.TestProbe()
+      val probe = org.apache.pekko.testkit.TestProbe()
       val sink = Sink.actorRef[Data](probe.ref, Completed)
 
       val instanceIds = List.range(0, 1)
@@ -95,10 +95,10 @@ class AkkaStreamletConsumerGroupSpec extends TestcontainersKafkaSpec(ActorSystem
       genExecution.completed.futureValue
 
       // all test receivers will write their data to a sink which is probed.
-      val probe1 = akka.testkit.TestProbe()
+      val probe1 = org.apache.pekko.testkit.TestProbe()
       val sink1 = Sink.actorRef[Data](probe1.ref, Completed)
 
-      val probe2 = akka.testkit.TestProbe()
+      val probe2 = org.apache.pekko.testkit.TestProbe()
       val sink2 = Sink.actorRef[Data](probe2.ref, Completed)
 
       // unique streamlet references, receivers should all receive all data.

@@ -16,11 +16,11 @@
 
 package cloudflow.akkastream
 
-import akka.actor.ActorSystem
-import akka.cluster.Cluster
-import akka.discovery.Discovery
-import akka.management.cluster.bootstrap.ClusterBootstrap
-import akka.management.scaladsl.AkkaManagement
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.cluster.Cluster
+import org.apache.pekko.discovery.Discovery
+import org.apache.pekko.management.cluster.bootstrap.ClusterBootstrap
+import org.apache.pekko.management.scaladsl.PekkoManagement
 import cloudflow.streamlets._
 import BootstrapInfo._
 import cloudflow.streamlets.StreamletRuntime
@@ -78,13 +78,13 @@ abstract class AkkaStreamlet extends Streamlet[AkkaStreamletContext] {
       } else if (activateCluster) {
         val clusterConfig = ConfigFactory
           .parseString(
-            s"""akka.discovery.kubernetes-api.pod-label-selector = "com.lightbend.cloudflow/streamlet-name=${streamletDefinition.streamletRef}"""")
+            s"""pekko.discovery.kubernetes-api.pod-label-selector = "com.lightbend.cloudflow/streamlet-name=${streamletDefinition.streamletRef}"""")
           .withFallback(ConfigFactory.parseResourcesAnySyntax("akka-cluster-k8.conf"))
 
         val fullConfig = clusterConfig.withFallback(updatedStreamletDefinition.config)
 
         val system = ActorSystem(streamletDefinition.streamletRef, ConfigFactory.load(fullConfig))
-        AkkaManagement(system).start()
+        PekkoManagement(system).start()
         ClusterBootstrap(system).start()
         Discovery(system).loadServiceDiscovery("kubernetes-api")
 

@@ -16,9 +16,9 @@
 
 package cloudflow.akkastream.testkit
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.{ RunnableGraph, Source }
-import akka.testkit.TestKit
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.{ RunnableGraph, Source }
+import org.apache.pekko.testkit.TestKit
 import cloudflow.akkastream.{ AkkaStreamlet, AkkaStreamletLogic }
 import cloudflow.akkastream.scaladsl.RunnableGraphStreamletLogic
 import cloudflow.streamlets.StreamletShape

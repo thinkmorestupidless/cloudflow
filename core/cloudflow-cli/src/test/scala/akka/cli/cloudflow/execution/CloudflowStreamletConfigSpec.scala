@@ -34,7 +34,7 @@ class CloudflowStreamletConfigSpec
             foo = bar
           }
           config {
-            akka.loglevel = "DEBUG"
+            pekko.loglevel = "DEBUG"
           }
           kubernetes {
             pods {
@@ -60,8 +60,8 @@ class CloudflowStreamletConfigSpec
         }
         runtimes.akka {
           config {
-            akka.loglevel = INFO
-            akka.kafka.producer.parallelism = 15000
+            pekko.loglevel = INFO
+            pekko.kafka.producer.parallelism = 15000
           }
           kubernetes {
             pods {
@@ -95,8 +95,8 @@ class CloudflowStreamletConfigSpec
       CloudflowConfig.streamletConfig(streamletName = "logger", runtimeName = "akka", cloudflowConfig)
 
     // Assert
-    runtimeConfig.getLong("akka.kafka.producer.parallelism") shouldBe 15000
-    runtimeConfig.getString("akka.loglevel") shouldBe "DEBUG"
+    runtimeConfig.getLong("pekko.kafka.producer.parallelism") shouldBe 15000
+    runtimeConfig.getString("pekko.loglevel") shouldBe "DEBUG"
 
     podConfig
       .getConfigList("kubernetes.pods.pod.containers.cloudflow.env")
@@ -114,8 +114,8 @@ class CloudflowStreamletConfigSpec
     completeConfig.getString("cloudflow.streamlets.logger.log-level") shouldBe "info"
     completeConfig.getString("cloudflow.streamlets.logger.foo") shouldBe "bar"
     completeConfig.getString("cloudflow.streamlets.logger.msg-prefix") shouldBe "valid-logger"
-    completeConfig.getInt("akka.kafka.producer.parallelism") shouldBe 15000
-    completeConfig.getString("akka.loglevel") shouldBe "DEBUG"
+    completeConfig.getInt("pekko.kafka.producer.parallelism") shouldBe 15000
+    completeConfig.getString("pekko.loglevel") shouldBe "DEBUG"
     completeConfig
       .getMemorySize("kubernetes.pods.pod.containers.cloudflow.resources.requests.memory")
       .toBytes shouldBe 1024 * 1024 * 1024

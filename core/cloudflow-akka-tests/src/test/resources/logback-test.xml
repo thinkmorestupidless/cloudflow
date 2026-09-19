@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <logger name="akka" level="${LOGLEVEL_AKKA:-OFF}" />
-  <logger name="akka.actor.TimerScheduler" level="INFO"/>
-  <logger name="akka.kafka" level="DEBUG"/>
+  <logger name="org.apache.pekko" level="${LOGLEVEL_AKKA:-OFF}" />
+  <logger name="org.apache.pekko.actor.TimerScheduler" level="INFO"/>
+  <logger name="org.apache.pekko.kafka" level="DEBUG"/>
 
   <logger name="org.apache.zookeeper" level="WARN"/>
   <logger name="org.I0Itec.zkclient" level="WARN"/>

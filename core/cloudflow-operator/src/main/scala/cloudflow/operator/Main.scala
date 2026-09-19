@@ -16,7 +16,7 @@
 
 package cloudflow.operator
 
-import akka.actor._
+import org.apache.pekko.actor._
 import akka.datap.crd.App
 import cloudflow.operator.action._
 import com.fasterxml.jackson.annotation.JsonInclude.Include

@@ -19,15 +19,15 @@ package cloudflow.akkastream.util.scaladsl
 import scala.concurrent._
 import scala.util._
 
-import akka.http.scaladsl._
-import akka.http.scaladsl.common.EntityStreamingSupport
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.unmarshalling._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
+import org.apache.pekko.http.scaladsl._
+import org.apache.pekko.http.scaladsl.common.EntityStreamingSupport
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.unmarshalling._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server._
 
-import akka.stream.Materializer
-import akka.stream.scaladsl._
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl._
 
 import cloudflow.streamlets._
 import cloudflow.akkastream._
@@ -125,7 +125,7 @@ object HttpServerLogic {
   * [[cloudflow.akkastream.AkkaServerStreamlet]] extends [[cloudflow.akkastream.Server]], which can be used for this
   * purpose. When you define the logic inside the streamlet, you can just pass in `this`:
   * {{{
-  *  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  *  import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   *
   *  object TestHttpServer extends AkkaServerStreamlet {
   *    implicit val jsonformatData: RootJsonFormat[Data] = jsonFormat2(Data.apply)

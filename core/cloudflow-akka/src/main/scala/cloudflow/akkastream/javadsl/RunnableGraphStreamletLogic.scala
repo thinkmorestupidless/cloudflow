@@ -16,7 +16,7 @@
 
 package cloudflow.akkastream.javadsl
 
-import akka.stream.javadsl.RunnableGraph
+import org.apache.pekko.stream.javadsl.RunnableGraph
 
 import cloudflow.akkastream._
 
@@ -26,8 +26,9 @@ import cloudflow.akkastream._
 abstract class RunnableGraphStreamletLogic(context: AkkaStreamletContext) extends AkkaStreamletLogic()(context) {
 
   /** This method needs to return a RunnableGraph that is connected to inlet(s) and/or outlet(s) of the Streamlet. See
-    * [[cloudflow.akkastream.AkkaStreamletLogic]] for more information how to create `akka.stream.javadsl.Source`s and
-    * `akka.stream.javadsl.Sink`s to inlets and outlets respectively.
+    * [[cloudflow.akkastream.AkkaStreamletLogic]] for more information how to create
+    * `org.apache.pekko.stream.javadsl.Source`s and `org.apache.pekko.stream.javadsl.Sink`s to inlets and outlets
+    * respectively.
     */
   def createRunnableGraph: RunnableGraph[_]
 

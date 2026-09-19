@@ -16,7 +16,7 @@
 
 package cloudflow.operator
 
-import akka.actor._
+import org.apache.pekko.actor._
 import cloudflow.operator.action._
 import cloudflow.operator.action.runner._
 import com.typesafe.config._

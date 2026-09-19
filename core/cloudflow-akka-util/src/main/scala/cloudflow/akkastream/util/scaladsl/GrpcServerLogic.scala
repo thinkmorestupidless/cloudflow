@@ -19,12 +19,12 @@ package cloudflow.akkastream.util.scaladsl
 import scala.collection.immutable
 import scala.concurrent.Future
 
-import akka.annotation.ApiMayChange
-import akka.grpc.scaladsl.ServiceHandler
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.model.StatusCodes.OK
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.grpc.scaladsl.ServiceHandler
+import org.apache.pekko.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import org.apache.pekko.http.scaladsl.model.StatusCodes.OK
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.server.Directives._
 import cloudflow.akkastream.{ AkkaStreamletContext, Server }
 
 @ApiMayChange

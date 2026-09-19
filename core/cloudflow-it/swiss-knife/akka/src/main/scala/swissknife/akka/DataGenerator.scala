@@ -1,8 +1,8 @@
 package swissknife.akka
 
 import scala.concurrent.duration._
-import akka.NotUsed
-import akka.stream.scaladsl.Source
+import org.apache.pekko.NotUsed
+import org.apache.pekko.stream.scaladsl.Source
 import cloudflow.akkastream.AkkaStreamlet
 import cloudflow.akkastream.scaladsl.RunnableGraphStreamletLogic
 import cloudflow.streamlets.StreamletShape

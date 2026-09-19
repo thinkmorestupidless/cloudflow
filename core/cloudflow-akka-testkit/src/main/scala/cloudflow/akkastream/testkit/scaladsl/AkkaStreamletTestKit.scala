@@ -16,9 +16,9 @@
 
 package cloudflow.akkastream.testkit.scaladsl
 
-import akka.NotUsed
-import akka.actor._
-import akka.stream.scaladsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor._
+import org.apache.pekko.stream.scaladsl._
 import com.typesafe.config._
 
 import cloudflow.streamlets._
@@ -52,7 +52,7 @@ object AkkaStreamletTestKit {
   * })
   * }}}
   *
-  * The following point is from `akka.testkit.Testkit` and is valid mostly for this testkit as well:
+  * The following point is from `org.apache.pekko.testkit.Testkit` and is valid mostly for this testkit as well:
   *
   * Beware of two points:
   *

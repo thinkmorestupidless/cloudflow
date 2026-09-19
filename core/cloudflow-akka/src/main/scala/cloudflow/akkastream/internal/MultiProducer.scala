@@ -16,12 +16,12 @@
 
 package cloudflow.akkastream.internal
 
-import akka.NotUsed
-import akka.annotation.InternalApi
-import akka.kafka.CommitterSettings
-import akka.kafka.ConsumerMessage.Committable
-import akka.stream.scaladsl.{ Flow, GraphDSL, Sink, Unzip, ZipWith }
-import akka.stream.{ FlowShape, Graph }
+import org.apache.pekko.NotUsed
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.kafka.CommitterSettings
+import org.apache.pekko.kafka.ConsumerMessage.Committable
+import org.apache.pekko.stream.scaladsl.{ Flow, GraphDSL, Sink, Unzip, ZipWith }
+import org.apache.pekko.stream.{ FlowShape, Graph }
 import cloudflow.akkastream.{ AkkaStreamletContext, MultiData2 }
 import cloudflow.streamlets.CodecOutlet
 
@@ -54,11 +54,11 @@ private[akkastream] object MultiProducer {
   private def graph2[O1, O2](
       outlet1: Flow[(immutable.Seq[O1], Committable), (Unit, Committable), _],
       outlet2: Flow[(immutable.Seq[O2], Committable), (Unit, Committable), _])
-      : Graph[akka.stream.FlowShape[(MultiData2[O1, O2], Committable), (Unit, Committable)], NotUsed] =
+      : Graph[org.apache.pekko.stream.FlowShape[(MultiData2[O1, O2], Committable), (Unit, Committable)], NotUsed] =
     GraphDSL.create(outlet1, outlet2)((_, _) => NotUsed) { implicit builder => (o1raw, o2raw) =>
       import GraphDSL.Implicits._
       // In Akka 2.9+/Scala 3, GraphDSL.create passes shapes as the base Shape type; cast to FlowShape
-      type FlowSh[In, Out] = akka.stream.FlowShape[In, Out]
+      type FlowSh[In, Out] = org.apache.pekko.stream.FlowShape[In, Out]
       val o1 = o1raw.asInstanceOf[FlowSh[(immutable.Seq[O1], Committable), (Unit, Committable)]]
       val o2 = o2raw.asInstanceOf[FlowSh[(immutable.Seq[O2], Committable), (Unit, Committable)]]
 

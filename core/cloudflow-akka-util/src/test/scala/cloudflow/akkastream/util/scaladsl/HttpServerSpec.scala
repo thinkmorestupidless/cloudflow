@@ -17,16 +17,16 @@
 package cloudflow.akkastream.util.scaladsl
 
 import scala.concurrent.duration._
-import akka.actor._
-import akka.http.scaladsl._
-import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl._
+import org.apache.pekko.http.scaladsl.client.RequestBuilding._
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.HttpMethods._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server._
 
-import akka.testkit._
+import org.apache.pekko.testkit._
 import com.typesafe.config._
 import org.scalatest._
 import org.scalatest.wordspec._

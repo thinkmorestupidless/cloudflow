@@ -16,13 +16,13 @@
 
 package cloudflow.akkastream.util.javadsl
 
-import akka.NotUsed
-import akka.util.ByteString
-import akka.http.javadsl.unmarshalling.Unmarshaller
-import akka.http.javadsl.server.directives.RouteAdapter
-import akka.http.javadsl.common.EntityStreamingSupport
-import akka.http.scaladsl.unmarshalling._
-import akka.http.scaladsl.server._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.http.javadsl.unmarshalling.Unmarshaller
+import org.apache.pekko.http.javadsl.server.directives.RouteAdapter
+import org.apache.pekko.http.javadsl.common.EntityStreamingSupport
+import org.apache.pekko.http.scaladsl.unmarshalling._
+import org.apache.pekko.http.scaladsl.server._
 
 import cloudflow._
 import cloudflow.akkastream._
@@ -49,7 +49,7 @@ object HttpServerLogic {
   final def createDefault[Out](
       server: Server,
       outlet: CodecOutlet[Out],
-      rejectionHandler: akka.http.javadsl.server.RejectionHandler,
+      rejectionHandler: org.apache.pekko.http.javadsl.server.RejectionHandler,
       fromByteStringUnmarshaller: Unmarshaller[ByteString, Out],
       context: AkkaStreamletContext): HttpServerLogic =
     createDefault(server, outlet, Some(rejectionHandler.asScala), fromByteStringUnmarshaller, context)
@@ -64,7 +64,7 @@ object HttpServerLogic {
       implicit def fromEntityUnmarshaller: FromEntityUnmarshaller[Out] =
         PredefinedFromEntityUnmarshallers.byteStringUnmarshaller
           .andThen(fromByteStringUnmarshaller.asScala)
-      final override def createRoute(): akka.http.javadsl.server.Route =
+      final override def createRoute(): org.apache.pekko.http.javadsl.server.Route =
         RouteAdapter.asJava(
           akkastream.util.scaladsl.HttpServerLogic
             .defaultRoute(rejectionHandler, sinkRef(outlet)))
@@ -80,37 +80,37 @@ object HttpServerLogic {
       fromByteStringUnmarshaller: Unmarshaller[ByteString, Out],
       ess: EntityStreamingSupport,
       context: AkkaStreamletContext): HttpServerLogic = new HttpServerLogic(server, context) {
-    implicit val fbu: akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller[Out] =
+    implicit val fbu: org.apache.pekko.http.scaladsl.unmarshalling.FromByteStringUnmarshaller[Out] =
       fromByteStringUnmarshaller.asScala
-    implicit val essDelegate: akka.http.scaladsl.common.EntityStreamingSupport =
+    implicit val essDelegate: org.apache.pekko.http.scaladsl.common.EntityStreamingSupport =
       EntityStreamingSupportDelegate(ess)
-    final override def createRoute(): akka.http.javadsl.server.Route =
+    final override def createRoute(): org.apache.pekko.http.javadsl.server.Route =
       RouteAdapter.asJava(akkastream.util.scaladsl.HttpServerLogic.defaultStreamingRoute(sinkRef(outlet)))
   }
 
   final case class EntityStreamingSupportDelegate(
-      entityStreamingSupport: akka.http.javadsl.common.EntityStreamingSupport)
-      extends akka.http.scaladsl.common.EntityStreamingSupport {
-    def supported: akka.http.scaladsl.model.ContentTypeRange =
-      entityStreamingSupport.supported.asInstanceOf[akka.http.scaladsl.model.ContentTypeRange]
-    def contentType: akka.http.scaladsl.model.ContentType =
-      entityStreamingSupport.contentType.asInstanceOf[akka.http.scaladsl.model.ContentType]
-    def framingDecoder: akka.stream.scaladsl.Flow[ByteString, ByteString, NotUsed] =
+      entityStreamingSupport: org.apache.pekko.http.javadsl.common.EntityStreamingSupport)
+      extends org.apache.pekko.http.scaladsl.common.EntityStreamingSupport {
+    def supported: org.apache.pekko.http.scaladsl.model.ContentTypeRange =
+      entityStreamingSupport.supported.asInstanceOf[org.apache.pekko.http.scaladsl.model.ContentTypeRange]
+    def contentType: org.apache.pekko.http.scaladsl.model.ContentType =
+      entityStreamingSupport.contentType.asInstanceOf[org.apache.pekko.http.scaladsl.model.ContentType]
+    def framingDecoder: org.apache.pekko.stream.scaladsl.Flow[ByteString, ByteString, NotUsed] =
       entityStreamingSupport.getFramingDecoder.asScala
-    def framingRenderer: akka.stream.scaladsl.Flow[ByteString, ByteString, NotUsed] =
+    def framingRenderer: org.apache.pekko.stream.scaladsl.Flow[ByteString, ByteString, NotUsed] =
       entityStreamingSupport.getFramingRenderer.asScala
-    override def withSupported(
-        range: akka.http.javadsl.model.ContentTypeRange): akka.http.scaladsl.common.EntityStreamingSupport =
+    override def withSupported(range: org.apache.pekko.http.javadsl.model.ContentTypeRange)
+        : org.apache.pekko.http.scaladsl.common.EntityStreamingSupport =
       EntityStreamingSupportDelegate(entityStreamingSupport.withSupported(range))
-    override def withContentType(
-        contentType: akka.http.javadsl.model.ContentType): akka.http.scaladsl.common.EntityStreamingSupport =
+    override def withContentType(contentType: org.apache.pekko.http.javadsl.model.ContentType)
+        : org.apache.pekko.http.scaladsl.common.EntityStreamingSupport =
       EntityStreamingSupportDelegate(entityStreamingSupport.withContentType(contentType))
 
     def parallelism: Int = entityStreamingSupport.parallelism
     def unordered: Boolean = entityStreamingSupport.unordered
     def withParallelMarshalling(
         parallelism: Int,
-        unordered: Boolean): akka.http.scaladsl.common.EntityStreamingSupport =
+        unordered: Boolean): org.apache.pekko.http.scaladsl.common.EntityStreamingSupport =
       EntityStreamingSupportDelegate(entityStreamingSupport.withParallelMarshalling(parallelism, unordered))
   }
 }
@@ -148,6 +148,6 @@ abstract class HttpServerLogic(server: Server, context: AkkaStreamletContext)
     * @return
     *   the Route that will be used to handle HTTP requests.
     */
-  def createRoute(): akka.http.javadsl.server.Route
+  def createRoute(): org.apache.pekko.http.javadsl.server.Route
   override def route(): Route = createRoute().asScala
 }

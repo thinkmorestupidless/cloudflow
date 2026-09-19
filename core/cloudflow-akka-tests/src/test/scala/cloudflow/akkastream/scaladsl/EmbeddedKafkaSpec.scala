@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.testkit.TestKit
-import akka.kafka.testkit.internal.TestFrameworkInterface
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.testkit.TestKit
+import org.apache.pekko.kafka.testkit.internal.TestFrameworkInterface
 
 import org.scalatest._
 import org.scalatest.wordspec._

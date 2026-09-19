@@ -19,13 +19,13 @@ package cloudflow.akkastream
 import scala.concurrent._
 import scala.util._
 
-import akka._
-import akka.actor.ActorSystem
-import akka.kafka._
-import akka.kafka.ConsumerMessage._
-import akka.kafka.scaladsl._
-import akka.stream._
-import akka.stream.scaladsl._
+import org.apache.pekko._
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.kafka._
+import org.apache.pekko.kafka.ConsumerMessage._
+import org.apache.pekko.kafka.scaladsl._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
 
 import org.apache.kafka.clients.producer.{ Callback, ProducerRecord, RecordMetadata }
 import org.apache.kafka.common.serialization._

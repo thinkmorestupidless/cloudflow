@@ -29,8 +29,6 @@ jobs:
         uses: coursier/cache-action@v6
       - name: Refuse a version that is not exactly the tag
         working-directory: core
-        env:
-          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
         run: |
           VERSION=$(sbt -Dsbt.supershell=false --error 'print cloudflow-streamlets/version' | tail -1)
           if [ "v${VERSION}" != "${GITHUB_REF_NAME}" ]; then
@@ -41,7 +39,6 @@ jobs:
         working-directory: core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
         run: sbt "cloudflow-blueprint_3/publish; publish"
 
   publish-operator-image:
@@ -71,8 +68,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push cloudflow-operator image
         working-directory: core
-        env:
-          LIGHTBEND_COMMERCIAL_TOKEN: ${{ secrets.LIGHTBEND_COMMERCIAL_TOKEN }}
         run: |
           sbt \
             -Ddocker.registry=ghcr.io \

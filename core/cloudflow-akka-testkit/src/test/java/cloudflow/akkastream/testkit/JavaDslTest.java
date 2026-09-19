@@ -23,8 +23,8 @@ import org.scalatestplus.junit.JUnitSuite;
 
 import scala.concurrent.duration.Duration;
 
-import akka.actor.ActorSystem;
-import akka.testkit.TestKit;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.testkit.TestKit;
 
 public abstract class JavaDslTest extends JUnitSuite {
   static ActorSystem system;

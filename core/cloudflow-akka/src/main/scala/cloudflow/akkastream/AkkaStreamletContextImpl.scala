@@ -23,16 +23,16 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.collection.immutable
 import scala.concurrent._
 import scala.util._
-import akka._
-import akka.actor.{ ActorSystem, CoordinatedShutdown }
-import akka.annotation.InternalApi
-import akka.cluster.sharding.external.ExternalShardAllocationStrategy
-import akka.cluster.sharding.typed.scaladsl.{ ClusterSharding, Entity }
-import akka.kafka._
-import akka.kafka.ConsumerMessage._
-import akka.kafka.cluster.sharding.KafkaClusterSharding
-import akka.kafka.scaladsl._
-import akka.stream.scaladsl._
+import org.apache.pekko._
+import org.apache.pekko.actor.{ ActorSystem, CoordinatedShutdown }
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.cluster.sharding.external.ExternalShardAllocationStrategy
+import org.apache.pekko.cluster.sharding.typed.scaladsl.{ ClusterSharding, Entity }
+import org.apache.pekko.kafka._
+import org.apache.pekko.kafka.ConsumerMessage._
+import org.apache.pekko.kafka.cluster.sharding.KafkaClusterSharding
+import org.apache.pekko.kafka.scaladsl._
+import org.apache.pekko.stream.scaladsl._
 import cloudflow.akkastream.internal.{ HealthCheckFiles, StreamletExecutionImpl }
 import com.typesafe.config._
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -69,7 +69,7 @@ final class AkkaStreamletContextImpl(
     */
   @InternalApi
   object KafkaControls {
-    import akka.kafka.scaladsl.Consumer.Control
+    import org.apache.pekko.kafka.scaladsl.Consumer.Control
     private val controls = new AtomicReference(Set[Control]())
 
     def add(c: Control): Control = {
@@ -155,10 +155,10 @@ final class AkkaStreamletContextImpl(
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
       .withProperties(topic.kafkaConsumerProperties)
 
-    val rebalanceListener: akka.actor.typed.ActorRef[ConsumerRebalanceEvent] =
+    val rebalanceListener: org.apache.pekko.actor.typed.ActorRef[ConsumerRebalanceEvent] =
       KafkaClusterSharding(system).rebalanceListener(shardEntity.typeKey)
 
-    import akka.actor.typed.scaladsl.adapter._
+    import org.apache.pekko.actor.typed.scaladsl.adapter._
     val subscription = Subscriptions
       .topics(topic.name)
       .withRebalanceListener(rebalanceListener.toClassic)
@@ -317,10 +317,10 @@ final class AkkaStreamletContextImpl(
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, resetPosition.autoOffsetReset)
       .withProperties(topic.kafkaConsumerProperties)
 
-    val rebalanceListener: akka.actor.typed.ActorRef[ConsumerRebalanceEvent] =
+    val rebalanceListener: org.apache.pekko.actor.typed.ActorRef[ConsumerRebalanceEvent] =
       KafkaClusterSharding(system).rebalanceListener(shardEntity.typeKey)
 
-    import akka.actor.typed.scaladsl.adapter._
+    import org.apache.pekko.actor.typed.scaladsl.adapter._
     val subscription = Subscriptions
       .topics(topic.name)
       .withRebalanceListener(rebalanceListener.toClassic)
@@ -446,7 +446,7 @@ final class AkkaStreamletContextImpl(
           s"Waiting {} ($StopTimeoutSetting) until {} consumers are shut down",
           consumerStopTimeout: Any,
           streamletDefinitionMsg: Any)
-        akka.pattern.after(consumerStopTimeout)(Future.successful(Done))
+        org.apache.pekko.pattern.after(consumerStopTimeout)(Future.successful(Done))
       }
       .flatMap { _ =>
         KafkaControls.shutdownConsumers()

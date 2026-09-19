@@ -18,14 +18,14 @@ package cloudflow.akkastream
 
 import java.nio.file.Path
 
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.actor.typed.scaladsl.adapter._
-import akka.annotation.ApiMayChange
-import akka.cluster.sharding.typed.scaladsl.{ ClusterSharding, Entity }
-import akka.stream.scaladsl._
-import akka.kafka._
-import akka.kafka.ConsumerMessage._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.typed.scaladsl.adapter._
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.cluster.sharding.typed.scaladsl.{ ClusterSharding, Entity }
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.kafka._
+import org.apache.pekko.kafka.ConsumerMessage._
 import com.typesafe.config.Config
 import cloudflow.streamlets._
 import cloudflow.akkastream.scaladsl._
@@ -53,7 +53,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
 
   /** Java API Launch the execution of the graph.
     */
-  final def runGraph[T](graph: akka.stream.javadsl.RunnableGraph[T]): T = graph.run(system)
+  final def runGraph[T](graph: org.apache.pekko.stream.javadsl.RunnableGraph[T]): T = graph.run(system)
 
   /** Signals that the streamlet is ready to process data. `signalReady` completes the
     * [[cloudflow.streamlets.StreamletExecution#ready]] future. When a streamlet is run using the testkit, a
@@ -87,10 +87,10 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
     * desired, as each message will likely be delivered one time, but in failure cases, they can be duplicated.
     *
     * It is intended to be used with `sinkWithOffsetContext(outlet: CodecOutlet[T])` or
-    * [[akka.kafka.scaladsl.Committer#sinkWithOffsetContext]], which both commit the offset positions that accompany the
-    * records, read from this source. `sinkWithOffsetContext(outlet: CodecOutlet[T])` should be used if you want to
-    * commit the offset positions after records have been written to the specified `outlet`. The `inlet` specifies a
-    * [[cloudflow.streamlets.Codec]] that will be used to deserialize the records read from Kafka.
+    * [[org.apache.pekko.kafka.scaladsl.Committer#sinkWithOffsetContext]], which both commit the offset positions that
+    * accompany the records, read from this source. `sinkWithOffsetContext(outlet: CodecOutlet[T])` should be used if
+    * you want to commit the offset positions after records have been written to the specified `outlet`. The `inlet`
+    * specifies a [[cloudflow.streamlets.Codec]] that will be used to deserialize the records read from Kafka.
     */
   @deprecated("Use sourceWithCommittableContext", "1.3.4")
   def sourceWithOffsetContext[T](inlet: CodecInlet[T]): SourceWithOffsetContext[T] =
@@ -114,7 +114,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
     */
   @deprecated("Use getSourceWithCommittableContext", "1.3.4")
   def getSourceWithOffsetContext[T](
-      inlet: CodecInlet[T]): akka.stream.javadsl.SourceWithContext[T, CommittableOffset, _] =
+      inlet: CodecInlet[T]): org.apache.pekko.stream.javadsl.SourceWithContext[T, CommittableOffset, _] =
     sourceWithOffsetContext(inlet).asJava
 
   /** Java API
@@ -122,7 +122,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
     *   [[sourceWithCommittableContext]]
     */
   def getSourceWithCommittableContext[T](
-      inlet: CodecInlet[T]): akka.stream.javadsl.SourceWithContext[T, Committable, _] =
+      inlet: CodecInlet[T]): org.apache.pekko.stream.javadsl.SourceWithContext[T, Committable, _] =
     context.sourceWithCommittableContext(inlet).asJava
 
   /** This source is designed to function the same as [[sourceWithCommittableContext]] while also leveraging Akka Kafka
@@ -159,7 +159,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
       inlet: CodecInlet[T],
       shardEntity: Entity[M, E],
       kafkaTimeout: FiniteDuration = 10.seconds)
-      : akka.stream.javadsl.SourceWithContext[T, Committable, Future[NotUsed]] =
+      : org.apache.pekko.stream.javadsl.SourceWithContext[T, Committable, Future[NotUsed]] =
     context.shardedSourceWithCommittableContext(inlet, shardEntity, kafkaTimeout).asJava
 
   /** The `plainSource` emits `T` records (as received through the `inlet`).
@@ -169,16 +169,19 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
     */
   def plainSource[T](
       inlet: CodecInlet[T],
-      resetPosition: ResetPosition = Latest): akka.stream.scaladsl.Source[T, NotUsed] =
+      resetPosition: ResetPosition = Latest): org.apache.pekko.stream.scaladsl.Source[T, NotUsed] =
     context.plainSource(inlet, resetPosition)
 
   /** Java API
     */
-  def getPlainSource[T](inlet: CodecInlet[T]): akka.stream.javadsl.Source[T, NotUsed] = plainSource(inlet).asJava
+  def getPlainSource[T](inlet: CodecInlet[T]): org.apache.pekko.stream.javadsl.Source[T, NotUsed] = plainSource(
+    inlet).asJava
 
   /** Java API
     */
-  def getPlainSource[T](inlet: CodecInlet[T], resetPosition: ResetPosition): akka.stream.javadsl.Source[T, NotUsed] =
+  def getPlainSource[T](
+      inlet: CodecInlet[T],
+      resetPosition: ResetPosition): org.apache.pekko.stream.javadsl.Source[T, NotUsed] =
     plainSource(inlet, resetPosition).asJava
 
   /** This source is designed to function the same as [[plainSource]] while also leveraging Akka Kafka Cluster Sharding
@@ -214,7 +217,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
   def getShardedPlainSource[T, M, E](
       inlet: CodecInlet[T],
       shardEntity: Entity[M, E],
-      kafkaTimeout: FiniteDuration): akka.stream.javadsl.Source[T, Future[NotUsed]] =
+      kafkaTimeout: FiniteDuration): org.apache.pekko.stream.javadsl.Source[T, Future[NotUsed]] =
     shardedPlainSource(inlet, shardEntity, Latest, kafkaTimeout).asJava
 
   /** Java API
@@ -224,7 +227,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
       inlet: CodecInlet[T],
       shardEntity: Entity[M, E],
       resetPosition: ResetPosition = Latest,
-      kafkaTimeout: FiniteDuration = 10.seconds): akka.stream.javadsl.Source[T, Future[NotUsed]] =
+      kafkaTimeout: FiniteDuration = 10.seconds): org.apache.pekko.stream.javadsl.Source[T, Future[NotUsed]] =
     shardedPlainSource(inlet, shardEntity, resetPosition, kafkaTimeout).asJava
 
   /** Creates a sink for publishing `T` records to the outlet. The records are partitioned according to the
@@ -235,10 +238,11 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
 
   /** Java API
     */
-  def getPlainSink[T](outlet: CodecOutlet[T]): akka.stream.javadsl.Sink[T, NotUsed] = plainSink(outlet).asJava
+  def getPlainSink[T](outlet: CodecOutlet[T]): org.apache.pekko.stream.javadsl.Sink[T, NotUsed] = plainSink(
+    outlet).asJava
 
-  /** The [[akka.kafka.CommitterSettings]] that have been configured from the default configuration
-    * `akka.kafka.committer`.
+  /** The [[org.apache.pekko.kafka.CommitterSettings]] that have been configured from the default configuration
+    * `org.apache.pekko.kafka.committer`.
     */
   val defaultCommitterSettings = CommitterSettings(system)
 
@@ -264,7 +268,7 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
 
   /** Creates a sink, purely for committing the offsets that have been read further upstream. Batches offsets from the
     * contexts that accompany the records, and commits these to Kafka. Uses a default CommitterSettings, which is
-    * configured through the default configuration in `akka.kafka.committer`.
+    * configured through the default configuration in `org.apache.pekko.kafka.committer`.
     */
   def committableSink[T]: Sink[(T, Committable), NotUsed] =
     committableSink[T](defaultCommitterSettings)
@@ -296,56 +300,57 @@ abstract class AkkaStreamletLogic(implicit val context: AkkaStreamletContext)
 
   /** Java API
     */
-  def getCommittableSink[T](
-      outlet: CodecOutlet[T],
-      committerSettings: CommitterSettings): akka.stream.javadsl.Sink[akka.japi.Pair[T, Committable], NotUsed] =
+  def getCommittableSink[T](outlet: CodecOutlet[T], committerSettings: CommitterSettings)
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, Committable], NotUsed] =
     committableSink[T](outlet, committerSettings).asJava.contramap { case pair => (pair.first, pair.second) }
 
   /** Java API
     */
-  def getCommittableSink[T](outlet: CodecOutlet[T]): akka.stream.javadsl.Sink[akka.japi.Pair[T, Committable], NotUsed] =
+  def getCommittableSink[T](outlet: CodecOutlet[T])
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, Committable], NotUsed] =
     getCommittableSink[T](outlet, defaultCommitterSettings)
 
   /** Java API
     */
-  def getCommittableSink[T](
-      committerSettings: CommitterSettings): akka.stream.javadsl.Sink[akka.japi.Pair[T, Committable], NotUsed] =
+  def getCommittableSink[T](committerSettings: CommitterSettings)
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, Committable], NotUsed] =
     committableSink[T](committerSettings).asJava.contramap { case pair => (pair.first, pair.second) }
 
   /** Java API
     */
-  def getCommittableSink[T](): akka.stream.javadsl.Sink[akka.japi.Pair[T, Committable], NotUsed] =
+  def getCommittableSink[T]()
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, Committable], NotUsed] =
     getCommittableSink[T](defaultCommitterSettings)
 
   /** Java API
     */
   @deprecated("Use `getCommittableSink` instead.", "1.3.1")
-  def getSinkWithOffsetContext[T](
-      outlet: CodecOutlet[T]): akka.stream.javadsl.Sink[akka.japi.Pair[T, CommittableOffset], NotUsed] =
+  def getSinkWithOffsetContext[T](outlet: CodecOutlet[T])
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, CommittableOffset], NotUsed] =
     getSinkWithOffsetContext(outlet, defaultCommitterSettings)
 
   /** Java API
     */
   @deprecated("Use `getCommittableSink` instead.", "1.3.1")
-  def getSinkWithOffsetContext[T](
-      outlet: CodecOutlet[T],
-      committerSettings: CommitterSettings): akka.stream.javadsl.Sink[akka.japi.Pair[T, CommittableOffset], NotUsed] =
+  def getSinkWithOffsetContext[T](outlet: CodecOutlet[T], committerSettings: CommitterSettings)
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, CommittableOffset], NotUsed] =
     committableSink[T](outlet, committerSettings).asJava.contramap { case pair => (pair.first, pair.second) }
 
   /** Java API
     */
   @deprecated("Use `getCommittableSink` instead.", "1.3.1")
-  def getSinkWithOffsetContext[T](
-      committerSettings: CommitterSettings): akka.stream.javadsl.Sink[akka.japi.Pair[T, CommittableOffset], NotUsed] =
+  def getSinkWithOffsetContext[T](committerSettings: CommitterSettings)
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, CommittableOffset], NotUsed] =
     committableSink[T](committerSettings).asJava.contramap { case pair => (pair.first, pair.second) }
 
   /** Java API
     */
   @deprecated("Use `getCommittableSink` instead.", "1.3.1")
-  def getSinkWithOffsetContext[T](): akka.stream.javadsl.Sink[akka.japi.Pair[T, CommittableOffset], NotUsed] =
+  def getSinkWithOffsetContext[T]()
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, CommittableOffset], NotUsed] =
     getSinkWithOffsetContext(defaultCommitterSettings)
 
-  /** Creates a [[akka.stream.SinkRef SinkRef]] to write to, for the specified
+  /** Creates a [[org.apache.pekko.stream.SinkRef SinkRef]] to write to, for the specified
     * [[cloudflow.streamlets.CodecOutlet CodeOutlet]]. The records are partitioned according to the `partitioner` of the
     * `outlet`.
     *

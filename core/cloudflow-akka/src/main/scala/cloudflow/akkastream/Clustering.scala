@@ -16,7 +16,7 @@
 
 package cloudflow.akkastream
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 import cloudflow.streamlets._
 
 @ApiMayChange

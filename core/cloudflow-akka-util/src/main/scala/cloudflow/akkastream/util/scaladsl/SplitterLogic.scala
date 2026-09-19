@@ -18,12 +18,12 @@ package cloudflow.akkastream.util.scaladsl
 
 import scala.collection.immutable
 
-import akka._
-import akka.kafka._
-import akka.stream._
-import akka.stream.scaladsl._
-import akka.stream.stage._
-import akka.kafka.ConsumerMessage._
+import org.apache.pekko._
+import org.apache.pekko.kafka._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.kafka.ConsumerMessage._
 import cloudflow.streamlets.{ CodecInlet, CodecOutlet }
 import cloudflow.akkastream._
 import cloudflow.akkastream.internal.MultiProducer
@@ -109,12 +109,12 @@ object Splitter {
   def graph[I, L, R](
       flow: FlowWithCommittableContext[I, Either[L, R]],
       left: Sink[(L, Committable), NotUsed],
-      right: Sink[(R, Committable), NotUsed]): Graph[akka.stream.SinkShape[(I, Committable)], NotUsed] =
+      right: Sink[(R, Committable), NotUsed]): Graph[org.apache.pekko.stream.SinkShape[(I, Committable)], NotUsed] =
     GraphDSL.create(left, right)(Keep.left) { implicit builder => (ilRaw, irRaw) =>
       import GraphDSL.Implicits._
       // Scala 3: GraphDSL.create passes shapes as base Shape type; cast to SinkShape
-      val il = ilRaw.asInstanceOf[akka.stream.SinkShape[(L, Committable)]]
-      val ir = irRaw.asInstanceOf[akka.stream.SinkShape[(R, Committable)]]
+      val il = ilRaw.asInstanceOf[org.apache.pekko.stream.SinkShape[(L, Committable)]]
+      val ir = irRaw.asInstanceOf[org.apache.pekko.stream.SinkShape[(R, Committable)]]
 
       val toEitherFlow = builder.add(flow.asFlow)
       val partitionWith = PartitionWith[(Either[L, R], Committable), (L, Committable), (R, Committable)] {
@@ -194,8 +194,8 @@ abstract class SplitterLogic[I, L, R](inlet: CodecInlet[I], leftOutlet: CodecOut
       implicit builder => (ilRaw, irRaw) =>
         import GraphDSL.Implicits._
         // Scala 3: GraphDSL.create passes shapes as base Shape type; cast to SinkShape
-        val il = ilRaw.asInstanceOf[akka.stream.SinkShape[(L, Committable)]]
-        val ir = irRaw.asInstanceOf[akka.stream.SinkShape[(R, Committable)]]
+        val il = ilRaw.asInstanceOf[org.apache.pekko.stream.SinkShape[(L, Committable)]]
+        val ir = irRaw.asInstanceOf[org.apache.pekko.stream.SinkShape[(R, Committable)]]
 
         val toEitherFlow = builder.add(flow.asFlow)
         val partitionWith = PartitionWith[(Either[L, R], Committable), (L, Committable), (R, Committable)] {

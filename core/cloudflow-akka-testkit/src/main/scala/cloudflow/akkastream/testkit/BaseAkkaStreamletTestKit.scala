@@ -20,7 +20,7 @@ import scala.annotation.varargs
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import akka.actor._
+import org.apache.pekko.actor._
 import com.typesafe.config._
 
 import cloudflow.akkastream._

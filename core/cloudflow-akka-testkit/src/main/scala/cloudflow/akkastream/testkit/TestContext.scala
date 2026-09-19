@@ -18,14 +18,14 @@ package cloudflow.akkastream.testkit
 
 import scala.collection.immutable
 import scala.concurrent._
-import akka.NotUsed
-import akka.actor._
-import akka.actor.typed.scaladsl.adapter._
-import akka.cluster.sharding.typed.scaladsl.{ ClusterSharding, Entity }
-import akka.kafka.CommitterSettings
-import akka.kafka.ConsumerMessage._
-import akka.stream._
-import akka.stream.scaladsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor._
+import org.apache.pekko.actor.typed.scaladsl.adapter._
+import org.apache.pekko.cluster.sharding.typed.scaladsl.{ ClusterSharding, Entity }
+import org.apache.pekko.kafka.CommitterSettings
+import org.apache.pekko.kafka.ConsumerMessage._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
 import com.typesafe.config._
 import cloudflow.akkastream._
 import cloudflow.akkastream.internal.StreamletExecutionImpl
@@ -173,7 +173,7 @@ private[testkit] case class TestContext(
   }
   def sinkRef[T](outlet: CodecOutlet[T]): WritableSinkRef[T] =
     new WritableSinkRef[T] {
-      def sink(): akka.stream.scaladsl.Sink[(T, Committable), akka.NotUsed] =
+      def sink(): org.apache.pekko.stream.scaladsl.Sink[(T, Committable), org.apache.pekko.NotUsed] =
         writeSink.contramap[(T, Committable)] { case (t, _) =>
           (t, Promise.successful(t), TestCommittableOffset())
         }
@@ -244,8 +244,9 @@ private[testkit] case class TestContext(
 
 case class TestContextException(portName: String, msg: String) extends RuntimeException(msg)
 
-import akka.kafka.ConsumerMessage._
+import org.apache.pekko.kafka.ConsumerMessage._
 object TestCommittableOffset {
   def apply(): CommittableOffset =
-    akka.kafka.testkit.ConsumerResultFactory.committableOffset(PartitionOffset(GroupTopicPartition("", "", 0), 0L), "")
+    org.apache.pekko.kafka.testkit.ConsumerResultFactory
+      .committableOffset(PartitionOffset(GroupTopicPartition("", "", 0), 0L), "")
 }

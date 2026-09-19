@@ -18,10 +18,10 @@ package cloudflow.akkastream.testkit.scaladsl
 
 import scala.concurrent._
 
-import akka.{ Done, NotUsed }
-import akka.actor.ActorSystem
-import akka.stream.scaladsl._
-import akka.testkit.TestKit
+import org.apache.pekko.{ Done, NotUsed }
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.testkit.TestKit
 
 import cloudflow.streamlets._
 import cloudflow.akkastream.testkit.PartitionedValue

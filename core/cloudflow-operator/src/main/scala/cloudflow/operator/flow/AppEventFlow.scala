@@ -19,8 +19,8 @@ package flow
 
 import akka.datap.crd.App
 import akka.kube.actions.Action
-import akka.stream._
-import akka.stream.scaladsl._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
 import cloudflow.operator.action.runner.Runner
 import cloudflow.operator.event._
 

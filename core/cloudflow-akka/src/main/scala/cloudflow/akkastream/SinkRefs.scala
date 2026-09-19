@@ -21,12 +21,12 @@ import java.util.concurrent.CompletionStage
 import scala.jdk.FutureConverters._
 import scala.concurrent.Future
 
-import akka.stream._
-import akka.kafka.ConsumerMessage.Committable
+import org.apache.pekko.stream._
+import org.apache.pekko.kafka.ConsumerMessage.Committable
 
-/** Extends [[akka.stream.SinkRef]] with a `write` method that can be used to write data directly to the implementation
-  * that `SinkRef.sink` writes to. Using the `write` method can be more convenient, especially when you want to write
-  * one value at a time and continue only once the write has completed. The alternative would be to use:
+/** Extends [[org.apache.pekko.stream.SinkRef]] with a `write` method that can be used to write data directly to the
+  * implementation that `SinkRef.sink` writes to. Using the `write` method can be more convenient, especially when you
+  * want to write one value at a time and continue only once the write has completed. The alternative would be to use:
   * {{{
   *  Source.single(value).runWith(sink)))
   * }}}

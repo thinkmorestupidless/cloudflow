@@ -18,16 +18,16 @@ package cloudflow.akkastream.util.scaladsl
 
 import scala.collection.immutable
 
-import akka.NotUsed
+import org.apache.pekko.NotUsed
 
-import akka.stream._
-import akka.stream.ClosedShape
-import akka.stream.scaladsl._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.ClosedShape
+import org.apache.pekko.stream.scaladsl._
 
 import cloudflow.akkastream._
 import cloudflow.streamlets._
 import cloudflow.akkastream.scaladsl._
-import akka.kafka.ConsumerMessage._
+import org.apache.pekko.kafka.ConsumerMessage._
 
 /** Merges two or more sources, or inlets, of the same type, into one source.
   */

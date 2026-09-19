@@ -16,8 +16,8 @@
 
 package cloudflow.akkastream.internal
 
-import akka.Done
-import akka.annotation.InternalApi
+import org.apache.pekko.Done
+import org.apache.pekko.annotation.InternalApi
 import cloudflow.akkastream.{ AkkaStreamletContext, AkkaStreamletContextImpl }
 import cloudflow.streamlets.{ Dun, StreamletExecution }
 

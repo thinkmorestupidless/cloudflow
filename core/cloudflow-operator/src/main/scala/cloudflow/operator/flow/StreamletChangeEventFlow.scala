@@ -17,10 +17,10 @@
 package cloudflow.operator
 package event
 
-import akka.NotUsed
+import org.apache.pekko.NotUsed
 import akka.datap.crd.App
 import akka.kube.actions.Action
-import akka.stream.scaladsl._
+import org.apache.pekko.stream.scaladsl._
 import cloudflow.operator.action.runner.Runner
 import io.fabric8.kubernetes.api.model.Secret
 

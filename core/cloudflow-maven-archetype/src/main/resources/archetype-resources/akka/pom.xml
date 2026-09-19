@@ -60,7 +60,7 @@
                 <from>eclipse-temurin:25-jre-alpine</from>
 
                 <env>
-                  <LOGBACK_CONFIG>-Dlogback.configurationFile=/opt/logging/logback.xml -Dakka.loggers.0=akka.event.slf4j.Slf4jLogger -Dakka.loglevel=DEBUG -Dakka.logging-filter=akka.event.slf4j.Slf4jLoggingFilter</LOGBACK_CONFIG>
+                  <LOGBACK_CONFIG>-Dlogback.configurationFile=/opt/logging/logback.xml -Dpekko.loggers.0=org.apache.pekko.event.slf4j.Slf4jLogger -Dpekko.loglevel=DEBUG -Dpekko.logging-filter=org.apache.pekko.event.slf4j.Slf4jLoggingFilter</LOGBACK_CONFIG>
                 </env>
 
                 <runCmds>

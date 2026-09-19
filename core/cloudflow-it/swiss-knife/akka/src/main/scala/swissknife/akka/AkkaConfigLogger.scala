@@ -28,7 +28,7 @@ class AkkaConfigLogger extends AkkaStreamlet {
 
   override def createLogic = new RunnableGraphStreamletLogic() {
     val akkaConfig      = system.settings.config
-    val akkaDeadLetters = if (akkaConfig.hasPath("akka.log-dead-letters")) Some(akkaConfig.getInt("akka.log-dead-letters")) else None
+    val akkaDeadLetters = if (akkaConfig.hasPath("pekko.log-dead-letters")) Some(akkaConfig.getInt("pekko.log-dead-letters")) else None
 
     val feedbackMsg = s"log-dead-letters=[${akkaDeadLetters.map(_.toString).getOrElse("")}]"
     val flow = FlowWithCommittableContext[Data]

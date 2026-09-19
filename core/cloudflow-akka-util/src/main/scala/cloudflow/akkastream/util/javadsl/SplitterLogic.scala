@@ -16,12 +16,12 @@
 
 package cloudflow.akkastream.util.javadsl
 
-import akka.NotUsed
-import akka.japi.Pair
-import akka.kafka._
-import akka.stream.javadsl._
-import akka.kafka.ConsumerMessage._
-import akka.stream.scaladsl
+import org.apache.pekko.NotUsed
+import org.apache.pekko.japi.Pair
+import org.apache.pekko.kafka._
+import org.apache.pekko.stream.javadsl._
+import org.apache.pekko.kafka.ConsumerMessage._
+import org.apache.pekko.stream.scaladsl
 import cloudflow._
 import cloudflow.akkastream._
 import cloudflow.akkastream.javadsl._
@@ -60,7 +60,7 @@ object Splitter {
       rightOutlet: CodecOutlet[R],
       committerSettings: CommitterSettings,
       context: AkkaStreamletContext): Sink[Pair[I, Committable], NotUsed] =
-    akka.stream.javadsl.Flow
+    org.apache.pekko.stream.javadsl.Flow
       .create[Pair[I, Committable]]()
       .map(_.toScala)
       .to(akkastream.util.scaladsl.Splitter

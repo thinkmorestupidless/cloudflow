@@ -16,11 +16,11 @@
 
 package cloudflow.akkastream.testkit.javadsl
 
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.kafka.ConsumerMessage._
-import akka.stream._
-import akka.stream.scaladsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.kafka.ConsumerMessage._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
 
 import cloudflow.streamlets._
 import cloudflow.akkastream.testkit._
@@ -29,7 +29,7 @@ import cloudflow.akkastream.testkit._
 // internally by the AkkaStreamletTestKit when creating instances of this class
 case class SourceInletTap[T] private[testkit] (
     inlet: CodecInlet[T],
-    src: akka.stream.javadsl.Source[(T, Committable), NotUsed])
+    src: org.apache.pekko.stream.javadsl.Source[(T, Committable), NotUsed])
     extends InletTap[T] {
   val portName = inlet.name
 
@@ -58,16 +58,16 @@ case class QueueInletTap[T](inlet: CodecInlet[T])(implicit system: ActorSystem) 
   val source = src.map { t =>
     (t, TestCommittableOffset())
   }
-  val queue: akka.stream.javadsl.SourceQueueWithComplete[T] = q
+  val queue: org.apache.pekko.stream.javadsl.SourceQueueWithComplete[T] = q
 }
 
-/** Copied over from Akka internals (akka.stream.impl.QueueSource.scala, 2.5.23)
+/** Copied over from Akka internals (org.apache.pekko.stream.impl.QueueSource.scala, 2.5.23)
   */
 private[testkit] final class SourceQueueAdapter[T](delegate: SourceQueueWithComplete[T])
-    extends akka.stream.javadsl.SourceQueueWithComplete[T] {
+    extends org.apache.pekko.stream.javadsl.SourceQueueWithComplete[T] {
   import java.util.concurrent.CompletionStage
   import scala.jdk.FutureConverters._
-  import akka.Done
+  import org.apache.pekko.Done
 
   def offer(elem: T): CompletionStage[QueueOfferResult] = delegate.offer(elem).asJava
   def watchCompletion(): CompletionStage[Done] = delegate.watchCompletion().asJava

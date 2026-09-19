@@ -16,14 +16,14 @@
 
 package cloudflow.akkastream.javadsl;
 
-import akka.Done;
-import akka.actor.ActorSystem;
-import akka.japi.Pair;
-import akka.kafka.ConsumerMessage;
-import akka.kafka.ConsumerMessage.CommittableOffset;
-import akka.kafka.ConsumerMessage.Committable;
-import akka.stream.javadsl.Flow;
-import akka.testkit.TestKit;
+import org.apache.pekko.Done;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.japi.Pair;
+import org.apache.pekko.kafka.ConsumerMessage;
+import org.apache.pekko.kafka.ConsumerMessage.CommittableOffset;
+import org.apache.pekko.kafka.ConsumerMessage.Committable;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.testkit.TestKit;
 import cloudflow.akkastream.*;
 import cloudflow.akkastream.testdata.*;
 import cloudflow.akkastream.testkit.javadsl.*;

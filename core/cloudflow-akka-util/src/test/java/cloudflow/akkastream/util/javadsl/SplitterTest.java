@@ -19,9 +19,9 @@ package cloudflow.akkastream.util.javadsl;
 import org.junit.Test;
 import org.scalatestplus.junit.JUnitSuite;
 
-import akka.NotUsed;
-import akka.kafka.ConsumerMessage.Committable;
-import akka.stream.javadsl.*;
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.kafka.ConsumerMessage.Committable;
+import org.apache.pekko.stream.javadsl.*;
 
 import cloudflow.akkastream.AkkaStreamlet;
 import cloudflow.akkastream.javadsl.RunnableGraphStreamletLogic;

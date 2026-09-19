@@ -19,10 +19,10 @@ package cloudflow.akkastream
 package testkit {
   import scala.util.Try
   import scala.concurrent.{ Future, Promise }
-  import akka.{ Done, NotUsed }
-  import akka.stream.scaladsl._
+  import org.apache.pekko.{ Done, NotUsed }
+  import org.apache.pekko.stream.scaladsl._
   import cloudflow.streamlets.CodecOutlet
-  import akka.kafka.ConsumerMessage._
+  import org.apache.pekko.kafka.ConsumerMessage._
 
   trait InletTap[T] {
     def portName: String

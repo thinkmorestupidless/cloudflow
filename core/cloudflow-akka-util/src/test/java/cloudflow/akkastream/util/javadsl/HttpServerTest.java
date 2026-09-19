@@ -16,10 +16,10 @@
 
 package cloudflow.akkastream.util.javadsl;
 
-import akka.http.javadsl.common.EntityStreamingSupport;
-import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.unmarshalling.Unmarshaller;
-import akka.util.ByteString;
+import org.apache.pekko.http.javadsl.common.EntityStreamingSupport;
+import org.apache.pekko.http.javadsl.marshallers.jackson.Jackson;
+import org.apache.pekko.http.javadsl.unmarshalling.Unmarshaller;
+import org.apache.pekko.util.ByteString;
 import cloudflow.akkastream.AkkaServerStreamlet;
 import cloudflow.akkastream.testdata.Data;
 import cloudflow.streamlets.StreamletShape;

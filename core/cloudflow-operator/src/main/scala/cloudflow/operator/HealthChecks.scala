@@ -16,10 +16,10 @@
 
 package cloudflow.operator
 
-import akka.actor._
-import akka.http.scaladsl._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl._
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.server.Directives._
 
 import scala.concurrent._
 import scala.util._

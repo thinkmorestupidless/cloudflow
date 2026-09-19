@@ -20,24 +20,24 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.collection.immutable
-import akka.{ Done, NotUsed }
-import akka.actor.ActorSystem
-import akka.annotation.InternalApi
-import akka.cluster.sharding.typed.scaladsl.Entity
-import akka.kafka.ConsumerMessage.{ Committable, CommittableOffset }
-import akka.kafka.CommitterSettings
-import akka.stream.KillSwitches
-import akka.stream.scaladsl._
+import org.apache.pekko.{ Done, NotUsed }
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.cluster.sharding.typed.scaladsl.Entity
+import org.apache.pekko.kafka.ConsumerMessage.{ Committable, CommittableOffset }
+import org.apache.pekko.kafka.CommitterSettings
+import org.apache.pekko.stream.KillSwitches
+import org.apache.pekko.stream.scaladsl._
 import cloudflow.streamlets._
 
 import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 
-/** Runtime context for [[AkkaStreamlet]]s, which provides means to create [[akka.stream.scaladsl.Source Source]]s and
-  * [[akka.stream.scaladsl.Sink Sink]]s respectively for [[cloudflow.streamlets.CodecInlet CodeInlet]]s and
-  * [[cloudflow.streamlets.CodecOutlet CodeOutlet]]s. The StreamletContext also contains some lifecycle hooks, like
-  * `signalReady`, `onStop` and `stop` and provides access to the streamlet configuration. It also provides the
-  * [[akka.actor.ActorSystem ActorSystem]] and [[akka.stream.Materializer Materializer]] that will be used to run the
-  * AkkaStreamlet.
+/** Runtime context for [[AkkaStreamlet]]s, which provides means to create
+  * [[org.apache.pekko.stream.scaladsl.Source Source]]s and [[org.apache.pekko.stream.scaladsl.Sink Sink]]s respectively
+  * for [[cloudflow.streamlets.CodecInlet CodeInlet]]s and [[cloudflow.streamlets.CodecOutlet CodeOutlet]]s. The
+  * StreamletContext also contains some lifecycle hooks, like `signalReady`, `onStop` and `stop` and provides access to
+  * the streamlet configuration. It also provides the [[org.apache.pekko.actor.ActorSystem ActorSystem]] and
+  * [[org.apache.pekko.stream.Materializer Materializer]] that will be used to run the AkkaStreamlet.
   */
 trait AkkaStreamletContext extends StreamletContext {
 
@@ -77,7 +77,7 @@ trait AkkaStreamletContext extends StreamletContext {
   private[akkastream] def sinkWithOffsetContext[T](
       committerSettings: CommitterSettings): Sink[(T, CommittableOffset), NotUsed]
 
-  /** Creates a [[akka.stream.SinkRef SinkRef]] to write to, for the specified
+  /** Creates a [[org.apache.pekko.stream.SinkRef SinkRef]] to write to, for the specified
     * [[cloudflow.streamlets.CodecOutlet CodecOutlet]]
     *
     * @param outlet

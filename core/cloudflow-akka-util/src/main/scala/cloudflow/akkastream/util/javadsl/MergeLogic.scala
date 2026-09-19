@@ -18,7 +18,7 @@ package cloudflow.akkastream.util.javadsl
 
 import scala.annotation.varargs
 import scala.jdk.CollectionConverters._
-import akka.kafka.ConsumerMessage._
+import org.apache.pekko.kafka.ConsumerMessage._
 import cloudflow._
 import cloudflow.akkastream._
 import cloudflow.streamlets._
@@ -30,8 +30,8 @@ object Merger {
   /** Java API Merges two or more sources into one source. Elements from all inlets will be processed with at-least-once
     * semantics. The elements will be processed in semi-random order and with equal priority for all sources.
     */
-  def source[T](sources: java.util.List[akka.stream.javadsl.SourceWithContext[T, Committable, _]])
-      : akka.stream.javadsl.SourceWithContext[T, Committable, _] =
+  def source[T](sources: java.util.List[org.apache.pekko.stream.javadsl.SourceWithContext[T, Committable, _]])
+      : org.apache.pekko.stream.javadsl.SourceWithContext[T, Committable, _] =
     cloudflow.akkastream.util.scaladsl.Merger.source(sources.asScala.map(_.asScala).toSeq).asJava
 
   /** Java API Merges two or more inlets into one source. Elements from all inlets will be processed with at-least-once
@@ -39,14 +39,14 @@ object Merger {
     */
   def source[T](
       context: AkkaStreamletContext,
-      inlets: java.util.List[CodecInlet[T]]): akka.stream.javadsl.SourceWithContext[T, Committable, _] =
+      inlets: java.util.List[CodecInlet[T]]): org.apache.pekko.stream.javadsl.SourceWithContext[T, Committable, _] =
     cloudflow.akkastream.util.scaladsl.Merger.source(inlets.asScala.toSeq)(context).asJava
 
   @varargs
   def source[T](
       context: AkkaStreamletContext,
       inlet: CodecInlet[T],
-      inlets: CodecInlet[T]*): akka.stream.javadsl.SourceWithContext[T, Committable, _] =
+      inlets: CodecInlet[T]*): org.apache.pekko.stream.javadsl.SourceWithContext[T, Committable, _] =
     cloudflow.akkastream.util.scaladsl.Merger.source(inlet +: inlets)(context).asJava
 }
 

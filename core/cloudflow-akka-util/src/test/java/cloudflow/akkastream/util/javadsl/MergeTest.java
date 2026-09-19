@@ -19,7 +19,7 @@ package cloudflow.akkastream.util.javadsl;
 import java.util.ArrayList;
 import java.util.List;
 
-import akka.stream.javadsl.RunnableGraph;
+import org.apache.pekko.stream.javadsl.RunnableGraph;
 import cloudflow.akkastream.AkkaStreamlet;
 import cloudflow.akkastream.javadsl.RunnableGraphStreamletLogic;
 import cloudflow.akkastream.testdata.Data;

@@ -19,10 +19,10 @@ package cloudflow.akkastream.testkit.javadsl
 import java.util.{ List => JList }
 
 import collection.JavaConverters._
-import akka.NotUsed
-import akka.actor._
-import akka.japi.Pair
-import akka.stream.javadsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor._
+import org.apache.pekko.japi.Pair
+import org.apache.pekko.stream.javadsl._
 import com.typesafe.config._
 import cloudflow.akkastream._
 import cloudflow.streamlets._
@@ -55,11 +55,11 @@ object AkkaStreamletTestKit {
   *
   * // run the testkit
   * testkit.<Data, scala.Tuple2<String, Data>>run(sfp, in, out, () -> {
-  *   return out.probe().expectMsg(new akka.japi.Pair<String, Data>("2", new Data(2, "b")));
+  *   return out.probe().expectMsg(new org.apache.pekko.japi.Pair<String, Data>("2", new Data(2, "b")));
   * });
   * }}}
   *
-  * The following point is from `akka.testkit.Testkit` and is valid mostly for this testkit as well:
+  * The following point is from `org.apache.pekko.testkit.Testkit` and is valid mostly for this testkit as well:
   *
   * Beware of two points:
   *
@@ -96,9 +96,9 @@ final case class AkkaStreamletTestKit private[testkit] (
     * specified outlet.
     *
     * The data being written to the outlet will always be partitioned using the partitioner function of the outlet. This
-    * means that assertions should always expect an instance of `akka.japi.Pair` with the first element being the
-    * partitioning key (can be null in case the default RoundRobinPartitioner is used) and the second element being the
-    * actual data element.
+    * means that assertions should always expect an instance of `org.apache.pekko.japi.Pair` with the first element
+    * being the partitioning key (can be null in case the default RoundRobinPartitioner is used) and the second element
+    * being the actual data element.
     *
     * Example (see the full example above, on the class level:
     *
@@ -110,7 +110,7 @@ final case class AkkaStreamletTestKit private[testkit] (
     * ...
     *
     * testkit.<Data, scala.Tuple2<String, Data>>run(sfp, in, out, () -> {
-    *   return out.probe().expectMsg(new akka.japi.Pair<String, Data>("2", new Data(2, "b")));
+    *   return out.probe().expectMsg(new org.apache.pekko.japi.Pair<String, Data>("2", new Data(2, "b")));
     * });
     * }}}
     */
@@ -120,9 +120,9 @@ final case class AkkaStreamletTestKit private[testkit] (
   /** Attaches the provided Sink to the specified outlet.
     *
     * The data being written to the Sink will always be partitioned using the partitioner function of the outlet. This
-    * means that the Sink should expect instances of `akka.japi.Pair`, with the first element being the partitioning key
-    * (can be null in case the default RoundRobinPartitioner is used) and the second element being the actual data
-    * element.
+    * means that the Sink should expect instances of `org.apache.pekko.japi.Pair`, with the first element being the
+    * partitioning key (can be null in case the default RoundRobinPartitioner is used) and the second element being the
+    * actual data element.
     *
     * This method can be used to for instance quickly collect all output produced into a simple list using
     * `Sink.seq[T]`.

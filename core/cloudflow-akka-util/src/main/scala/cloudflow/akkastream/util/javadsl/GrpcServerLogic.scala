@@ -19,13 +19,13 @@ package cloudflow.akkastream.util.javadsl
 import java.util.concurrent.CompletionStage
 import java.util.{ List => JList }
 
-import akka.annotation.ApiMayChange
-import akka.japi.function.Function
-import akka.grpc.javadsl.ServiceHandler
-import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
-import akka.http.javadsl.model.StatusCodes.OK
-import akka.http.javadsl.server.Route
-import akka.http.javadsl.server.Directives._
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.japi.function.Function
+import org.apache.pekko.grpc.javadsl.ServiceHandler
+import org.apache.pekko.http.javadsl.model.{ HttpRequest, HttpResponse }
+import org.apache.pekko.http.javadsl.model.StatusCodes.OK
+import org.apache.pekko.http.javadsl.server.Route
+import org.apache.pekko.http.javadsl.server.Directives._
 import cloudflow.akkastream.{ AkkaStreamletContext, Server }
 
 @ApiMayChange

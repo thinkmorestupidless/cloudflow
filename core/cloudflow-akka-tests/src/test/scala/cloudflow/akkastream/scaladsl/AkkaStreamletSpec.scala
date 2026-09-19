@@ -22,10 +22,10 @@ import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import akka.NotUsed
-import akka.actor._
-import akka.stream.scaladsl._
-import akka.testkit._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor._
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.testkit._
 
 import org.scalatest._
 import org.scalatest.wordspec._

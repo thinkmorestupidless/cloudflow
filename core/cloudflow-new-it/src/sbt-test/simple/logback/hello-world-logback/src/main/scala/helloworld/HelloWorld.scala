@@ -1,6 +1,6 @@
 package helloworld
 
-import akka.stream.scaladsl._
+import org.apache.pekko.stream.scaladsl._
 import cloudflow.akkastream._
 import cloudflow.akkastream.scaladsl._
 import cloudflow.streamlets._

@@ -33,9 +33,6 @@ object AkkaRunner {
   final val Runtime = "akka"
   val JavaOptsEnvVar = "JAVA_OPTS"
   val PrometheusExporterPortEnvVar = "PROMETHEUS_JMX_AGENT_PORT"
-  val AkkaLicenseKeyEnvVar = "AKKA_LICENSE_KEY"
-  val AkkaLicenseSecretName = "akka-license"
-  val AkkaLicenseSecretKey = "license-key"
   val DefaultReplicas = 1
   val ImagePullPolicy = "IfNotPresent"
 
@@ -457,23 +454,10 @@ final class AkkaRunner(akkaRunnerDefaults: AkkaRunnerDefaults) extends Runner[De
           .build())
     } else Nil
 
-    val akkaLicenseKeyEnvVar = new EnvVarBuilder()
-      .withName(AkkaLicenseKeyEnvVar)
-      .withValueFrom(
-        new EnvVarSourceBuilder()
-          .withSecretKeyRef(
-            new SecretKeySelectorBuilder()
-              .withName(AkkaLicenseSecretName)
-              .withKey(AkkaLicenseSecretKey)
-              .withOptional(true)
-              .build())
-          .build())
-      .build()
-
     val defaultEnvironmentVariables = new EnvVarBuilder()
       .withName(JavaOptsEnvVar)
       .withValue(javaOptions)
-      .build() :: akkaLicenseKeyEnvVar :: prometheusEnvVars
+      .build() :: prometheusEnvVars
     val envVarsFomPodConfigMap = podsConfig.pods
       .get(PodsConfig.CloudflowPodName)
       .flatMap { podConfig =>

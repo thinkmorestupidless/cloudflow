@@ -5,7 +5,7 @@ Global / cancelable := true
 // `-` rather than dynver's default `+`, which a Docker image tag cannot contain.
 ThisBuild / dynverSeparator := "-"
 
-ThisBuild / resolvers ++= LightbendCredentials.lightbendResolvers
+ThisBuild / dependencyOverrides ++= Dependencies.pekkoFamilyOverrides
 
 ThisBuild / credentials += Credentials(
   "GitHub Package Registry",
@@ -255,8 +255,7 @@ lazy val cloudflowOperator =
       dockerUsername := sys.props.get("docker.username"),
       dockerRepository := sys.props.get("docker.registry"),
       dockerBaseImage := "eclipse-temurin:11-jre-focal")
-    .settings(
-      dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0", "com.typesafe.akka" %% "akka-pki" % "2.10.16"))
+    .settings(dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0"))
     .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat)
 
 // cloudflow-extractor, cloudflow-build-support, cloudflow-cr-generator, and

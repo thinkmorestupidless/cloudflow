@@ -18,18 +18,20 @@ package cloudflow.akkastream.testkit.javadsl
 
 import scala.concurrent._
 
-import akka.{ Done, NotUsed }
-import akka.actor.ActorSystem
-import akka.japi.Pair
-import akka.stream.scaladsl._
-import akka.testkit.javadsl.{ TestKit => JTestKit }
+import org.apache.pekko.{ Done, NotUsed }
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.japi.Pair
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.testkit.javadsl.{ TestKit => JTestKit }
 
 import cloudflow.streamlets._
 import cloudflow.akkastream.testkit.PartitionedValue
 
 case class Failed(e: Throwable)
 
-case class SinkOutletTap[T](outlet: CodecOutlet[T], val snk: akka.stream.javadsl.Sink[Pair[String, T], NotUsed])
+case class SinkOutletTap[T](
+    outlet: CodecOutlet[T],
+    val snk: org.apache.pekko.stream.javadsl.Sink[Pair[String, T], NotUsed])
     extends OutletTap[T] {
   private[testkit] val flow: Flow[PartitionedValue[T], PartitionedValue[T], NotUsed] =
     Flow[PartitionedValue[T]]
@@ -51,7 +53,7 @@ case class ProbeOutletTap[T](outlet: CodecOutlet[T])(implicit system: ActorSyste
           .map(pv => Pair(pv.key, pv.value))
           .to(Sink.actorRef[Pair[String, T]](probe.getTestActor, Completed, Failed)))
 
-  // This will emit akka.japi.Pair elements to the test actor (partitioning key -> data)
+  // This will emit org.apache.pekko.japi.Pair elements to the test actor (partitioning key -> data)
   // for easy usage in Java-based tests
   private[cloudflow] val sink: Sink[PartitionedValue[T], Future[Done]] =
     flow.toMat(Sink.ignore)(Keep.right)
