@@ -48,10 +48,11 @@ the **exported** `LIGHTBEND_COMMERCIAL_TOKEN`, not from `core/.lightbend-token`,
 fail to resolve Akka — which reads like a broken build and is not. The examples script also runs
 `scalafmtAll` before checking, rewriting example sources in place; revert them afterwards.
 
-Every scripted test that builds an image fails on **Docker's containerd image store** (the default
-for new Docker 29 installs) — sbt-docker 1.9.0 cannot find the image id in that builder's output
-(`Could not parse Docker image id`). Run them with `DOCKER_BUILDKIT=0` until that is fixed; it
-affects users' `buildApp` too (see `ROADMAP.md`).
+**Images are built by Cloudflow's own `docker` task (`DockerImageBuild`), not sbt-docker's.**
+sbt-docker learns the built image's id by parsing the builder's output, which fails on Docker's
+containerd image store (the default for new Docker 29 installs). Ours tags with `docker build -t`
+and reads the id from `--iidfile`. sbt-docker still supplies the Dockerfile DSL, staging and push;
+do not remove the override when upgrading it unless a release parses that store's output.
 
 **Publish and consume in one sbt invocation.** With uncommitted changes dynver's version carries a
 timestamp to the minute, so `sbt +publishLocal` followed by a *separate* `sbt …/scripted` a minute

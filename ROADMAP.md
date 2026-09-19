@@ -60,17 +60,16 @@ Decisions are collected at the end; the ones taken are recorded there with their
       must stay Alpine-based: the image build runs `apk add bash curl` and BusyBox's
       `addgroup`/`adduser -S`. The `base-image` scripted test now overrides with
       `eclipse-temurin:21-jre-alpine`, so it still proves the override is honoured.
-      With `DOCKER_BUILDKIT=0`, all 7 scripted tests pass on arm64.
-- [ ] **`buildApp` fails on Docker's containerd image store** — the default for new Docker 29
-      installs, so this hits users building streamlet images, not just our tests. sbt-docker reads
-      the built image's id from the builder's output: 1.9.0 (ours) finds nothing it recognises
-      (`Could not parse Docker image id`); 1.11.0 picks the *config* digest, which that store does
-      not know as an image (`No such image`). The correct id is the manifest-list digest. The fix
-      exists on sbt-docker `master` (`SuccessfullyBuiltContainerd`, `…BuildxDangling`, last match
-      wins) but is in no release, 2.0.0-M2 included. Options: wait for a release; override the id
-      parsing in Cloudflow's own plugin; or build with `--iidfile` and read the id from that.
-      Workaround meanwhile: `DOCKER_BUILDKIT=0` (the deprecated legacy builder), or turn off
-      Docker Desktop's containerd image store.
+      All 7 scripted tests now pass on arm64 (see the next item).
+- [x] **`buildApp` failed on Docker's containerd image store** — the default for new Docker 29
+      installs, so it hit users building streamlet images, not just our tests. sbt-docker reads the
+      built image's id from the builder's output: 1.9.0 recognised nothing (`Could not parse Docker
+      image id`); 1.11.0 took the config digest, which that store does not know as an image. The fix
+      on sbt-docker `master` is in no release. Fixed in Cloudflow's plugin instead: its `docker` task
+      (`DockerImageBuild`) tags with `docker build -t` and reads the id from `--iidfile`, so nothing
+      is parsed. All 7 scripted tests pass on arm64 with BuildKit on the containerd store *and* with
+      the legacy builder. Not exercised: pushing (`dockerBuildAndPush`), which no test does; it
+      pushes by name and is unchanged.
 - [ ] **Upgrade the Prometheus JMX agent** fetched into every streamlet image —
       `jmx_prometheus_javaagent` 0.11.0, from 2018. It works on Java 25 (verified: the agent serves
       JVM metrics) but warns that `sun.misc.Unsafe` methods it calls will be removed in a future JDK.

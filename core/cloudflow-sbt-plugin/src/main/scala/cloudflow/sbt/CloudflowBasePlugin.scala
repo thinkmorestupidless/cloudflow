@@ -68,6 +68,16 @@ object CloudflowBasePlugin extends AutoPlugin {
       libraryDependencies ++= Vector(
         "com.lightbend.cloudflow" % "cloudflow-runner_3" % (ThisProject / cloudflowVersion).value,
         "com.lightbend.cloudflow" % "cloudflow-localrunner_3" % (ThisProject / cloudflowVersion).value),
+      // Replaces sbt-docker's own `docker` task, which cannot identify the image it built on Docker's
+      // containerd image store; `dockerBuildAndPush` runs this one too. See DockerImageBuild.
+      docker := DockerImageBuild(
+        (docker / dockerfile).value,
+        (docker / imageNames).value,
+        (docker / buildOptions).value,
+        (docker / dockerBuildArguments).value,
+        (docker / target).value,
+        (docker / dockerPath).value,
+        streams.value.log),
       docker / buildOptions := BuildOptions(
         cache = true,
         removeIntermediateContainers = BuildOptions.Remove.OnSuccess,
