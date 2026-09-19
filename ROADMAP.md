@@ -161,10 +161,16 @@ per-entity order, and be rebuildable.
       as nakka writes them — subject as key, `ce_*` headers, JSON body — read by a streamlet as
       records, with a malformed body skipped and the stream carrying on. Scala only: a
       `JsonValueCodec` comes from Scala macros.
-- [ ] **Consuming topics Cloudflow does not own.** `managed = false` exists
-      (`ApplicationDescriptor.scala:193`; the operator skips creation in `TopicActions`). Verify end
-      to end against a nakka topic: per-topic bootstrap servers, consumer-group naming, and
-      starting from `earliest` for a new pipeline.
+- [x] **Consuming topics Cloudflow does not own** (branch `phase-2-unmanaged-topics`). No code change
+      was needed; nothing had tested it. Now: a blueprint topic declared `managed = false` with only
+      consumers, its own `topic.name` and `bootstrap.servers`, verifies and reaches the consuming
+      streamlet's port mapping with its name, brokers and `consumer-config` intact
+      (`UnmanagedTopicSpec`, Scala 2.12/2.13/3); the operator creates no topic for it while still
+      creating the app's own (`TopicActionsSpec`, mutation-checked against dropping the `managed`
+      filter); and `JsonKafkaSpec` already consumes a topic a plain Kafka producer wrote. Answers
+      recorded in `CLAUDE.md`: brokers come from the topic, a named cluster or the default one;
+      the consumer group is `<appId>.<streamletRef>.<inlet>`; committable sources start from
+      `earliest`. What is still unproven is the same thing on a live cluster — Phase 3.
 - [ ] **Rebuild support.** A CLI command to reset a streamlet's (or an application's) consumer
       groups to earliest, refusing while it is running — the rebuild runbook depends on it.
 - [ ] **Commit after the side effect.** `committableSink(committerSettings)` already exists; add a
