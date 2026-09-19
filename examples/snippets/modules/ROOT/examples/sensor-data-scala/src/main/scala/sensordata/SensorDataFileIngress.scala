@@ -18,12 +18,12 @@ package sensordata
 
 import java.nio.file._
 
-import akka.NotUsed
-import akka.stream.IOResult
-import akka.stream.scaladsl._
-import akka.util.ByteString
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
+import org.apache.pekko.NotUsed
+import org.apache.pekko.stream.IOResult
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.util.ByteString
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
 import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 import spray.json.JsonParser
@@ -32,11 +32,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
-class SensorDataFileIngress extends AkkaStreamlet {
+class SensorDataFileIngress extends PekkoStreamlet {
 
   import SensorDataJsonSupport._
 
-  val out: CodecOutlet[SensorData]     = AvroOutlet[SensorData]("out").withPartitioner(RoundRobinPartitioner)
+  val out: CodecOutlet[SensorData]   = AvroOutlet[SensorData]("out").withPartitioner(RoundRobinPartitioner)
   override def shape: StreamletShape = StreamletShape.withOutlets(out)
 
   //tag::volume-mount1[]
@@ -52,15 +52,14 @@ class SensorDataFileIngress extends AkkaStreamlet {
 
   // *) Note that reading and deserializing the file content is done in separate steps for readability only, in production they should be merged into one step for performance reasons.
 
-  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+  override def createLogic: PekkoStreamletLogic = new RunnableGraphStreamletLogic() {
     //tag::volume-mount2[]
     val listFiles: NotUsed => Source[Path, NotUsed] = { _ =>
       val dir = getMountedPath(sourceData)
       Source.fromIterator(() => Files.list(dir).iterator().asScala)
     }
     //end::volume-mount2[]
-    val readFile: Path => Source[ByteString, Future[IOResult]] = path =>
-      FileIO.fromPath(path).via(JsonFraming.objectScanner(Int.MaxValue))
+    val readFile: Path => Source[ByteString, Future[IOResult]] = path => FileIO.fromPath(path).via(JsonFraming.objectScanner(Int.MaxValue))
     val parseFile: ByteString => SensorData = { jsonByteString =>
       JsonParser(jsonByteString.utf8String).convertTo[SensorData]
     }

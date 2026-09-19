@@ -16,20 +16,20 @@
 //tag::code[]
 package sensordata
 
-import akka.stream.scaladsl.RunnableGraph
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
-import cloudflow.akkastream.util.scaladsl._
+import org.apache.pekko.stream.scaladsl.RunnableGraph
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
+import cloudflow.pekkostream.util.scaladsl._
 import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 
-class MetricsValidation extends AkkaStreamlet {
+class MetricsValidation extends PekkoStreamlet {
   val in: CodecInlet[Metric]              = AvroInlet[Metric]("in")
   val invalid: CodecOutlet[InvalidMetric] = AvroOutlet[InvalidMetric]("invalid").withPartitioner(metric => metric.metric.deviceId.toString)
   val valid: CodecOutlet[Metric]          = AvroOutlet[Metric]("valid").withPartitioner(RoundRobinPartitioner)
   override val shape: StreamletShape      = StreamletShape(in).withOutlets(invalid, valid)
 
-  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+  override def createLogic: PekkoStreamletLogic = new RunnableGraphStreamletLogic() {
     override def runnableGraph: RunnableGraph[_] = sourceWithCommittableContext(in).to(Splitter.sink(flow, invalid, valid))
     def flow =
       FlowWithCommittableContext[Metric]()

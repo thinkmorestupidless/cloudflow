@@ -20,7 +20,7 @@ simple request-response service:
 
 [source,protobuf]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-grpc-scala/src/main/protobuf/sensordata.proto[tag=proto]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-grpc-scala/src/main/protobuf/sensordata.proto[tag=proto]
 ----
 
 Because the https://doc.akka.io/docs/akka-grpc[Akka gRPC plugin] is embedded in
@@ -36,14 +36,14 @@ Scala::
 +
 [source,scala]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-grpc-scala/src/main/scala/SensorDataIngress.scala[tag=logic]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-grpc-scala/src/main/scala/SensorDataIngress.scala[tag=logic]
 ----
 
 Java::
 +
 [source,java]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-grpc-java/src/main/java/sensordata/SensorDataIngress.java[tag=logic]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-grpc-java/src/main/java/sensordata/SensorDataIngress.java[tag=logic]
 ----
 
 In this example, `SensorDataServiceImpl` is your implementation that extends

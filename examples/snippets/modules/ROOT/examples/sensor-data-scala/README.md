@@ -175,7 +175,7 @@ $ cat test-data/invalid-metric.json
 
 $ curl -i -X POST localhost:3000 -H "Content-Type: application/json" --data '@test-data/invalid-metric.json'
 HTTP/1.1 202 Accepted
-Server: akka-http/10.1.11
+Server: pekko-http/10.1.11
 Date: Mon, 25 Nov 2019 10:29:37 GMT
 Content-Type: text/plain; charset=UTF-8
 Content-Length: 88
@@ -188,10 +188,10 @@ Verify that the application has processed the invalid record:
 
 ```
 $ kubectl logs sensor-data-scala-invalid-logger-5d7dc9964b-7bkjz -n sensor-data-scala
-Running Akka entrypoint script
+Running Pekko entrypoint script
 Pipelines Runner
 ...
-[WARN] [11/25/2019 10:29:39.274] [akka_streamlet-akka.actor.default-dispatcher-4] [akka.actor.ActorSystemImpl(akka_streamlet)] Invalid metric detected! {"metric": {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "power", "value": -1.7}, "error": "All measurements must be positive numbers!"}
+[WARN] [11/25/2019 10:29:39.274] [pekko_streamlet-pekko.actor.default-dispatcher-4] [pekko.actor.ActorSystemImpl(pekko_streamlet)] Invalid metric detected! {"metric": {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "power", "value": -1.7}, "error": "All measurements must be positive numbers!"}
 ```
 
 Note: This application prints to console using log level WARN. If you want to check the valid metrics you need to deploy
@@ -201,7 +201,7 @@ by changing the application log level at deployment time:
 kubectl cloudflow  deploy -u oauth2accesstoken --volume-mount file-ingress.source-data-mount=file-ingress.source-data-mount eu.gcr.io/<projectID>/sensor-data-scala:8-2a0f65d-dirty -p "$(gcloud auth print-access-token)" valid-logger.log-level=info valid-logger.msg-prefix=valid
 ```
 
-The application uses Akka system log which by default it has log level _Warning_.
+The application uses Pekko system log which by default it has log level _Warning_.
 
 Then you can verify the valid log entries:
 
@@ -219,7 +219,7 @@ cat test-data/04-moderate-breeze.json
 
 $ curl -i -X POST localhost:3000 -H "Content-Type: application/json" --data '@test-data/04-moderate-breeze.json'
 HTTP/1.1 202 Accepted
-Server: akka-http/10.1.11
+Server: pekko-http/10.1.11
 Date: Mon, 25 Nov 2019 11:23:14 GMT
 Content-Type: text/plain; charset=UTF-8
 Content-Length: 88
@@ -227,13 +227,13 @@ Content-Length: 88
 The request has been accepted for processing, but the processing has not been completed.
 
 $ kubectl logs sensor-data-scala-valid-logger-84fff7468d-dd72t  -n sensor-data-scala
-Running Akka entrypoint script
+Running Pekko entrypoint script
 Pipelines Runner
 ...
 $
-[INFO] [11/25/2019 11:23:16.020] [akka_streamlet-akka.actor.default-dispatcher-2] [akka.actor.ActorSystemImpl(akka_streamlet)] valid {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "rotorSpeed", "value": 3.9}
-[INFO] [11/25/2019 11:23:16.021] [akka_streamlet-akka.actor.default-dispatcher-2] [akka.actor.ActorSystemImpl(akka_streamlet)] valid {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "windSpeed", "value": 25.3}
-[INFO] [11/25/2019 11:23:16.027] [akka_streamlet-akka.actor.default-dispatcher-2] [akka.actor.ActorSystemImpl(akka_streamlet)] valid {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "power", "value": 1.7}
+[INFO] [11/25/2019 11:23:16.020] [pekko_streamlet-pekko.actor.default-dispatcher-2] [pekko.actor.ActorSystemImpl(pekko_streamlet)] valid {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "rotorSpeed", "value": 3.9}
+[INFO] [11/25/2019 11:23:16.021] [pekko_streamlet-pekko.actor.default-dispatcher-2] [pekko.actor.ActorSystemImpl(pekko_streamlet)] valid {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "windSpeed", "value": 25.3}
+[INFO] [11/25/2019 11:23:16.027] [pekko_streamlet-pekko.actor.default-dispatcher-2] [pekko.actor.ActorSystemImpl(pekko_streamlet)] valid {"deviceId": "c75cb448-df0e-4692-8e06-0321b7703992", "timestamp": 1495545346279, "name": "power", "value": 1.7}
 ```
 
 * Undeploy.

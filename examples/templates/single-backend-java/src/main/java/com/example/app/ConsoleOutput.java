@@ -15,17 +15,17 @@
  */
 package com.example.app;
 
-// general imports to work with Akka-streams
-import akka.NotUsed;
-import akka.stream.*;
-import akka.stream.javadsl.*;
+// general imports to work with Pekko-streams
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.stream.*;
+import org.apache.pekko.stream.javadsl.*;
 
-import cloudflow.akkastream.*;
-import cloudflow.akkastream.javadsl.*;
+import cloudflow.pekkostream.*;
+import cloudflow.pekkostream.javadsl.*;
 import cloudflow.streamlets.*;
 import cloudflow.streamlets.avro.*;
 
-public class ConsoleOutput extends AkkaStreamlet {
+public class ConsoleOutput extends PekkoStreamlet {
 
   // Create inputs and outputs by declaring inlets and outlets
   AvroInlet<Data> inlet = AvroInlet.<Data>create("in", Data.class);
@@ -35,7 +35,7 @@ public class ConsoleOutput extends AkkaStreamlet {
     return StreamletShape.createWithInlets(inlet);
   }
 
-  // for akka-streams streamlets, the entry point of the logic is the runnableGraph.
+  // for pekko-streams streamlets, the entry point of the logic is the runnableGraph.
   // check the Streamlet API of your chosen implementation to determine the entry point
   // corresponding to your chosen backend.
   public RunnableGraphStreamletLogic createLogic() {

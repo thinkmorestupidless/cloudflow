@@ -1,7 +1,7 @@
 //tag::get-started[]
 //tag::local-conf[]
 lazy val sensorData =  (project in file("."))
-    .enablePlugins(CloudflowApplicationPlugin, CloudflowAkkaPlugin)
+    .enablePlugins(CloudflowApplicationPlugin, CloudflowPekkoPlugin)
     .settings(
       scalaVersion := "3.3.5",
       runLocalConfigFile := Some("src/main/resources/local.conf"), //<1>
@@ -11,9 +11,9 @@ lazy val sensorData =  (project in file("."))
 
       libraryDependencies ++= Seq(
         Cloudflow.library.CloudflowAvro,
-        "com.typesafe.akka"      %% "akka-http-spray-json"      % "10.7.3",
+        "org.apache.pekko"      %% "pekko-http-spray-json"      % "1.4.0",
         "ch.qos.logback"         %  "logback-classic"           % "1.2.11",
-        "com.typesafe.akka"      %% "akka-http-testkit"         % "10.7.3" % "test",
+        "org.apache.pekko"      %% "pekko-http-testkit"         % "1.4.0" % "test",
         "org.scalatest"          %% "scalatest"                 % "3.2.19" % "test"
       )
     )

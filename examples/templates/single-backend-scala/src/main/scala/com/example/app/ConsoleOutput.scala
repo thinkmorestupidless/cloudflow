@@ -15,12 +15,12 @@
  */
 package com.example.app
 
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
 import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 
-class ConsoleOutput extends AkkaStreamlet {
+class ConsoleOutput extends PekkoStreamlet {
 
   // declare inputs, outputs, and a shape
   val inlet = AvroInlet[Data]("in")
@@ -28,7 +28,7 @@ class ConsoleOutput extends AkkaStreamlet {
 
   // in `createLogic` we implement the business logic of this Streamlet
   override def createLogic = new RunnableGraphStreamletLogic() {
-    // for akka-streams streamlets, the entry point of the logic is the runnableGraph.
+    // for pekko-streams streamlets, the entry point of the logic is the runnableGraph.
     // check the Streamlet API of your chosen implementation to determine the entry point
     // corresponding to your chosen backend.
     def runnableGraph =

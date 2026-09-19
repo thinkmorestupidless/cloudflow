@@ -16,14 +16,14 @@
 //tag::all[]
 package sensordata
 
-import akka.stream.scaladsl._
-import cloudflow.akkastream._
-import cloudflow.akkastream.scaladsl._
+import org.apache.pekko.stream.scaladsl._
+import cloudflow.pekkostream._
+import cloudflow.pekkostream.scaladsl._
 import cloudflow.streamlets._
 import cloudflow.streamlets.avro._
 
 //tag::config-parameter1[]
-class ValidMetricLogger extends AkkaStreamlet {
+class ValidMetricLogger extends PekkoStreamlet {
 //end::config-parameter1[]
 
   val inlet: CodecInlet[Metric]      = AvroInlet[Metric]("in")
@@ -42,7 +42,7 @@ class ValidMetricLogger extends AkkaStreamlet {
 
   override def configParameters = Vector(LogLevel, MsgPrefix)
 
-  override def createLogic: AkkaStreamletLogic = new RunnableGraphStreamletLogic() {
+  override def createLogic: PekkoStreamletLogic = new RunnableGraphStreamletLogic() {
     val logF: String => Unit = LogLevel.value.toLowerCase match {
       case "debug"   => system.log.debug _
       case "info"    => system.log.info _

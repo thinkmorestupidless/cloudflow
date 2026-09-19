@@ -14,6 +14,6 @@ This directory contains examples showcasing different Cloudflow features.
 
 ## Examples
 
-- sensor-data-scala - A simple Akka based pipeline that processes events from a wind turbine farm. (Scala version)
-- tensorflow-akka - A simple pipeline that scores the quality of wines using a TensorFlow model.
+- sensor-data-scala - A simple Pekko based pipeline that processes events from a wind turbine farm. (Scala version)
+- tensorflow-pekko - A simple pipeline that scores the quality of wines using a TensorFlow model.
 - connected-car-cluster-sharding - An example that uses cluster sharding.

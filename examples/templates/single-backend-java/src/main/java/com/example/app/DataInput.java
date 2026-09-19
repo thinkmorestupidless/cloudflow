@@ -16,23 +16,23 @@
 package com.example.app;
 
 // required to work with the streamlet API
-import akka.stream.javadsl.RunnableGraph;
-import akka.stream.javadsl.Source;
+import org.apache.pekko.stream.javadsl.RunnableGraph;
+import org.apache.pekko.stream.javadsl.Source;
 import cloudflow.streamlets.*;
 import cloudflow.streamlets.avro.*;
 
 // classes used in this particular example
-import akka.NotUsed;
+import org.apache.pekko.NotUsed;
 import scala.Some;
 
 import java.time.Duration;
 import java.util.Random;
 import scala.concurrent.duration.*;
 
-import cloudflow.akkastream.*;
-import cloudflow.akkastream.javadsl.*;
+import cloudflow.pekkostream.*;
+import cloudflow.pekkostream.javadsl.*;
 
-public class DataInput extends AkkaStreamlet {
+public class DataInput extends PekkoStreamlet {
 
   // declare inputs and outputs
   // outputs may declare a partitioner

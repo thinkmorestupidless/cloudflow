@@ -8,7 +8,7 @@ The following example streamlet shows how to declare and use a volume mount:
 
 [source,scala]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-scala/src/main/scala/cloudflow/akkastreamsdoc/DataFileIngress.scala[]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-scala/src/main/scala/cloudflow/pekkostreamsdoc/DataFileIngress.scala[]
 ----
 
 == Java API
@@ -18,7 +18,7 @@ The Java API is slightly different from the Scala API. The example belows shows 
 
 [source,java]
 ----
-include::{cloudflow-examples-version}@docsnippets:ROOT:example$akkastreams-java/src/main/java/cloudflow/akkastreamsdoc/FilterStreamlet.java[]
+include::{cloudflow-examples-version}@docsnippets:ROOT:example$pekkostreams-java/src/main/java/cloudflow/pekkostreamsdoc/FilterStreamlet.java[]
 ----
 
 
