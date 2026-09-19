@@ -88,6 +88,11 @@ Pekko module to that list, not only to `libraryDependencies`.
 **Integration tests.** `cloudflow-it` and `cloudflow-new-it` need a live Kubernetes cluster and are
 not part of `sbt test`.
 
+**Suites that start Kafka run one at a time** (`Test / parallelExecution := false` in
+`cloudflow-pekko-tests` and `cloudflow-operator`). sbt otherwise runs a module's suites in parallel,
+and several Kafka containers at once starve each other: `PekkoStreamletConsumerGroupSpec` failed in
+every full `+test` run once a fifth container joined, and passed alone. Do not "optimise" this back.
+
 ## Versions and releases
 
 The version comes from git alone, via **sbt-dynver**: exactly `0.2.0` on a commit tagged `v0.2.0`,
@@ -200,6 +205,13 @@ only in class names.
 - **The default outlet partitioner is `RoundRobinPartitioner`**, and a partitioner is `T => String`
   — it cannot see the inbound key. A value-only stage between two keyed ones destroys per-key
   ordering; that is what the record API is for.
+- **Writing to another system: `sinkCommittingAfter(write, batchSize, batchWithin)`.** Batches go to
+  `write` one at a time, in read order, and a batch's offsets are committed only after its write
+  succeeds; a failed write fails the stream and commits nothing from that batch on, so a restart re-reads
+  from the last commit — at-least-once, nothing skipped, `write` must be idempotent. It commits with
+  `CommitWhen.OffsetFirstObserved`: Cloudflow's default `NextOffsetObserved` (in `reference.conf`, for
+  multi-output flows) would hold back the last batch before a topic goes quiet. `SinkCommittingAfterKafkaSpec`
+  proves the ordering against real Kafka and fails if the commit is moved ahead of the write.
 - **`managed = false` on a blueprint topic** stops the operator creating it (`TopicActions`), which
   is how a blueprint consumes a topic Cloudflow does not own — a nakka service's:
   ```hocon

@@ -263,7 +263,10 @@ lazy val cloudflowOperator =
       dockerRepository := sys.props.get("docker.registry"),
       dockerBaseImage := "eclipse-temurin:11-jre-focal")
     .settings(dependencyOverrides ++= Seq("org.yaml" % "snakeyaml" % "2.0"))
-    .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat)
+    .settings(
+      Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
+      // Suites here start their own Kafka container; one at a time, as in cloudflow-pekko-tests.
+      Test / parallelExecution := false)
 
 // cloudflow-extractor, cloudflow-build-support, cloudflow-cr-generator, and
 // cloudflow-maven-plugin remain on Scala 2.12 because cloudflow-sbt-plugin (an SBT 1.x
@@ -364,7 +367,11 @@ lazy val cloudflowPekkoTests =
       inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
       Compile / PB.targets := Seq(scalapb.gen() -> (Compile / sourceManaged).value / "sproto"),
       Compile / PB.protoSources := Seq(baseDirectory.value / "src/test/protobuf"),
-      (Test / sourceGenerators) += (Test / avroScalaGenerateSpecific).taskValue)
+      (Test / sourceGenerators) += (Test / avroScalaGenerateSpecific).taskValue,
+      // Several suites here each start a Kafka container. Run in parallel they contend for the machine and time
+      // out (PekkoStreamletConsumerGroupSpec did, in every full run, once a fifth container joined); one at a time,
+      // they pass.
+      Test / parallelExecution := false)
 
 lazy val cloudflowRunner =
   Project(id = "cloudflow-runner", base = file("cloudflow-runner"))

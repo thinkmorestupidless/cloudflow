@@ -183,9 +183,17 @@ per-entity order, and be rebuildable.
       Kafka (`ResetOffsetsIntegrationSpec`); detection once per request, not on status updates, again
       after a restart only if not done (`ResetOffsetsSpec`); the CLI's refusals and request
       (`CliWorkflowSpec`); and the group naming pinned to the runtime's (`ConsumerGroupNamingSpec`).
-- [ ] **Commit after the side effect.** `committableSink(committerSettings)` already exists; add a
-      documented, tested pattern for a sink-only streamlet that commits only after an external
-      transaction (Neo4j) has committed.
+- [x] **Commit after the side effect** (branch `phase-2-commit-after-write`):
+      `sinkCommittingAfter(write, batchSize, batchWithin)` (and a Java variant). Batches by size or time,
+      writes one batch at a time in read order, commits a batch's offsets only after its write succeeds; a
+      failed write fails the stream with nothing past the last good batch committed, so a restart resumes
+      without skipping a record. Built only from existing context operations, so the testkit runs the
+      writes too. Verified against real Kafka (`SinkCommittingAfterKafkaSpec`): after a failed write the
+      committed offset is at most the failed batch's start and everything below it was written; a restart
+      writes the rest and commits to the end. Mutation-checked: committing without waiting for the write
+      fails it (records lost). Found on the way: Cloudflow's default `CommitWhen.NextOffsetObserved` held
+      the last batch's commit back while the topic was quiet; this sink defaults to `OffsetFirstObserved`.
+      Also: suites that start Kafka now run one at a time — in parallel they timed out.
 - [ ] **Consumer-lag metrics per streamlet** — the graph's staleness *is* this number, and nothing
       else will tell us it is falling behind.
 

@@ -30,6 +30,7 @@ import com.typesafe.config.Config
 import cloudflow.streamlets._
 import cloudflow.pekkostream.scaladsl._
 
+import scala.collection.immutable
 import scala.concurrent.Future
 import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 
@@ -272,6 +273,57 @@ abstract class PekkoStreamletLogic(implicit val context: PekkoStreamletContext)
     */
   def committableSink[T]: Sink[(T, Committable), NotUsed] =
     committableSink[T](defaultCommitterSettings)
+
+  /** A sink for writing to a system outside Kafka — a database, a graph — that commits a record's offset only after the
+    * write containing it has succeeded.
+    *
+    * Elements are grouped into batches of up to `batchSize`, or whatever has arrived within `batchWithin`. Each batch
+    * goes to `write`, one at a time: a batch is not written until the one before it has succeeded, so writes happen in
+    * the order the elements were read, and never concurrently. When a write succeeds, the batch's offsets are
+    * committed. When it fails, the stream fails, and nothing from that batch onwards is committed: the streamlet next
+    * reads from the last committed offset, so every element is written at least once and none is skipped. `write` must
+    * therefore tolerate seeing an element again — an idempotent upsert, for instance.
+    *
+    * {{{
+    * def runnableGraph =
+    *   recordSourceWithCommittableContext(in)
+    *     .to(sinkCommittingAfter(batch => graph.merge(batch), batchSize = 500, batchWithin = 1.second))
+    * }}}
+    *
+    * Offsets are handed to the committer as each batch completes; the committer itself may batch commits further
+    * (`committerSettings`), which only ever delays a commit, never moves it ahead of a write. The default settings
+    * commit a batch's offsets as soon as the committer sees them (`CommitWhen.OffsetFirstObserved`): Cloudflow's
+    * general default, `NextOffsetObserved`, guards streams that emit several outputs per input, and here would only
+    * hold back the last batch before a topic goes quiet until more data arrives.
+    */
+  def sinkCommittingAfter[T](
+      write: immutable.Seq[T] => Future[Any],
+      batchSize: Int = 1,
+      batchWithin: FiniteDuration = 1.second,
+      committerSettings: CommitterSettings = defaultCommitterSettings.withCommitWhen(CommitWhen.OffsetFirstObserved))
+      : Sink[(T, Committable), NotUsed] =
+    Flow[(T, Committable)]
+      .groupedWithin(batchSize, batchWithin)
+      .mapAsync(1) { batch =>
+        write(batch.map(_._1)).map(_ => ((), CommittableOffsetBatch(batch.map(_._2))))
+      }
+      .to(committableSink[Unit](committerSettings))
+
+  /** Java API
+    * @see
+    *   [[sinkCommittingAfter]]
+    */
+  def getSinkCommittingAfter[T](
+      write: java.util.function.Function[java.util.List[T], java.util.concurrent.CompletionStage[_]],
+      batchSize: Int,
+      batchWithin: java.time.Duration)
+      : org.apache.pekko.stream.javadsl.Sink[org.apache.pekko.japi.Pair[T, Committable], NotUsed] = {
+    import scala.jdk.CollectionConverters._
+    import scala.jdk.DurationConverters._
+    import scala.jdk.FutureConverters._
+    sinkCommittingAfter[T](batch => write.apply(batch.asJava).asScala, batchSize, batchWithin.toScala).asJava
+      .contramap { case pair => (pair.first, pair.second) }
+  }
 
   /** Creates a sink for publishing records to the outlet. The records are partitioned according to the `partitioner` of
     * the `outlet`. Batches offsets from the contexts that accompany the records, and commits these to Kafka. The
