@@ -194,8 +194,18 @@ per-entity order, and be rebuildable.
       fails it (records lost). Found on the way: Cloudflow's default `CommitWhen.NextOffsetObserved` held
       the last batch's commit back while the topic was quiet; this sink defaults to `OffsetFirstObserved`.
       Also: suites that start Kafka now run one at a time — in parallel they timed out.
-- [ ] **Consumer-lag metrics per streamlet** — the graph's staleness *is* this number, and nothing
-      else will tell us it is falling behind.
+- [x] **Consumer-lag metrics per streamlet** (branch `phase-2-consumer-lag`). The lag was already exported
+      by the Prometheus JMX agent in every streamlet image, and streamlet pods already carry
+      `prometheus.io/scrape`; what was missing was attribution. Kafka labels those metrics with the client
+      id, which Cloudflow left to Kafka to generate. Each port now connects as
+      `<appId>.<streamletRef>.<port>`, so a lag belongs to a streamlet and its inlet. Tested both ends:
+      `ConsumerLagKafkaSpec` (against real Kafka, the MBeans appear under that id and read 0 once caught
+      up; mutation-checked by dropping the client id) and `PrometheusRulesSpec` (the shipped agent rules
+      match those JMX names, and `records-lag-max` keeps its own rule ahead of `records-lag`, whose
+      pattern its name also matches).
+
+**Phase 2 is complete.** What the graph pipelines needed from Cloudflow — record keys and headers, a JSON
+codec, topics Cloudflow does not own, rebuild support, commit-after-write, lag metrics — is in and tested.
 
 ## Phase 3 — Running beside nakka
 
