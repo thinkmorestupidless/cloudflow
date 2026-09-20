@@ -37,11 +37,13 @@ final class KafkaSinkRef[T](
     outlet: CodecOutlet[T],
     bootstrapServers: String,
     topic: Topic,
+    clientId: String,
     killSwitch: SharedKillSwitch,
     completionPromise: Promise[Dun])
     extends WritableSinkRef[T] {
   private val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
     .withBootstrapServers(bootstrapServers)
+    .withClientId(clientId)
     .withProperties(topic.kafkaProducerProperties)
   private val producer = producerSettings.createKafkaProducer()
 

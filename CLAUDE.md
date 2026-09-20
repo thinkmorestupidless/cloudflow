@@ -205,6 +205,14 @@ only in class names.
 - **The default outlet partitioner is `RoundRobinPartitioner`**, and a partitioner is `T => String`
   — it cannot see the inbound key. A value-only stage between two keyed ones destroys per-key
   ordering; that is what the record API is for.
+- **Kafka clients are named `<appId>.<streamletRef>.<port>`** (`PekkoStreamletContextImpl.clientId`). Kafka
+  labels its own consumer and producer metrics — a consumer's lag above all, which is how far behind a
+  pipeline is — with the client id, and JMX exposes them under it; left to Kafka's default the id is
+  generated and one streamlet's lag cannot be told from another's. The Prometheus JMX agent in every
+  streamlet image exports them (rules in the sbt plugin's `runtimes/pekko/prometheus.yaml`), the operator
+  annotates streamlet pods `prometheus.io/scrape`. Two tests hold this together: `ConsumerLagKafkaSpec`
+  (the MBeans really appear under that id) and `PrometheusRulesSpec` (the shipped rules match those
+  names — a rule that misses exports nothing, silently).
 - **Writing to another system: `sinkCommittingAfter(write, batchSize, batchWithin)`.** Batches go to
   `write` one at a time, in read order, and a batch's offsets are committed only after its write
   succeeds; a failed write fails the stream and commits nothing from that batch on, so a restart re-reads

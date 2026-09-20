@@ -129,11 +129,7 @@ final class PekkoStreamletContextImpl(
     val topic = findTopicForPort(inlet)
     val gId = topic.groupId(streamletDefinition.appId, streamletRef, inlet)
 
-    val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withGroupId(gId)
-      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-      .withProperties(topic.kafkaConsumerProperties)
+    val consumerSettings = kafkaConsumerSettings(topic, inlet, gId, "earliest")
 
     system.log.info(s"Creating committable source for group: $gId topic: ${topic.name}")
 
@@ -172,11 +168,7 @@ final class PekkoStreamletContextImpl(
     val topic = findTopicForPort(inlet)
     val gId = topic.groupId(streamletDefinition.appId, streamletRef, inlet)
 
-    val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withGroupId(gId)
-      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-      .withProperties(topic.kafkaConsumerProperties)
+    val consumerSettings = kafkaConsumerSettings(topic, inlet, gId, "earliest")
 
     val rebalanceListener: org.apache.pekko.actor.typed.ActorRef[ConsumerRebalanceEvent] =
       KafkaClusterSharding(system).rebalanceListener(shardEntity.typeKey)
@@ -238,9 +230,7 @@ final class PekkoStreamletContextImpl(
       outlet: CodecOutlet[T],
       committerSettings: CommitterSettings): Sink[(T, Committable), NotUsed] = {
     val topic = findTopicForPort(outlet)
-    val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withProperties(topic.kafkaProducerProperties)
+    val producerSettings = kafkaProducerSettings(topic, outlet)
 
     Flow[(T, Committable)]
       .map { case (value, committable) =>
@@ -259,9 +249,7 @@ final class PekkoStreamletContextImpl(
   override def flexiFlow[T](
       outlet: CodecOutlet[T]): Flow[(immutable.Seq[_ <: T], Committable), (Unit, Committable), NotUsed] = {
     val topic = findTopicForPort(outlet)
-    val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withProperties(topic.kafkaProducerProperties)
+    val producerSettings = kafkaProducerSettings(topic, outlet)
 
     Flow[(immutable.Seq[T], Committable)]
       .map { case (values, committable) =>
@@ -284,9 +272,7 @@ final class PekkoStreamletContextImpl(
       outlet: CodecOutlet[T],
       committerSettings: CommitterSettings): Sink[(T, CommittableOffset), NotUsed] = {
     val topic = findTopicForPort(outlet)
-    val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withProperties(topic.kafkaProducerProperties)
+    val producerSettings = kafkaProducerSettings(topic, outlet)
 
     Flow[(T, CommittableOffset)]
       .map { case (value, committable) =>
@@ -315,11 +301,7 @@ final class PekkoStreamletContextImpl(
     // TODO clean this up, lot of copying code, refactor.
     val topic = findTopicForPort(inlet)
     val gId = topic.groupId(streamletDefinition.appId, streamletRef, inlet)
-    val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withGroupId(gId)
-      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, resetPosition.autoOffsetReset)
-      .withProperties(topic.kafkaConsumerProperties)
+    val consumerSettings = kafkaConsumerSettings(topic, inlet, gId, resetPosition.autoOffsetReset)
 
     Consumer
       .plainSource(consumerSettings, Subscriptions.topics(topic.name))
@@ -339,11 +321,7 @@ final class PekkoStreamletContextImpl(
       kafkaTimeout: FiniteDuration = 10.seconds): Source[T, Future[NotUsed]] = {
     val topic = findTopicForPort(inlet)
     val gId = topic.groupId(streamletDefinition.appId, streamletRef, inlet)
-    val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withGroupId(gId)
-      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, resetPosition.autoOffsetReset)
-      .withProperties(topic.kafkaConsumerProperties)
+    val consumerSettings = kafkaConsumerSettings(topic, inlet, gId, resetPosition.autoOffsetReset)
 
     val rebalanceListener: org.apache.pekko.actor.typed.ActorRef[ConsumerRebalanceEvent] =
       KafkaClusterSharding(system).rebalanceListener(shardEntity.typeKey)
@@ -389,9 +367,7 @@ final class PekkoStreamletContextImpl(
 
   def plainSink[T](outlet: CodecOutlet[T]): Sink[T, NotUsed] = {
     val topic = findTopicForPort(outlet)
-    val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-      .withBootstrapServers(runtimeBootstrapServers(topic))
-      .withProperties(topic.kafkaProducerProperties)
+    val producerSettings = kafkaProducerSettings(topic, outlet)
 
     Flow[T]
       .map { value =>
@@ -414,7 +390,7 @@ final class PekkoStreamletContextImpl(
         ProducerMessage.Message(recordProducerRecord(outlet, topic, record), committable)
       }
       .via(handleTermination)
-      .toMat(Producer.committableSink(producerSettings(topic), committerSettings))(Keep.left)
+      .toMat(Producer.committableSink(kafkaProducerSettings(topic, outlet), committerSettings))(Keep.left)
   }
 
   override def plainRecordSink[T](outlet: CodecOutlet[T]): Sink[Record[T], NotUsed] = {
@@ -422,13 +398,36 @@ final class PekkoStreamletContextImpl(
     Flow[Record[T]]
       .map(record => recordProducerRecord(outlet, topic, record))
       .via(handleTermination)
-      .to(Producer.plainSink(producerSettings(topic)))
+      .to(Producer.plainSink(kafkaProducerSettings(topic, outlet)))
       .mapMaterializedValue(_ => NotUsed)
   }
 
-  private def producerSettings(topic: Topic): ProducerSettings[Array[Byte], Array[Byte]] =
+  /** The Kafka client id a port connects with: `<appId>.<streamletRef>.<port>`.
+    *
+    * Kafka's own consumer and producer metrics — a consumer's lag above all — are labelled by client id, and JMX
+    * exposes them under it (see the Prometheus rules in the sbt plugin's `runtimes/pekko/prometheus.yaml`). Left to
+    * Kafka's default the id is generated, and a streamlet's lag cannot be told from another's. Instances of a scaled
+    * streamlet share it; the pod a metric came from distinguishes them.
+    */
+  private[pekkostream] def clientId(port: String): String =
+    s"${streamletDefinition.appId}.$streamletRef.$port"
+
+  private def kafkaConsumerSettings(
+      topic: Topic,
+      inlet: CodecInlet[_],
+      groupId: String,
+      autoOffsetReset: String): ConsumerSettings[Array[Byte], Array[Byte]] =
+    ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
+      .withBootstrapServers(runtimeBootstrapServers(topic))
+      .withGroupId(groupId)
+      .withClientId(clientId(inlet.name))
+      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset)
+      .withProperties(topic.kafkaConsumerProperties)
+
+  private def kafkaProducerSettings(topic: Topic, outlet: CodecOutlet[_]): ProducerSettings[Array[Byte], Array[Byte]] =
     ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
       .withBootstrapServers(runtimeBootstrapServers(topic))
+      .withClientId(clientId(outlet.name))
       .withProperties(topic.kafkaProducerProperties)
 
   /** The record's own key, or the outlet's partitioner when it has none, and its headers in order. */
@@ -450,7 +449,14 @@ final class PekkoStreamletContextImpl(
   def sinkRef[T](outlet: CodecOutlet[T]): WritableSinkRef[T] = {
     val topic = findTopicForPort(outlet)
 
-    new KafkaSinkRef(system, outlet, runtimeBootstrapServers(topic), topic, killSwitch, execution.completionPromise)
+    new KafkaSinkRef(
+      system,
+      outlet,
+      runtimeBootstrapServers(topic),
+      topic,
+      clientId(outlet.name),
+      killSwitch,
+      execution.completionPromise)
   }
 
   private def keyBytes(key: String) = if (key != null) key.getBytes(StandardCharsets.UTF_8) else null
